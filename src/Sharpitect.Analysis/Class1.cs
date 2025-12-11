@@ -1,4 +1,4 @@
-﻿namespace C4SharpAnalyzer.Analysis;
+﻿namespace Sharpitect.Analysis;
 
 public class Class1
 {

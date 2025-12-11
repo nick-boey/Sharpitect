@@ -1,4 +1,4 @@
-namespace C4SharpAnalyzer.Analysis.Test;
+namespace Sharpitect.Analysis.Test;
 
 public class Tests
 {

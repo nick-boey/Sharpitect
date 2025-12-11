@@ -9,7 +9,7 @@
         <OutputType>Library</OutputType>
         <AppDesignerFolder>Properties</AppDesignerFolder>
         <RootNamespace>C4SharpAnalyzer.Attributes</RootNamespace>
-        <AssemblyName>C4SharpAnalyzer.Attributes</AssemblyName>
+        <AssemblyName>Sharpitect.Attributes</AssemblyName>
         <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
     </PropertyGroup>
