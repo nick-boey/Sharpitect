@@ -12,15 +12,22 @@ public class ClassCode : ICode
     /// Initializes a new instance of the <see cref="ClassCode"/> class.
     /// </summary>
     /// <param name="name">The name of the class.</param>
+    /// <param name="namespace">The namespace containing the class.</param>
     /// <param name="description">An optional description of the class.</param>
-    public ClassCode(string name, string? description = null)
+    public ClassCode(string name, string? @namespace = null, string? description = null)
     {
         Name = name;
+        Namespace = @namespace;
         Description = description;
     }
 
     /// <inheritdoc />
     public string Name { get; }
+
+    /// <summary>
+    /// Gets the namespace containing this class.
+    /// </summary>
+    public string? Namespace { get; }
 
     /// <inheritdoc />
     public string? Description { get; }

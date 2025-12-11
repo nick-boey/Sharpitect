@@ -12,15 +12,22 @@ public class MethodCode : ICode
     /// Initializes a new instance of the <see cref="MethodCode"/> class.
     /// </summary>
     /// <param name="name">The name of the method.</param>
+    /// <param name="returnType">The return type of the method.</param>
     /// <param name="description">An optional description of the method.</param>
-    public MethodCode(string name, string? description = null)
+    public MethodCode(string name, string? returnType = null, string? description = null)
     {
         Name = name;
+        ReturnType = returnType;
         Description = description;
     }
 
     /// <inheritdoc />
     public string Name { get; }
+
+    /// <summary>
+    /// Gets the return type of this method.
+    /// </summary>
+    public string? ReturnType { get; }
 
     /// <inheritdoc />
     public string? Description { get; }

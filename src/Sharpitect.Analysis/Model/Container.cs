@@ -13,10 +13,12 @@ public class Container : IElement
     /// </summary>
     /// <param name="name">The name of the container.</param>
     /// <param name="description">An optional description of the container.</param>
-    public Container(string name, string? description = null)
+    /// <param name="technology">The technology used by this container (e.g., ASP.NET Core).</param>
+    public Container(string name, string? description = null, string? technology = null)
     {
         Name = name;
         Description = description;
+        Technology = technology;
     }
 
     /// <inheritdoc />
@@ -24,6 +26,11 @@ public class Container : IElement
 
     /// <inheritdoc />
     public string? Description { get; }
+
+    /// <summary>
+    /// Gets the technology used by this container.
+    /// </summary>
+    public string? Technology { get; }
 
     /// <summary>
     /// Gets the components within this container.
