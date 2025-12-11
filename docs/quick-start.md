@@ -1,6 +1,8 @@
-# C4SharpAnalyzer Quick Start Guide
+# Sharpitect Quick Start Guide
 
-C4SharpAnalyzer generates [C4 model](https://c4model.com/) architecture diagrams from annotated C# codebases. It analyzes your solution structure, project configurations, and code annotations to produce System Context, Container, Component, and Code diagrams.
+Sharpitect generates [C4 model](https://c4model.com/) architecture diagrams from annotated C# codebases. It
+analyzes your solution structure, project configurations, and code annotations to produce System Context, Container,
+Component, and Code diagrams.
 
 ## Table of Contents
 
@@ -16,28 +18,28 @@ C4SharpAnalyzer generates [C4 model](https://c4model.com/) architecture diagrams
 
 ## Installation
 
-Add the C4SharpAnalyzer attributes package to projects you want to annotate:
+Add the Sharpitect attributes package to projects you want to annotate:
 
 ```bash
-dotnet add package C4SharpAnalyzer.Attributes
+dotnet add package Sharpitect.Attributes
 ```
 
 Install the CLI tool globally:
 
 ```bash
-dotnet tool install -g C4SharpAnalyzer.Tool
+dotnet tool install -g Sharpitect.Tool
 ```
 
 ## C4 Model Overview
 
-C4SharpAnalyzer maps C# constructs to C4 model elements:
+Sharpitect maps C# constructs to C4 model elements:
 
-| C4 Level | C# Construct | Configuration |
-|----------|--------------|---------------|
-| **System** | Solution (`.sln`) | `*.sln.c4` YAML file |
-| **Container** | Executable project | `*.csproj.c4` YAML or `.csproj` metadata |
-| **Component** | Interface with `[C4Component]` | Attribute or namespace mapping |
-| **Code** | Classes | Auto-generated class diagrams |
+| C4 Level      | C# Construct                   | Configuration                            |
+|---------------|--------------------------------|------------------------------------------|
+| **System**    | Solution (`.sln`)              | `*.sln.c4` YAML file                     |
+| **Container** | Executable project             | `*.csproj.c4` YAML or `.csproj` metadata |
+| **Component** | Interface with `[Component]` | Attribute or namespace mapping           |
+| **Code**      | Classes                        | Auto-generated class diagrams            |
 
 ## System Level
 
@@ -85,7 +87,7 @@ externalContainers:
     technology: Azure Blob Storage
     description: "User uploads and documents"
 
-# Relationship name registry - all [C4Action] annotations must use these names
+# Relationship name registry - all [Action] annotations must use these names
 relationships:
   - "processes payments"
   - "sends emails"
@@ -96,10 +98,13 @@ relationships:
 
 ### Key Points
 
-- **People**: Define all actors that interact with your system. These names are referenced in `[C4UserAction]` attributes.
+- **People**: Define all actors that interact with your system. These names are referenced in `[UserAction]`
+  attributes.
 - **External Systems**: Third-party systems outside your control.
-- **External Containers**: Infrastructure components (databases, caches, storage) that don't exist as projects in your solution.
-- **Relationships**: A registry of allowed relationship names. Code annotations using `[C4Action]` must match these names exactly.
+- **External Containers**: Infrastructure components (databases, caches, storage) that don't exist as projects in your
+  solution.
+- **Relationships**: A registry of allowed relationship names. Code annotations using `[Action]` must match these
+  names exactly.
 
 ## Container Level
 
@@ -141,21 +146,22 @@ components:
 Add C4 metadata directly to your `.csproj` file:
 
 ```xml
-<Project Sdk="Microsoft.NET.Sdk.Web">
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
 
-    <!-- C4 Container metadata -->
-    <C4ContainerName>Web API</C4ContainerName>
-    <C4ContainerDescription>RESTful API serving the web and mobile frontends</C4ContainerDescription>
-    <C4ContainerTechnology>ASP.NET Core 8</C4ContainerTechnology>
-  </PropertyGroup>
+<Project Sdk="Microsoft.NET.Sdk.Web">
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+
+        <!-- C4 Container metadata -->
+        <C4ContainerName>Web API</C4ContainerName>
+        <C4ContainerDescription>RESTful API serving the web and mobile frontends</C4ContainerDescription>
+        <C4ContainerTechnology>ASP.NET Core 8</C4ContainerTechnology>
+    </PropertyGroup>
 </Project>
 ```
 
 ### Which Projects Are Containers?
 
-By default, C4SharpAnalyzer treats the following as containers:
+By default, Sharpitect treats the following as containers:
 
 - Web applications (`Microsoft.NET.Sdk.Web`)
 - Console applications with `<OutputType>Exe</OutputType>`
@@ -167,17 +173,17 @@ Class libraries are **not** containers unless explicitly configured.
 
 Components represent logical groupings within a container. Define them using:
 
-1. The `[C4Component]` attribute on interfaces (recommended)
+1. The `[Component]` attribute on interfaces (recommended)
 2. Namespace mappings in the container's `.c4` file
 
 ### Option 1: Attribute-Based Components
 
-Apply `[C4Component]` to interfaces that represent component boundaries:
+Apply `[Component]` to interfaces that represent component boundaries:
 
 ```csharp
-using C4SharpAnalyzer.Attributes;
+using Sharpitect.Attributes;
 
-[C4Component("Order Service", Description = "Handles order creation and management")]
+[Component("Order Service", Description = "Handles order creation and management")]
 public interface IOrderService
 {
     Order CreateOrder(OrderRequest request);
@@ -186,7 +192,8 @@ public interface IOrderService
 }
 ```
 
-**Component Grouping**: Any class that implements a `[C4Component]` interface is automatically grouped into that component:
+**Component Grouping**: Any class that implements a `[Component]` interface is automatically grouped into that
+component:
 
 ```csharp
 // This class belongs to the "Order Service" component
@@ -226,13 +233,15 @@ All classes within the specified namespace become part of that component.
 
 1. **No Nesting**: Components cannot contain other components. The tool reports an error if nesting is detected.
 2. **Single Assignment**: A class can only belong to one component.
-3. **Attribute Priority**: If a class implements a `[C4Component]` interface and is also in a namespace-mapped component, the attribute takes precedence.
+3. **Attribute Priority**: If a class implements a `[Component]` interface and is also in a namespace-mapped
+   component, the attribute takes precedence.
 
 ## Code Level
 
-The Code level consists of class diagrams that are automatically generated from your codebase. No additional configuration is required.
+The Code level consists of class diagrams that are automatically generated from your codebase. No additional
+configuration is required.
 
-C4SharpAnalyzer generates class diagrams showing:
+Sharpitect generates class diagrams showing:
 
 - Classes within each component
 - Properties and methods
@@ -245,7 +254,8 @@ Relationships between elements are determined by analyzing method calls and prop
 
 ### Automatic Detection
 
-When code in one component calls a method or accesses a property in another component, a relationship is automatically created:
+When code in one component calls a method or accesses a property in another component, a relationship is automatically
+created:
 
 ```csharp
 public class OrderService : IOrderService
@@ -263,36 +273,37 @@ public class OrderService : IOrderService
 
 The relationship name defaults to the method name (`CheckStock`).
 
-### Custom Relationship Names with `[C4Action]`
+### Custom Relationship Names with `[Action]`
 
-Override the default relationship name using `[C4Action]`:
+Override the default relationship name using `[Action]`:
 
 ```csharp
-[C4Component("Inventory Service")]
+[Component("Inventory Service")]
 public interface IInventoryService
 {
-    [C4Action("checks product availability")]
+    [Action("checks product availability")]
     bool CheckStock(int productId);
 
-    [C4Action("reserves inventory")]
+    [Action("reserves inventory")]
     void ReserveStock(int productId, int quantity);
 }
 ```
 
-**Important**: The relationship name must match an entry in the `relationships` registry in your `.sln.c4` file. The tool reports an error if a name is used that isn't registered.
+**Important**: The relationship name must match an entry in the `relationships` registry in your `.sln.c4` file. The
+tool reports an error if a name is used that isn't registered.
 
-### User Interactions with `[C4UserAction]`
+### User Interactions with `[UserAction]`
 
-Mark methods that represent user entry points with `[C4UserAction]`:
+Mark methods that represent user entry points with `[UserAction]`:
 
 ```csharp
-[C4Component("Order Service")]
+[Component("Order Service")]
 public interface IOrderService
 {
-    [C4UserAction("Customer", "places an order")]
+    [UserAction("Customer", "places an order")]
     Order CreateOrder(OrderRequest request);
 
-    [C4UserAction("Admin", "cancels customer order")]
+    [UserAction("Admin", "cancels customer order")]
     void CancelOrder(int orderId);
 }
 ```
@@ -311,7 +322,7 @@ Mark methods that call external systems:
 ```csharp
 public class PaymentProcessor : IPaymentProcessor
 {
-    [C4Action("processes payments")]  // Must match relationships registry
+    [Action("processes payments")]  // Must match relationships registry
     public PaymentResult ProcessPayment(PaymentRequest request)
     {
         // Call to external payment gateway
@@ -344,31 +355,31 @@ c4sharp analyze MySolution.sln --format puml
 
 ## Validation and Errors
 
-C4SharpAnalyzer validates your configuration and annotations, reporting errors for:
+Sharpitect validates your configuration and annotations, reporting errors for:
 
 ### Configuration Errors
 
-| Error | Description |
-|-------|-------------|
-| `C4001` | Missing `.sln.c4` file for solution |
+| Error   | Description                               |
+|---------|-------------------------------------------|
+| `C4001` | Missing `.sln.c4` file for solution       |
 | `C4002` | Invalid YAML syntax in configuration file |
-| `C4003` | Missing required field in configuration |
+| `C4003` | Missing required field in configuration   |
 
 ### Component Errors
 
-| Error | Description |
-|-------|-------------|
-| `C4101` | Nested components detected |
-| `C4102` | Class assigned to multiple components |
+| Error   | Description                                     |
+|---------|-------------------------------------------------|
+| `C4101` | Nested components detected                      |
+| `C4102` | Class assigned to multiple components           |
 | `C4103` | Component name conflicts with another component |
 
 ### Relationship Errors
 
-| Error | Description |
-|-------|-------------|
-| `C4201` | `[C4Action]` uses unregistered relationship name |
-| `C4202` | `[C4UserAction]` references undefined person |
-| `C4203` | Circular dependency detected between components |
+| Error   | Description                                      |
+|---------|--------------------------------------------------|
+| `C4201` | `[Action]` uses unregistered relationship name |
+| `C4202` | `[UserAction]` references undefined person     |
+| `C4203` | Circular dependency detected between components  |
 
 ### Example Error Output
 
@@ -376,7 +387,7 @@ C4SharpAnalyzer validates your configuration and annotations, reporting errors f
 error C4201: Relationship name "sends notification" is not registered.
   --> src/Services/NotificationService.cs:15
    |
-15 |     [C4Action("sends notification")]
+15 |     [Action("sends notification")]
    |              ^^^^^^^^^^^^^^^^^^^^
    |
   = help: Add "sends notification" to the relationships list in MySolution.sln.c4

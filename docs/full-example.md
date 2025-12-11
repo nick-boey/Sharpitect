@@ -71,7 +71,7 @@ externalContainers:
     description: "Product images and user uploads"
 
 # Relationship name registry
-# All [C4Action] attributes must use one of these exact names
+# All [Action] attributes must use one of these exact names
 relationships:
   # Payment related
   - "processes payment"
@@ -124,7 +124,7 @@ container:
   technology: "ASP.NET Core 8, C#"
 
 # Components defined by namespace
-# These supplement [C4Component] attributes in code
+# These supplement [Component] attributes in code
 components:
   - namespace: ShopEasy.WebApi.Controllers
     name: "API Controllers"
@@ -164,37 +164,37 @@ namespace ShopEasy.Core.Interfaces;
 /// <summary>
 /// Handles order lifecycle from creation to fulfillment.
 /// </summary>
-[C4Component("Order Service", Description = "Manages order creation, updates, and fulfillment workflow")]
+[Component("Order Service", Description = "Manages order creation, updates, and fulfillment workflow")]
 public interface IOrderService
 {
     /// <summary>
     /// Creates a new order from the customer's cart.
     /// </summary>
-    [C4UserAction("Customer", "places order")]
+    [UserAction("Customer", "places order")]
     Task<Order> CreateOrderAsync(CreateOrderRequest request);
 
     /// <summary>
     /// Retrieves order details for display.
     /// </summary>
-    [C4UserAction("Customer", "views order history")]
+    [UserAction("Customer", "views order history")]
     Task<Order> GetOrderAsync(int orderId);
 
     /// <summary>
     /// Cancels an order before it ships.
     /// </summary>
-    [C4UserAction("Customer", "cancels order")]
+    [UserAction("Customer", "cancels order")]
     Task CancelOrderAsync(int orderId);
 
     /// <summary>
     /// Admin updates order status during fulfillment.
     /// </summary>
-    [C4UserAction("Admin", "updates order status")]
+    [UserAction("Admin", "updates order status")]
     Task UpdateOrderStatusAsync(int orderId, OrderStatus status);
 
     /// <summary>
     /// Admin views all orders with filtering.
     /// </summary>
-    [C4UserAction("Admin", "manages orders")]
+    [UserAction("Admin", "manages orders")]
     Task<PagedResult<Order>> GetOrdersAsync(OrderFilter filter);
 }
 ```
@@ -283,22 +283,22 @@ using Sharpitect.Attributes;
 
 namespace ShopEasy.Core.Interfaces;
 
-[C4Component("Inventory Service", Description = "Tracks product stock levels and reservations")]
+[Component("Inventory Service", Description = "Tracks product stock levels and reservations")]
 public interface IInventoryService
 {
-    [C4Action("checks product availability")]
+    [Action("checks product availability")]
     Task<bool> CheckStockAsync(int productId, int quantity);
 
-    [C4Action("reserves inventory")]
+    [Action("reserves inventory")]
     Task ReserveStockAsync(int productId, int quantity);
 
-    [C4Action("releases inventory")]
+    [Action("releases inventory")]
     Task ReleaseStockAsync(int productId, int quantity);
 
-    [C4UserAction("Admin", "updates stock levels")]
+    [UserAction("Admin", "updates stock levels")]
     Task UpdateStockAsync(int productId, int newQuantity);
 
-    [C4UserAction("Admin", "views inventory report")]
+    [UserAction("Admin", "views inventory report")]
     Task<InventoryReport> GetInventoryReportAsync();
 }
 ```
@@ -312,19 +312,19 @@ using Sharpitect.Attributes;
 
 namespace ShopEasy.Core.Interfaces;
 
-[C4Component("Payment Service", Description = "Handles payment processing and refunds")]
+[Component("Payment Service", Description = "Handles payment processing and refunds")]
 public interface IPaymentService
 {
     /// <summary>
     /// Processes a payment through the external payment gateway.
     /// </summary>
-    [C4Action("processes payment")]
+    [Action("processes payment")]
     Task<PaymentResult> ProcessPaymentAsync(PaymentRequest request);
 
     /// <summary>
     /// Issues a refund for a previous payment.
     /// </summary>
-    [C4Action("refunds payment")]
+    [Action("refunds payment")]
     Task<RefundResult> RefundPaymentAsync(string transactionId, decimal amount);
 }
 ```
@@ -338,7 +338,7 @@ namespace ShopEasy.Core.Services;
 
 /// <summary>
 /// Payment service implementation using Stripe.
-/// The [C4Action] attributes on the interface methods indicate
+/// The [Action] attributes on the interface methods indicate
 /// these operations interact with the external PaymentGateway system.
 /// </summary>
 public class StripePaymentService : IPaymentService
@@ -393,16 +393,16 @@ using Sharpitect.Attributes;
 
 namespace ShopEasy.Core.Interfaces;
 
-[C4Component("Notification Service", Description = "Sends emails and push notifications to users")]
+[Component("Notification Service", Description = "Sends emails and push notifications to users")]
 public interface INotificationService
 {
-    [C4Action("sends order confirmation")]
+    [Action("sends order confirmation")]
     Task SendOrderConfirmationAsync(Order order);
 
-    [C4Action("sends shipping notification")]
+    [Action("sends shipping notification")]
     Task SendShippingNotificationAsync(Order order, TrackingInfo tracking);
 
-    [C4Action("sends password reset")]
+    [Action("sends password reset")]
     Task SendPasswordResetAsync(string email, string resetToken);
 }
 ```
@@ -416,22 +416,22 @@ using Sharpitect.Attributes;
 
 namespace ShopEasy.Core.Interfaces;
 
-[C4Component("Product Catalog", Description = "Manages product information and search")]
+[Component("Product Catalog", Description = "Manages product information and search")]
 public interface IProductService
 {
-    [C4UserAction("Customer", "browses products")]
+    [UserAction("Customer", "browses products")]
     Task<PagedResult<Product>> GetProductsAsync(ProductFilter filter);
 
-    [C4UserAction("Customer", "views product details")]
+    [UserAction("Customer", "views product details")]
     Task<ProductDetail> GetProductAsync(int productId);
 
-    [C4Action("searches products")]
+    [Action("searches products")]
     Task<SearchResult<Product>> SearchProductsAsync(string query);
 
-    [C4UserAction("Admin", "creates product")]
+    [UserAction("Admin", "creates product")]
     Task<Product> CreateProductAsync(CreateProductRequest request);
 
-    [C4UserAction("Admin", "updates product")]
+    [UserAction("Admin", "updates product")]
     Task UpdateProductAsync(int productId, UpdateProductRequest request);
 }
 ```
@@ -445,16 +445,16 @@ using Sharpitect.Attributes;
 
 namespace ShopEasy.Core.Interfaces;
 
-[C4Component("Data Access", Description = "Repository layer for database operations")]
+[Component("Data Access", Description = "Repository layer for database operations")]
 public interface IOrderRepository
 {
-    [C4Action("stores data")]
+    [Action("stores data")]
     Task SaveAsync(Order order);
 
-    [C4Action("reads data")]
+    [Action("reads data")]
     Task<Order> GetByIdAsync(int orderId);
 
-    [C4Action("reads data")]
+    [Action("reads data")]
     Task<List<Order>> GetByCustomerIdAsync(int customerId);
 }
 ```
@@ -468,16 +468,16 @@ using Sharpitect.Attributes;
 
 namespace ShopEasy.Core.Interfaces;
 
-[C4Component("Cache Service", Description = "Manages Redis cache for performance optimization")]
+[Component("Cache Service", Description = "Manages Redis cache for performance optimization")]
 public interface ICacheService
 {
-    [C4Action("caches data")]
+    [Action("caches data")]
     Task SetAsync<T>(string key, T value, TimeSpan expiration);
 
-    [C4Action("reads data")]
+    [Action("reads data")]
     Task<T?> GetAsync<T>(string key);
 
-    [C4Action("invalidates cache")]
+    [Action("invalidates cache")]
     Task RemoveAsync(string key);
 }
 ```
@@ -491,10 +491,10 @@ using Sharpitect.Attributes;
 
 namespace ShopEasy.Worker.Jobs;
 
-[C4Component("Order Fulfillment", Description = "Processes order shipping and delivery")]
+[Component("Order Fulfillment", Description = "Processes order shipping and delivery")]
 public interface IOrderFulfillmentJob
 {
-    [C4Action("consumes message")]
+    [Action("consumes message")]
     Task ProcessOrderAsync(OrderCreatedMessage message);
 }
 
@@ -541,16 +541,16 @@ using Sharpitect.Attributes;
 
 namespace ShopEasy.Core.Interfaces;
 
-[C4Component("Shipping Service", Description = "Integrates with shipping carriers for rates and labels")]
+[Component("Shipping Service", Description = "Integrates with shipping carriers for rates and labels")]
 public interface IShippingService
 {
-    [C4Action("calculates shipping rates")]
+    [Action("calculates shipping rates")]
     Task<List<ShippingRate>> GetRatesAsync(ShippingRequest request);
 
-    [C4Action("creates shipping label")]
+    [Action("creates shipping label")]
     Task<TrackingInfo> CreateShippingLabelAsync(Order order);
 
-    [C4Action("tracks shipment")]
+    [Action("tracks shipment")]
     Task<ShipmentStatus> GetTrackingStatusAsync(string trackingNumber);
 }
 ```
@@ -629,33 +629,33 @@ c4sharp validate ShopEasy.sln
 
 ### Pattern: Service calls External System
 
-When a component calls an external system (defined in `.sln.c4`), use `[C4Action]` with a registered relationship name:
+When a component calls an external system (defined in `.sln.c4`), use `[Action]` with a registered relationship name:
 
 ```csharp
-[C4Component("Payment Service")]
+[Component("Payment Service")]
 public interface IPaymentService
 {
-    [C4Action("processes payment")]  // Links to PaymentGateway
+    [Action("processes payment")]  // Links to PaymentGateway
     Task<PaymentResult> ProcessAsync(PaymentRequest request);
 }
 ```
 
 ### Pattern: User Entry Point
 
-Mark public-facing methods with `[C4UserAction]` to show user interactions:
+Mark public-facing methods with `[UserAction]` to show user interactions:
 
 ```csharp
-[C4UserAction("Customer", "searches for products")]
+[UserAction("Customer", "searches for products")]
 Task<SearchResult> SearchAsync(string query);
 ```
 
 ### Pattern: Internal Component Communication
 
-Method calls between components automatically create relationships. Use `[C4Action]` to provide meaningful names:
+Method calls between components automatically create relationships. Use `[Action]` to provide meaningful names:
 
 ```csharp
 // In IInventoryService
-[C4Action("reserves inventory")]
+[Action("reserves inventory")]
 Task ReserveStockAsync(int productId, int quantity);
 ```
 
@@ -665,10 +665,10 @@ For components that communicate via messages:
 
 ```csharp
 // Publisher
-[C4Action("publishes message")]
+[Action("publishes message")]
 Task PublishOrderCreatedAsync(Order order);
 
 // Consumer
-[C4Action("consumes message")]
+[Action("consumes message")]
 Task HandleOrderCreatedAsync(OrderCreatedMessage message);
 ```
