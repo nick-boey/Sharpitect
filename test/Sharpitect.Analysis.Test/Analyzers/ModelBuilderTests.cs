@@ -29,19 +29,25 @@ public class ModelBuilderTests
             }
         };
 
-        var system = _builder.BuildSystem(config);
+        var system = ModelBuilder.BuildSystem(config);
 
-        Assert.That(system.Name, Is.EqualTo("ShopEasy"));
-        Assert.That(system.Description, Is.EqualTo("E-commerce platform"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(system.Name, Is.EqualTo("ShopEasy"));
+            Assert.That(system.Description, Is.EqualTo("E-commerce platform"));
+        });
     }
 
     [Test]
     public void BuildSystem_WithNullConfig_UsesDefaultName()
     {
-        var system = _builder.BuildSystem(null);
+        var system = ModelBuilder.BuildSystem(null);
 
-        Assert.That(system.Name, Is.EqualTo("Unnamed System"));
-        Assert.That(system.Description, Is.Null);
+        Assert.Multiple(() =>
+        {
+            Assert.That(system.Name, Is.EqualTo("Unnamed System"));
+            Assert.That(system.Description, Is.Null);
+        });
     }
 
     [Test]
@@ -49,7 +55,7 @@ public class ModelBuilderTests
     {
         var config = new SystemConfiguration { System = null };
 
-        var system = _builder.BuildSystem(config);
+        var system = ModelBuilder.BuildSystem(config);
 
         Assert.That(system.Name, Is.EqualTo("Unnamed System"));
     }
@@ -71,21 +77,27 @@ public class ModelBuilderTests
             }
         };
 
-        var container = _builder.BuildContainer(config, "Project/Project.csproj");
+        var container = ModelBuilder.BuildContainer(config, "Project/Project.csproj");
 
-        Assert.That(container.Name, Is.EqualTo("Web API"));
-        Assert.That(container.Description, Is.EqualTo("RESTful API"));
-        Assert.That(container.Technology, Is.EqualTo("ASP.NET Core 8"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(container.Name, Is.EqualTo("Web API"));
+            Assert.That(container.Description, Is.EqualTo("RESTful API"));
+            Assert.That(container.Technology, Is.EqualTo("ASP.NET Core 8"));
+        });
     }
 
     [Test]
     public void BuildContainer_WithNullConfig_UsesProjectName()
     {
-        var container = _builder.BuildContainer(null, "MyProject/MyProject.csproj");
+        var container = ModelBuilder.BuildContainer(null, "MyProject/MyProject.csproj");
 
-        Assert.That(container.Name, Is.EqualTo("MyProject"));
-        Assert.That(container.Description, Is.Null);
-        Assert.That(container.Technology, Is.Null);
+        Assert.Multiple(() =>
+        {
+            Assert.That(container.Name, Is.EqualTo("MyProject"));
+            Assert.That(container.Description, Is.Null);
+            Assert.That(container.Technology, Is.Null);
+        });
     }
 
     [Test]
@@ -93,7 +105,7 @@ public class ModelBuilderTests
     {
         var config = new ContainerConfiguration { Container = null };
 
-        var container = _builder.BuildContainer(config, "Services/OrderService.csproj");
+        var container = ModelBuilder.BuildContainer(config, "Services/OrderService.csproj");
 
         Assert.That(container.Name, Is.EqualTo("OrderService"));
     }
@@ -117,11 +129,14 @@ public class ModelBuilderTests
             }
         };
 
-        _builder.BuildComponents(container, types, null);
+        ModelBuilder.BuildComponents(container, types, null);
 
         Assert.That(container.Components, Has.Count.EqualTo(1));
-        Assert.That(container.Components[0].Name, Is.EqualTo("Order Service"));
-        Assert.That(container.Components[0].Description, Is.EqualTo("Manages orders"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(container.Components[0].Name, Is.EqualTo("Order Service"));
+            Assert.That(container.Components[0].Description, Is.EqualTo("Manages orders"));
+        });
     }
 
     [Test]
@@ -147,11 +162,14 @@ public class ModelBuilderTests
             }
         };
 
-        _builder.BuildComponents(container, types, namespaceComponents);
+        ModelBuilder.BuildComponents(container, types, namespaceComponents);
 
         Assert.That(container.Components, Has.Count.EqualTo(1));
-        Assert.That(container.Components[0].Name, Is.EqualTo("Business Services"));
-        Assert.That(container.Components[0].Description, Is.EqualTo("Core business logic"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(container.Components[0].Name, Is.EqualTo("Business Services"));
+            Assert.That(container.Components[0].Description, Is.EqualTo("Core business logic"));
+        });
     }
 
     [Test]
@@ -170,13 +188,13 @@ public class ModelBuilderTests
             {
                 Name = "OrderService",
                 IsClass = true,
-                BaseTypes = new List<string> { "IOrderService" },
+                BaseTypes = ["IOrderService"],
                 Methods = { new MethodAnalysisResult { Name = "CreateOrder", ReturnType = "void" } },
                 Properties = { new PropertyAnalysisResult { Name = "Status", Type = "string" } }
             }
         };
 
-        _builder.BuildComponents(container, types, null);
+        ModelBuilder.BuildComponents(container, types, null);
 
         Assert.That(container.Components, Has.Count.EqualTo(1));
         var component = container.Components[0];
@@ -184,8 +202,11 @@ public class ModelBuilderTests
 
         var classCode = component.CodeElements[0] as ClassCode;
         Assert.That(classCode, Is.Not.Null);
-        Assert.That(classCode!.Name, Is.EqualTo("OrderService"));
-        Assert.That(classCode.Members, Has.Count.EqualTo(2)); // 1 method + 1 property
+        Assert.Multiple(() =>
+        {
+            Assert.That(classCode!.Name, Is.EqualTo("OrderService"));
+            Assert.That(classCode.Members, Has.Count.EqualTo(2)); // 1 method + 1 property
+        });
     }
 
     [Test]
@@ -210,7 +231,7 @@ public class ModelBuilderTests
             }
         };
 
-        _builder.BuildComponents(container, types, namespaceComponents);
+        ModelBuilder.BuildComponents(container, types, namespaceComponents);
 
         var component = container.Components[0];
         Assert.That(component.CodeElements, Has.Count.EqualTo(1));
@@ -240,7 +261,7 @@ public class ModelBuilderTests
             }
         };
 
-        _builder.BuildComponents(container, types, namespaceComponents);
+        ModelBuilder.BuildComponents(container, types, namespaceComponents);
 
         // Should create both components, but class goes to "Order Service" (attribute priority)
         Assert.That(container.Components.Count, Is.EqualTo(2));
@@ -272,7 +293,7 @@ public class ModelBuilderTests
             }
         };
 
-        _builder.BuildComponents(container, types, null);
+        ModelBuilder.BuildComponents(container, types, null);
 
         Assert.That(container.Components, Has.Count.EqualTo(1));
         Assert.That(container.Components[0].Name, Is.EqualTo("Order Service"));
@@ -294,17 +315,17 @@ public class ModelBuilderTests
             {
                 Name = "OrderService",
                 IsClass = true,
-                BaseTypes = new List<string> { "IOrderService" }
+                BaseTypes = ["IOrderService"]
             },
             new()
             {
                 Name = "OrderValidator",
                 IsClass = true,
-                BaseTypes = new List<string> { "IOrderService" }
+                BaseTypes = ["IOrderService"]
             }
         };
 
-        _builder.BuildComponents(container, types, null);
+        ModelBuilder.BuildComponents(container, types, null);
 
         var component = container.Components[0];
         Assert.That(component.CodeElements, Has.Count.EqualTo(2));
@@ -326,7 +347,7 @@ public class ModelBuilderTests
             }
         };
 
-        _builder.BuildComponents(container, types, null);
+        ModelBuilder.BuildComponents(container, types, null);
 
         Assert.That(container.Components, Is.Empty);
     }
@@ -348,7 +369,7 @@ public class ModelBuilderTests
                 Name = "OrderService",
                 Namespace = "MyApp.Services",
                 IsClass = true,
-                BaseTypes = new List<string> { "IOrderService" },
+                BaseTypes = ["IOrderService"],
                 Methods =
                 {
                     new MethodAnalysisResult { Name = "CreateOrder", ReturnType = "Order" },
@@ -362,22 +383,31 @@ public class ModelBuilderTests
             }
         };
 
-        _builder.BuildComponents(container, types, null);
+        ModelBuilder.BuildComponents(container, types, null);
 
         var classCode = container.Components[0].CodeElements[0] as ClassCode;
         Assert.That(classCode, Is.Not.Null);
-        Assert.That(classCode!.Namespace, Is.EqualTo("MyApp.Services"));
-        Assert.That(classCode.Members, Has.Count.EqualTo(4)); // 2 methods + 2 properties
+        Assert.Multiple(() =>
+        {
+            Assert.That(classCode!.Namespace, Is.EqualTo("MyApp.Services"));
+            Assert.That(classCode.Members, Has.Count.EqualTo(4)); // 2 methods + 2 properties
+        });
 
         var methods = classCode.Members.OfType<MethodCode>().ToList();
         Assert.That(methods, Has.Count.EqualTo(2));
-        Assert.That(methods[0].Name, Is.EqualTo("CreateOrder"));
-        Assert.That(methods[0].ReturnType, Is.EqualTo("Order"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(methods[0].Name, Is.EqualTo("CreateOrder"));
+            Assert.That(methods[0].ReturnType, Is.EqualTo("Order"));
+        });
 
         var properties = classCode.Members.OfType<PropertyCode>().ToList();
         Assert.That(properties, Has.Count.EqualTo(2));
-        Assert.That(properties[0].Name, Is.EqualTo("Status"));
-        Assert.That(properties[0].Type, Is.EqualTo("string"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(properties[0].Name, Is.EqualTo("Status"));
+            Assert.That(properties[0].Type, Is.EqualTo("string"));
+        });
     }
 
     #endregion
@@ -424,9 +454,12 @@ public class ModelBuilderTests
 
         Assert.That(model.Relationships, Has.Count.EqualTo(1));
         var relationship = model.Relationships[0];
-        Assert.That(relationship.Source, Is.SameAs(person));
-        Assert.That(relationship.Destination, Is.SameAs(component));
-        Assert.That(relationship.Description, Is.EqualTo("places an order"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(relationship.Source, Is.SameAs(person));
+            Assert.That(relationship.Destination, Is.SameAs(component));
+            Assert.That(relationship.Description, Is.EqualTo("places an order"));
+        });
     }
 
     [Test]

@@ -6,11 +6,11 @@ namespace Sharpitect.Analysis.Model;
 /// </summary>
 public class ArchitectureModel
 {
-    private readonly List<SoftwareSystem> _systems = new();
-    private readonly List<Person> _people = new();
-    private readonly List<ExternalSystem> _externalSystems = new();
-    private readonly List<ExternalContainer> _externalContainers = new();
-    private readonly List<Relationship> _relationships = new();
+    private readonly List<SoftwareSystem> _systems = [];
+    private readonly List<Person> _people = [];
+    private readonly List<ExternalSystem> _externalSystems = [];
+    private readonly List<ExternalContainer> _externalContainers = [];
+    private readonly List<Relationship> _relationships = [];
 
     /// <summary>
     /// Gets the software systems in this architecture model.

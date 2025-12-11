@@ -13,7 +13,7 @@ public class ModelBuilder
     /// </summary>
     /// <param name="config">The system configuration from YAML.</param>
     /// <returns>A new software system.</returns>
-    public SoftwareSystem BuildSystem(SystemConfiguration? config)
+    public static SoftwareSystem BuildSystem(SystemConfiguration? config)
     {
         var name = config?.System?.Name ?? "Unnamed System";
         var description = config?.System?.Description;
@@ -26,7 +26,7 @@ public class ModelBuilder
     /// <param name="config">The container configuration from YAML.</param>
     /// <param name="projectPath">The project path for fallback naming.</param>
     /// <returns>A new container.</returns>
-    public Container BuildContainer(ContainerConfiguration? config, string projectPath)
+    public static Container BuildContainer(ContainerConfiguration? config, string projectPath)
     {
         var name = config?.Container?.Name ?? Path.GetFileNameWithoutExtension(projectPath);
         var description = config?.Container?.Description;
@@ -40,7 +40,7 @@ public class ModelBuilder
     /// <param name="container">The container to add components to.</param>
     /// <param name="types">The analyzed types.</param>
     /// <param name="namespaceComponents">Optional namespace-based component definitions from YAML.</param>
-    public void BuildComponents(
+    public static void BuildComponents(
         Container container,
         List<TypeAnalysisResult> types,
         List<ComponentDefinition>? namespaceComponents)
@@ -50,12 +50,10 @@ public class ModelBuilder
         // 1. Create components from [Component] attributes on interfaces/classes
         foreach (var type in types.Where(t => t.ComponentName != null))
         {
-            if (!componentMap.ContainsKey(type.ComponentName!))
-            {
-                var component = new Component(type.ComponentName!, type.ComponentDescription);
-                componentMap[type.ComponentName!] = component;
-                container.AddComponent(component);
-            }
+            if (componentMap.ContainsKey(type.ComponentName!)) continue;
+            var component = new Component(type.ComponentName!, type.ComponentDescription);
+            componentMap[type.ComponentName!] = component;
+            container.AddComponent(component);
         }
 
         // 2. Create components from namespace mappings in YAML
@@ -63,12 +61,10 @@ public class ModelBuilder
         {
             foreach (var compDef in namespaceComponents)
             {
-                if (!componentMap.ContainsKey(compDef.Name))
-                {
-                    var component = new Component(compDef.Name, compDef.Description);
-                    componentMap[compDef.Name] = component;
-                    container.AddComponent(component);
-                }
+                if (componentMap.ContainsKey(compDef.Name)) continue;
+                var component = new Component(compDef.Name, compDef.Description);
+                componentMap[compDef.Name] = component;
+                container.AddComponent(component);
             }
         }
 
@@ -86,14 +82,17 @@ public class ModelBuilder
             // Priority 2: Check if class implements a [Component] interface
             if (targetComponent == null)
             {
-                foreach (var baseType in type.BaseTypes)
+                foreach (var interfaceType in type.BaseTypes.Select(baseType =>
+                             types.FirstOrDefault(t => t.IsInterface && t.Name == baseType)))
                 {
-                    var interfaceType = types.FirstOrDefault(t => t.IsInterface && t.Name == baseType);
-                    if (interfaceType?.ComponentName != null && componentMap.TryGetValue(interfaceType.ComponentName, out var comp))
+                    if (interfaceType?.ComponentName == null ||
+                        !componentMap.TryGetValue(interfaceType.ComponentName, out var comp))
                     {
-                        targetComponent = comp;
-                        break;
+                        continue;
                     }
+
+                    targetComponent = comp;
+                    break;
                 }
             }
 
@@ -111,21 +110,19 @@ public class ModelBuilder
             }
 
             // Add class to component
-            if (targetComponent != null)
+            if (targetComponent == null) continue;
+            var classCode = new ClassCode(type.Name, type.Namespace);
+            foreach (var method in type.Methods)
             {
-                var classCode = new ClassCode(type.Name, type.Namespace);
-                foreach (var method in type.Methods)
-                {
-                    classCode.AddMethod(new MethodCode(method.Name, method.ReturnType));
-                }
-
-                foreach (var prop in type.Properties)
-                {
-                    classCode.AddProperty(new PropertyCode(prop.Name, prop.Type));
-                }
-
-                targetComponent.AddCodeElement(classCode);
+                classCode.AddMethod(new MethodCode(method.Name, method.ReturnType));
             }
+
+            foreach (var prop in type.Properties)
+            {
+                classCode.AddProperty(new PropertyCode(prop.Name, prop.Type));
+            }
+
+            targetComponent.AddCodeElement(classCode);
         }
     }
 
@@ -159,17 +156,13 @@ public class ModelBuilder
             foreach (var method in type.Methods)
             {
                 // Handle [UserAction] - creates relationship from person to component
-                if (method.UserActionPerson != null && method.UserActionDescription != null)
-                {
-                    if (peopleMap.TryGetValue(method.UserActionPerson, out var person))
-                    {
-                        var relationship = new Relationship(
-                            person,
-                            sourceComponent,
-                            method.UserActionDescription);
-                        model.AddRelationship(relationship);
-                    }
-                }
+                if (method.UserActionPerson == null || method.UserActionDescription == null) continue;
+                if (!peopleMap.TryGetValue(method.UserActionPerson, out var person)) continue;
+                var relationship = new Relationship(
+                    person,
+                    sourceComponent,
+                    method.UserActionDescription);
+                model.AddRelationship(relationship);
             }
         }
     }

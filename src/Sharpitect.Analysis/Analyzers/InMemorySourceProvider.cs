@@ -40,7 +40,7 @@ public class InMemorySourceProvider : ISourceProvider
     {
         if (!_solutionProjects.TryGetValue(solutionPath, out var projects))
         {
-            projects = new List<string>();
+            projects = [];
             _solutionProjects[solutionPath] = projects;
         }
 
@@ -56,7 +56,7 @@ public class InMemorySourceProvider : ISourceProvider
     {
         if (!_projectFiles.TryGetValue(projectPath, out var files))
         {
-            files = new List<string>();
+            files = [];
             _projectFiles[projectPath] = files;
         }
 
@@ -72,7 +72,7 @@ public class InMemorySourceProvider : ISourceProvider
     /// <inheritdoc />
     public string? GetYamlConfiguration(string path)
     {
-        return _yamlConfigs.TryGetValue(path, out var yaml) ? yaml : null;
+        return _yamlConfigs.GetValueOrDefault(path);
     }
 
     /// <inheritdoc />

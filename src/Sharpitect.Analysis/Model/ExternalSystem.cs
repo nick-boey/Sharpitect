@@ -5,7 +5,7 @@ namespace Sharpitect.Analysis.Model;
 /// </summary>
 public class ExternalSystem : IElement
 {
-    private static readonly IReadOnlyList<IElement> EmptyChildren = Array.Empty<IElement>();
+    private static readonly IReadOnlyList<IElement> EmptyChildren = [];
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ExternalSystem"/> class.

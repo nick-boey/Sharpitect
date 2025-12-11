@@ -6,7 +6,7 @@ namespace Sharpitect.Analysis.Model;
 /// </summary>
 public class ClassCode : ICode
 {
-    private readonly List<ICode> _members = new();
+    private readonly List<ICode> _members = [];
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ClassCode"/> class.

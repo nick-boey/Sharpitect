@@ -6,7 +6,7 @@ namespace Sharpitect.Analysis.Model;
 /// </summary>
 public class Component : IElement
 {
-    private readonly List<ICode> _codeElements = new();
+    private readonly List<ICode> _codeElements = [];
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Component"/> class.

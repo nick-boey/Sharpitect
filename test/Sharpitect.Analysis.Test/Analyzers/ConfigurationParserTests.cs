@@ -16,109 +16,134 @@ public class ConfigurationParserTests
     [Test]
     public void ParseSystemConfiguration_ParsesSystemNameAndDescription()
     {
-        var yaml = @"
-system:
-  name: ""ShopEasy""
-  description: ""E-commerce platform""
-";
+        var yaml = """
+
+                   system:
+                     name: "ShopEasy"
+                     description: "E-commerce platform"
+
+                   """;
 
         var config = _parser.ParseSystemConfiguration(yaml);
 
         Assert.That(config, Is.Not.Null);
-        Assert.That(config!.System, Is.Not.Null);
-        Assert.That(config.System!.Name, Is.EqualTo("ShopEasy"));
-        Assert.That(config.System.Description, Is.EqualTo("E-commerce platform"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(config!.System, Is.Not.Null);
+            Assert.That(config.System!.Name, Is.EqualTo("ShopEasy"));
+            Assert.That(config.System.Description, Is.EqualTo("E-commerce platform"));
+        });
     }
 
     [Test]
     public void ParseSystemConfiguration_ParsesPeople()
     {
-        var yaml = @"
-system:
-  name: ""Test System""
+        var yaml = """
 
-people:
-  - name: Customer
-    description: ""Online shopper""
-  - name: Admin
-    description: ""System administrator""
-";
+                   system:
+                     name: "Test System"
+
+                   people:
+                     - name: Customer
+                       description: "Online shopper"
+                     - name: Admin
+                       description: "System administrator"
+
+                   """;
 
         var config = _parser.ParseSystemConfiguration(yaml);
 
         Assert.That(config, Is.Not.Null);
-        Assert.That(config!.People, Has.Count.EqualTo(2));
-        Assert.That(config.People![0].Name, Is.EqualTo("Customer"));
-        Assert.That(config.People[0].Description, Is.EqualTo("Online shopper"));
-        Assert.That(config.People[1].Name, Is.EqualTo("Admin"));
-        Assert.That(config.People[1].Description, Is.EqualTo("System administrator"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(config!.People, Has.Count.EqualTo(2));
+            Assert.That(config.People![0].Name, Is.EqualTo("Customer"));
+            Assert.That(config.People[0].Description, Is.EqualTo("Online shopper"));
+            Assert.That(config.People[1].Name, Is.EqualTo("Admin"));
+            Assert.That(config.People[1].Description, Is.EqualTo("System administrator"));
+        });
     }
 
     [Test]
     public void ParseSystemConfiguration_ParsesExternalSystems()
     {
-        var yaml = @"
-system:
-  name: ""Test System""
+        var yaml = """
 
-externalSystems:
-  - name: PaymentGateway
-    description: ""Stripe payment processor""
-  - name: EmailService
-    description: ""SendGrid email provider""
-";
+                   system:
+                     name: "Test System"
+
+                   externalSystems:
+                     - name: PaymentGateway
+                       description: "Stripe payment processor"
+                     - name: EmailService
+                       description: "SendGrid email provider"
+
+                   """;
 
         var config = _parser.ParseSystemConfiguration(yaml);
 
         Assert.That(config, Is.Not.Null);
-        Assert.That(config!.ExternalSystems, Has.Count.EqualTo(2));
-        Assert.That(config.ExternalSystems![0].Name, Is.EqualTo("PaymentGateway"));
-        Assert.That(config.ExternalSystems[0].Description, Is.EqualTo("Stripe payment processor"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(config!.ExternalSystems, Has.Count.EqualTo(2));
+            Assert.That(config.ExternalSystems![0].Name, Is.EqualTo("PaymentGateway"));
+            Assert.That(config.ExternalSystems[0].Description, Is.EqualTo("Stripe payment processor"));
+        });
     }
 
     [Test]
     public void ParseSystemConfiguration_ParsesExternalContainers()
     {
-        var yaml = @"
-system:
-  name: ""Test System""
+        var yaml = """
 
-externalContainers:
-  - name: Database
-    technology: PostgreSQL
-    description: ""Main database""
-  - name: Cache
-    technology: Redis
-    description: ""Session cache""
-";
+                   system:
+                     name: "Test System"
+
+                   externalContainers:
+                     - name: Database
+                       technology: PostgreSQL
+                       description: "Main database"
+                     - name: Cache
+                       technology: Redis
+                       description: "Session cache"
+
+                   """;
 
         var config = _parser.ParseSystemConfiguration(yaml);
 
         Assert.That(config, Is.Not.Null);
-        Assert.That(config!.ExternalContainers, Has.Count.EqualTo(2));
-        Assert.That(config.ExternalContainers![0].Name, Is.EqualTo("Database"));
-        Assert.That(config.ExternalContainers[0].Technology, Is.EqualTo("PostgreSQL"));
-        Assert.That(config.ExternalContainers[0].Description, Is.EqualTo("Main database"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(config!.ExternalContainers, Has.Count.EqualTo(2));
+            Assert.That(config.ExternalContainers![0].Name, Is.EqualTo("Database"));
+            Assert.That(config.ExternalContainers[0].Technology, Is.EqualTo("PostgreSQL"));
+            Assert.That(config.ExternalContainers[0].Description, Is.EqualTo("Main database"));
+        });
     }
 
     [Test]
     public void ParseSystemConfiguration_ParsesRelationships()
     {
-        var yaml = @"
-system:
-  name: ""Test System""
+        var yaml = """
 
-relationships:
-  - ""processes payment""
-  - ""stores data""
-  - ""sends notification""
-";
+                   system:
+                     name: "Test System"
+
+                   relationships:
+                     - "processes payment"
+                     - "stores data"
+                     - "sends notification"
+
+                   """;
 
         var config = _parser.ParseSystemConfiguration(yaml);
 
         Assert.That(config, Is.Not.Null);
-        Assert.That(config!.Relationships, Has.Count.EqualTo(3));
-        Assert.That(config.Relationships, Contains.Item("processes payment"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(config!.Relationships, Has.Count.EqualTo(3));
+            Assert.That(config.Relationships, Contains.Item("processes payment"));
+        });
         Assert.That(config.Relationships, Contains.Item("stores data"));
         Assert.That(config.Relationships, Contains.Item("sends notification"));
     }
@@ -126,40 +151,45 @@ relationships:
     [Test]
     public void ParseSystemConfiguration_ParsesFullConfig()
     {
-        var yaml = @"
-system:
-  name: ""ShopEasy""
-  description: ""E-commerce platform""
+        var yaml = """
 
-people:
-  - name: Customer
-    description: ""Online shopper""
-  - name: Admin
-    description: ""System administrator""
+                   system:
+                     name: "ShopEasy"
+                     description: "E-commerce platform"
 
-externalSystems:
-  - name: PaymentGateway
-    description: ""Stripe payment processor""
+                   people:
+                     - name: Customer
+                       description: "Online shopper"
+                     - name: Admin
+                       description: "System administrator"
 
-externalContainers:
-  - name: Database
-    technology: PostgreSQL
-    description: ""Main database""
+                   externalSystems:
+                     - name: PaymentGateway
+                       description: "Stripe payment processor"
 
-relationships:
-  - ""processes payment""
-  - ""stores data""
-";
+                   externalContainers:
+                     - name: Database
+                       technology: PostgreSQL
+                       description: "Main database"
+
+                   relationships:
+                     - "processes payment"
+                     - "stores data"
+
+                   """;
 
         var config = _parser.ParseSystemConfiguration(yaml);
 
         Assert.That(config, Is.Not.Null);
-        Assert.That(config!.System!.Name, Is.EqualTo("ShopEasy"));
-        Assert.That(config.System.Description, Is.EqualTo("E-commerce platform"));
-        Assert.That(config.People, Has.Count.EqualTo(2));
-        Assert.That(config.ExternalSystems, Has.Count.EqualTo(1));
-        Assert.That(config.ExternalContainers, Has.Count.EqualTo(1));
-        Assert.That(config.Relationships, Has.Count.EqualTo(2));
+        Assert.Multiple(() =>
+        {
+            Assert.That(config!.System!.Name, Is.EqualTo("ShopEasy"));
+            Assert.That(config.System.Description, Is.EqualTo("E-commerce platform"));
+            Assert.That(config.People, Has.Count.EqualTo(2));
+            Assert.That(config.ExternalSystems, Has.Count.EqualTo(1));
+            Assert.That(config.ExternalContainers, Has.Count.EqualTo(1));
+            Assert.That(config.Relationships, Has.Count.EqualTo(2));
+        });
     }
 
     [Test]
@@ -181,47 +211,55 @@ relationships:
     [Test]
     public void ParseContainerConfiguration_ParsesContainerMetadata()
     {
-        var yaml = @"
-container:
-  name: ""Web API""
-  description: ""RESTful API""
-  technology: ""ASP.NET Core 8""
-";
+        var yaml = """
+
+                   container:
+                     name: "Web API"
+                     description: "RESTful API"
+                     technology: "ASP.NET Core 8"
+
+                   """;
 
         var config = _parser.ParseContainerConfiguration(yaml);
 
         Assert.That(config, Is.Not.Null);
-        Assert.That(config!.Container, Is.Not.Null);
-        Assert.That(config.Container!.Name, Is.EqualTo("Web API"));
-        Assert.That(config.Container.Description, Is.EqualTo("RESTful API"));
-        Assert.That(config.Container.Technology, Is.EqualTo("ASP.NET Core 8"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(config!.Container, Is.Not.Null);
+            Assert.That(config.Container!.Name, Is.EqualTo("Web API"));
+            Assert.That(config.Container.Description, Is.EqualTo("RESTful API"));
+            Assert.That(config.Container.Technology, Is.EqualTo("ASP.NET Core 8"));
+        });
     }
 
     [Test]
     public void ParseContainerConfiguration_ParsesNamespaceComponents()
     {
-        var yaml = @"
-container:
-  name: ""Web API""
+        const string yaml = """
+                            container:
+                              name: "Web API"
 
-components:
-  - namespace: MyApp.Services
-    name: ""Business Services""
-    description: ""Core business logic""
-  - namespace: MyApp.Data
-    name: ""Data Access""
-    description: ""Repository implementations""
-";
+                            components:
+                              - namespace: MyApp.Services
+                                name: "Business Services"
+                                description: "Core business logic"
+                              - namespace: MyApp.Data
+                                name: "Data Access"
+                                description: "Repository implementations"
+                            """;
 
         var config = _parser.ParseContainerConfiguration(yaml);
 
         Assert.That(config, Is.Not.Null);
-        Assert.That(config!.Components, Has.Count.EqualTo(2));
-        Assert.That(config.Components![0].Namespace, Is.EqualTo("MyApp.Services"));
-        Assert.That(config.Components[0].Name, Is.EqualTo("Business Services"));
-        Assert.That(config.Components[0].Description, Is.EqualTo("Core business logic"));
-        Assert.That(config.Components[1].Namespace, Is.EqualTo("MyApp.Data"));
-        Assert.That(config.Components[1].Name, Is.EqualTo("Data Access"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(config!.Components, Has.Count.EqualTo(2));
+            Assert.That(config.Components![0].Namespace, Is.EqualTo("MyApp.Services"));
+            Assert.That(config.Components[0].Name, Is.EqualTo("Business Services"));
+            Assert.That(config.Components[0].Description, Is.EqualTo("Core business logic"));
+            Assert.That(config.Components[1].Namespace, Is.EqualTo("MyApp.Data"));
+            Assert.That(config.Components[1].Name, Is.EqualTo("Data Access"));
+        });
     }
 
     [Test]
@@ -235,17 +273,22 @@ components:
     [Test]
     public void ParseContainerConfiguration_HandlesMinimalConfig()
     {
-        var yaml = @"
-container:
-  name: ""Simple Container""
-";
+        var yaml = """
+
+                   container:
+                     name: "Simple Container"
+
+                   """;
 
         var config = _parser.ParseContainerConfiguration(yaml);
 
         Assert.That(config, Is.Not.Null);
-        Assert.That(config!.Container!.Name, Is.EqualTo("Simple Container"));
-        Assert.That(config.Container.Description, Is.Null);
-        Assert.That(config.Container.Technology, Is.Null);
-        Assert.That(config.Components, Is.Null);
+        Assert.Multiple(() =>
+        {
+            Assert.That(config!.Container!.Name, Is.EqualTo("Simple Container"));
+            Assert.That(config.Container.Description, Is.Null);
+            Assert.That(config.Container.Technology, Is.Null);
+            Assert.That(config.Components, Is.Null);
+        });
     }
 }

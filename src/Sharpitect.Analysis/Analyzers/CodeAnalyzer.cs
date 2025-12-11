@@ -153,6 +153,6 @@ public class CodeAnalyzer
             return literal.Token.ValueText;
         }
 
-        return namedArg?.Expression.ToString().Trim('"');
+        return namedArg?.Expression?.ToString().Trim('"');
     }
 }

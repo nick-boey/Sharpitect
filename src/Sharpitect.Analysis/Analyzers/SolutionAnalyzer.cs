@@ -40,7 +40,7 @@ public class SolutionAnalyzer
         var systemConfig = _configParser.ParseSystemConfiguration(systemYaml ?? string.Empty);
 
         // Build system from config
-        var system = _modelBuilder.BuildSystem(systemConfig);
+        var system = ModelBuilder.BuildSystem(systemConfig);
         model.AddSystem(system);
 
         // Build maps for relationship resolution
@@ -99,7 +99,7 @@ public class SolutionAnalyzer
         var containerYaml = _sourceProvider.GetYamlConfiguration(projectPath + ".c4");
         var containerConfig = _configParser.ParseContainerConfiguration(containerYaml ?? string.Empty);
 
-        var container = _modelBuilder.BuildContainer(containerConfig, projectPath);
+        var container = ModelBuilder.BuildContainer(containerConfig, projectPath);
 
         // Analyze all source files
         var sourceFiles = _sourceProvider.GetSourceFiles(projectPath);
@@ -113,7 +113,7 @@ public class SolutionAnalyzer
         }
 
         // Build components from analysis
-        _modelBuilder.BuildComponents(container, allTypes, containerConfig?.Components);
+        ModelBuilder.BuildComponents(container, allTypes, containerConfig?.Components);
 
         return (container, allTypes);
     }

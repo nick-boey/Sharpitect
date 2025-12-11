@@ -6,7 +6,7 @@ namespace Sharpitect.Analysis.Model;
 /// </summary>
 public class SoftwareSystem : IElement
 {
-    private readonly List<Container> _containers = new();
+    private readonly List<Container> _containers = [];
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SoftwareSystem"/> class.

@@ -29,12 +29,7 @@ public class ConfigurationParser
     /// <returns>The parsed system configuration, or null if the input is empty.</returns>
     public SystemConfiguration? ParseSystemConfiguration(string yaml)
     {
-        if (string.IsNullOrWhiteSpace(yaml))
-        {
-            return null;
-        }
-
-        return _deserializer.Deserialize<SystemConfiguration>(yaml);
+        return string.IsNullOrWhiteSpace(yaml) ? null : _deserializer.Deserialize<SystemConfiguration>(yaml);
     }
 
     /// <summary>
@@ -44,11 +39,6 @@ public class ConfigurationParser
     /// <returns>The parsed container configuration, or null if the input is empty.</returns>
     public ContainerConfiguration? ParseContainerConfiguration(string yaml)
     {
-        if (string.IsNullOrWhiteSpace(yaml))
-        {
-            return null;
-        }
-
-        return _deserializer.Deserialize<ContainerConfiguration>(yaml);
+        return string.IsNullOrWhiteSpace(yaml) ? null : _deserializer.Deserialize<ContainerConfiguration>(yaml);
     }
 }

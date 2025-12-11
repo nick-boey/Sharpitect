@@ -31,7 +31,7 @@ public class Relationship
     public IElement Destination { get; }
 
     /// <summary>
-    /// Gets the description of the relationship (e.g., "processes payment").
+    /// Gets the description of the relationship (e.g. "processes payment").
     /// </summary>
     public string Description { get; }
 
