@@ -1,4 +1,4 @@
-namespace Sharpitect.Analysis.Model;
+namespace Sharpitect.Analysis.Model.Code;
 
 /// <summary>
 /// Represents a property in the code-level diagram.

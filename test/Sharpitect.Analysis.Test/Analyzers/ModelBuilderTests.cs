@@ -1,6 +1,7 @@
 using Sharpitect.Analysis.Analyzers;
 using Sharpitect.Analysis.Configuration;
 using Sharpitect.Analysis.Model;
+using Sharpitect.Analysis.Model.Code;
 
 namespace Sharpitect.Analysis.Test.Analyzers;
 

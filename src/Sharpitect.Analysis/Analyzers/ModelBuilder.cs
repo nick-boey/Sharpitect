@@ -1,5 +1,6 @@
 using Sharpitect.Analysis.Configuration;
 using Sharpitect.Analysis.Model;
+using Sharpitect.Analysis.Model.Code;
 
 namespace Sharpitect.Analysis.Analyzers;
 
@@ -47,7 +48,7 @@ public class ModelBuilder
     {
         var componentMap = new Dictionary<string, Component>(StringComparer.OrdinalIgnoreCase);
 
-        // 1. Create components from [Component] attributes on interfaces/classes
+        // Create components from [Component] attributes on interfaces/classes
         foreach (var type in types.Where(t => t.ComponentName != null))
         {
             if (componentMap.ContainsKey(type.ComponentName!)) continue;
@@ -56,7 +57,7 @@ public class ModelBuilder
             container.AddComponent(component);
         }
 
-        // 2. Create components from namespace mappings in YAML
+        // Create components from namespace mappings in YAML
         if (namespaceComponents != null)
         {
             foreach (var compDef in namespaceComponents)
@@ -68,7 +69,7 @@ public class ModelBuilder
             }
         }
 
-        // 3. Map classes to components
+        // Map classes to components
         foreach (var type in types.Where(t => t.IsClass))
         {
             Component? targetComponent = null;
@@ -96,7 +97,7 @@ public class ModelBuilder
                 }
             }
 
-            // Priority 3: Check namespace mapping
+            // Check namespace mapping
             if (targetComponent == null && namespaceComponents != null && type.Namespace != null)
             {
                 var nsMapping = namespaceComponents
@@ -127,7 +128,7 @@ public class ModelBuilder
     }
 
     /// <summary>
-    /// Builds relationships from analyzed types.
+    /// Builds relationships from analysed types.
     /// </summary>
     /// <param name="model">The architecture model to add relationships to.</param>
     /// <param name="types">The analyzed types.</param>

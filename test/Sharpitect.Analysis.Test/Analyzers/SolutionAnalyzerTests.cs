@@ -1,5 +1,6 @@
 using Sharpitect.Analysis.Analyzers;
 using Sharpitect.Analysis.Model;
+using Sharpitect.Analysis.Model.Code;
 
 namespace Sharpitect.Analysis.Test.Analyzers;
 
@@ -10,13 +11,12 @@ public class SolutionAnalyzerTests
     public void Analyze_BuildsSystemFromConfig()
     {
         var sourceProvider = new InMemorySourceProvider();
-        sourceProvider.AddYaml("Solution.sln.c4", """
-
-                                                  system:
-                                                    name: "Test System"
-                                                    description: "A test system"
-
-                                                  """);
+        sourceProvider.AddYaml("Solution.sln.c4",
+            """
+            system:
+              name: "Test System"
+              description: "A test system"
+            """);
 
         var analyzer = new SolutionAnalyzer(sourceProvider);
         var model = analyzer.Analyze("Solution.sln");
@@ -33,18 +33,17 @@ public class SolutionAnalyzerTests
     public void Analyze_BuildsPeopleFromConfig()
     {
         var sourceProvider = new InMemorySourceProvider();
-        sourceProvider.AddYaml("Solution.sln.c4", """
+        sourceProvider.AddYaml("Solution.sln.c4",
+            """
+            system:
+              name: "Test System"
 
-                                                  system:
-                                                    name: "Test System"
-
-                                                  people:
-                                                    - name: Customer
-                                                      description: "Online shopper"
-                                                    - name: Admin
-                                                      description: "System administrator"
-
-                                                  """);
+            people:
+              - name: Customer
+                description: "Online shopper"
+              - name: Admin
+                description: "System administrator"
+            """);
 
         var analyzer = new SolutionAnalyzer(sourceProvider);
         var model = analyzer.Analyze("Solution.sln");
@@ -62,16 +61,15 @@ public class SolutionAnalyzerTests
     public void Analyze_BuildsExternalSystemsFromConfig()
     {
         var sourceProvider = new InMemorySourceProvider();
-        sourceProvider.AddYaml("Solution.sln.c4", """
+        sourceProvider.AddYaml("Solution.sln.c4",
+            """
+            system:
+              name: "Test System"
 
-                                                  system:
-                                                    name: "Test System"
-
-                                                  externalSystems:
-                                                    - name: PaymentGateway
-                                                      description: "Stripe payment processor"
-
-                                                  """);
+            externalSystems:
+              - name: PaymentGateway
+                description: "Stripe payment processor"
+            """);
 
         var analyzer = new SolutionAnalyzer(sourceProvider);
         var model = analyzer.Analyze("Solution.sln");
@@ -88,17 +86,16 @@ public class SolutionAnalyzerTests
     public void Analyze_BuildsExternalContainersFromConfig()
     {
         var sourceProvider = new InMemorySourceProvider();
-        sourceProvider.AddYaml("Solution.sln.c4", """
+        sourceProvider.AddYaml("Solution.sln.c4",
+            """
+            system:
+              name: "Test System"
 
-                                                  system:
-                                                    name: "Test System"
-
-                                                  externalContainers:
-                                                    - name: Database
-                                                      technology: PostgreSQL
-                                                      description: "Main database"
-
-                                                  """);
+            externalContainers:
+              - name: Database
+                technology: PostgreSQL
+                description: "Main database"
+            """);
 
         var analyzer = new SolutionAnalyzer(sourceProvider);
         var model = analyzer.Analyze("Solution.sln");
@@ -116,21 +113,19 @@ public class SolutionAnalyzerTests
     public void Analyze_BuildsContainerFromProject()
     {
         var sourceProvider = new InMemorySourceProvider();
-        sourceProvider.AddYaml("Solution.sln.c4", """
-
-                                                  system:
-                                                    name: "Test System"
-
-                                                  """);
+        sourceProvider.AddYaml("Solution.sln.c4",
+            """
+            system:
+              name: "Test System"
+            """);
         sourceProvider.AddProject("Solution.sln", "Project/Project.csproj");
-        sourceProvider.AddYaml("Project/Project.csproj.c4", """
-
-                                                            container:
-                                                              name: "Web API"
-                                                              description: "RESTful API"
-                                                              technology: "ASP.NET Core 8"
-
-                                                            """);
+        sourceProvider.AddYaml("Project/Project.csproj.c4",
+            """
+            container:
+              name: "Web API"
+              description: "RESTful API"
+              technology: "ASP.NET Core 8"
+            """);
 
         var analyzer = new SolutionAnalyzer(sourceProvider);
         var model = analyzer.Analyze("Solution.sln");
@@ -149,27 +144,25 @@ public class SolutionAnalyzerTests
     public void Analyze_BuildsComponentFromAttribute()
     {
         var sourceProvider = new InMemorySourceProvider();
-        sourceProvider.AddYaml("Solution.sln.c4", """
-
-                                                  system:
-                                                    name: "Test System"
-
-                                                  """);
+        sourceProvider.AddYaml("Solution.sln.c4",
+            """
+            system:
+              name: "Test System"
+            """);
         sourceProvider.AddProject("Solution.sln", "Project/Project.csproj");
         sourceProvider.AddSourceFile("Project/Project.csproj", "Project/IOrderService.cs");
-        sourceProvider.AddSource("Project/IOrderService.cs", """
+        sourceProvider.AddSource("Project/IOrderService.cs",
+            """
+            using Sharpitect.Attributes;
 
-                                                             using Sharpitect.Attributes;
+            namespace Project.Services;
 
-                                                             namespace Project.Services;
-
-                                                             [Component("Order Service", Description = "Handles orders")]
-                                                             public interface IOrderService
-                                                             {
-                                                                 void CreateOrder();
-                                                             }
-
-                                                             """);
+            [Component("Order Service", Description = "Handles orders")]
+            public interface IOrderService
+            {
+                void CreateOrder();
+            }
+            """);
 
         var analyzer = new SolutionAnalyzer(sourceProvider);
         var model = analyzer.Analyze("Solution.sln");
@@ -187,32 +180,30 @@ public class SolutionAnalyzerTests
     public void Analyze_MapsClassToComponentViaInterface()
     {
         var sourceProvider = new InMemorySourceProvider();
-        sourceProvider.AddYaml("Solution.sln.c4", """
-
-                                                  system:
-                                                    name: "Test System"
-
-                                                  """);
+        sourceProvider.AddYaml("Solution.sln.c4",
+            """
+            system:
+              name: "Test System"
+            """);
         sourceProvider.AddProject("Solution.sln", "Project/Project.csproj");
         sourceProvider.AddSourceFile("Project/Project.csproj", "Project/OrderService.cs");
-        sourceProvider.AddSource("Project/OrderService.cs", """
+        sourceProvider.AddSource("Project/OrderService.cs",
+            """
+            using Sharpitect.Attributes;
 
-                                                            using Sharpitect.Attributes;
+            namespace Project.Services;
 
-                                                            namespace Project.Services;
+            [Component("Order Service")]
+            public interface IOrderService
+            {
+                void CreateOrder();
+            }
 
-                                                            [Component("Order Service")]
-                                                            public interface IOrderService
-                                                            {
-                                                                void CreateOrder();
-                                                            }
-
-                                                            public class OrderService : IOrderService
-                                                            {
-                                                                public void CreateOrder() { }
-                                                            }
-
-                                                            """);
+            public class OrderService : IOrderService
+            {
+                public void CreateOrder() { }
+            }
+            """);
 
         var analyzer = new SolutionAnalyzer(sourceProvider);
         var model = analyzer.Analyze("Solution.sln");
@@ -469,48 +460,43 @@ public class SolutionAnalyzerTests
     public void Analyze_HandlesMultipleProjects()
     {
         var sourceProvider = new InMemorySourceProvider();
-        sourceProvider.AddYaml("Solution.sln.c4", """
-
-                                                  system:
-                                                    name: "Test System"
-
-                                                  """);
+        sourceProvider.AddYaml("Solution.sln.c4",
+            """
+            system:
+              name: "Test System"
+            """);
 
         // Add first project
         sourceProvider.AddProject("Solution.sln", "Api/Api.csproj");
-        sourceProvider.AddYaml("Api/Api.csproj.c4", """
-
-                                                    container:
-                                                      name: "API"
-
-                                                    """);
+        sourceProvider.AddYaml("Api/Api.csproj.c4",
+            """
+            container:
+              name: "API"
+            """);
         sourceProvider.AddSourceFile("Api/Api.csproj", "Api/Service.cs");
-        sourceProvider.AddSource("Api/Service.cs", """
+        sourceProvider.AddSource("Api/Service.cs",
+            """
+            using Sharpitect.Attributes;
 
-                                                   using Sharpitect.Attributes;
-
-                                                   [Component("API Service")]
-                                                   public interface IApiService { }
-
-                                                   """);
+            [Component("API Service")]
+            public interface IApiService { }
+            """);
 
         // Add second project
         sourceProvider.AddProject("Solution.sln", "Worker/Worker.csproj");
-        sourceProvider.AddYaml("Worker/Worker.csproj.c4", """
-
-                                                          container:
-                                                            name: "Worker"
-
-                                                          """);
+        sourceProvider.AddYaml("Worker/Worker.csproj.c4",
+            """
+            container:
+              name: "Worker"
+            """);
         sourceProvider.AddSourceFile("Worker/Worker.csproj", "Worker/Service.cs");
-        sourceProvider.AddSource("Worker/Service.cs", """
+        sourceProvider.AddSource("Worker/Service.cs",
+            """
+            using Sharpitect.Attributes;
 
-                                                      using Sharpitect.Attributes;
-
-                                                      [Component("Worker Service")]
-                                                      public interface IWorkerService { }
-
-                                                      """);
+            [Component("Worker Service")]
+            public interface IWorkerService { }
+            """);
 
         var analyzer = new SolutionAnalyzer(sourceProvider);
         var model = analyzer.Analyze("Solution.sln");

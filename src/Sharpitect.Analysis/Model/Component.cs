@@ -1,3 +1,5 @@
+using Sharpitect.Analysis.Model.Code;
+
 namespace Sharpitect.Analysis.Model;
 
 /// <summary>

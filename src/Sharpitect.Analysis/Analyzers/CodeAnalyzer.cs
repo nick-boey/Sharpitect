@@ -4,14 +4,14 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Sharpitect.Analysis.Analyzers;
 
 /// <summary>
-/// Analyzes C# source code using Roslyn to extract components, classes, and relationships.
+/// Analyses C# source code using Roslyn to extract components, classes, and relationships.
 /// </summary>
 public class CodeAnalyzer
 {
     /// <summary>
-    /// Analyzes source code and returns discovered components and code elements.
+    /// Analyses source code and returns discovered components and code elements.
     /// </summary>
-    /// <param name="sourceCode">The C# source code to analyze.</param>
+    /// <param name="sourceCode">The C# source code to analyse.</param>
     /// <param name="fileName">Optional file name for diagnostics.</param>
     /// <returns>The analysis results containing discovered types.</returns>
     public AnalysisResult AnalyzeSource(string sourceCode, string fileName = "source.cs")
