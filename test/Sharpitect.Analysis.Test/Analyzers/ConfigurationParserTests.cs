@@ -17,11 +17,9 @@ public class ConfigurationParserTests
     public void ParseSystemConfiguration_ParsesSystemNameAndDescription()
     {
         var yaml = """
-
                    system:
                      name: "ShopEasy"
                      description: "E-commerce platform"
-
                    """;
 
         var config = _parser.ParseSystemConfiguration(yaml);
@@ -39,7 +37,6 @@ public class ConfigurationParserTests
     public void ParseSystemConfiguration_ParsesPeople()
     {
         var yaml = """
-
                    system:
                      name: "Test System"
 
@@ -48,7 +45,6 @@ public class ConfigurationParserTests
                        description: "Online shopper"
                      - name: Admin
                        description: "System administrator"
-
                    """;
 
         var config = _parser.ParseSystemConfiguration(yaml);
@@ -68,7 +64,6 @@ public class ConfigurationParserTests
     public void ParseSystemConfiguration_ParsesExternalSystems()
     {
         var yaml = """
-
                    system:
                      name: "Test System"
 
@@ -77,7 +72,6 @@ public class ConfigurationParserTests
                        description: "Stripe payment processor"
                      - name: EmailService
                        description: "SendGrid email provider"
-
                    """;
 
         var config = _parser.ParseSystemConfiguration(yaml);
@@ -95,7 +89,6 @@ public class ConfigurationParserTests
     public void ParseSystemConfiguration_ParsesExternalContainers()
     {
         var yaml = """
-
                    system:
                      name: "Test System"
 
@@ -106,7 +99,6 @@ public class ConfigurationParserTests
                      - name: Cache
                        technology: Redis
                        description: "Session cache"
-
                    """;
 
         var config = _parser.ParseSystemConfiguration(yaml);
@@ -125,15 +117,19 @@ public class ConfigurationParserTests
     public void ParseSystemConfiguration_ParsesRelationships()
     {
         var yaml = """
-
                    system:
                      name: "Test System"
 
                    relationships:
-                     - "processes payment"
-                     - "stores data"
-                     - "sends notification"
-
+                     - start: "Payment Service"
+                       action: "processes payment"
+                       end: "PaymentGateway"
+                     - start: "Data Access"
+                       action: "stores data"
+                       end: "Database"
+                     - start: "Notification Service"
+                       action: "sends notification"
+                       end: "EmailService"
                    """;
 
         var config = _parser.ParseSystemConfiguration(yaml);
@@ -142,17 +138,19 @@ public class ConfigurationParserTests
         Assert.Multiple(() =>
         {
             Assert.That(config!.Relationships, Has.Count.EqualTo(3));
-            Assert.That(config.Relationships, Contains.Item("processes payment"));
+            Assert.That(config.Relationships![0].Start, Is.EqualTo("Payment Service"));
+            Assert.That(config.Relationships[0].Action, Is.EqualTo("processes payment"));
+            Assert.That(config.Relationships[0].End, Is.EqualTo("PaymentGateway"));
+            Assert.That(config.Relationships[1].Start, Is.EqualTo("Data Access"));
+            Assert.That(config.Relationships[1].Action, Is.EqualTo("stores data"));
+            Assert.That(config.Relationships[1].End, Is.EqualTo("Database"));
         });
-        Assert.That(config.Relationships, Contains.Item("stores data"));
-        Assert.That(config.Relationships, Contains.Item("sends notification"));
     }
 
     [Test]
     public void ParseSystemConfiguration_ParsesFullConfig()
     {
         var yaml = """
-
                    system:
                      name: "ShopEasy"
                      description: "E-commerce platform"
@@ -173,9 +171,12 @@ public class ConfigurationParserTests
                        description: "Main database"
 
                    relationships:
-                     - "processes payment"
-                     - "stores data"
-
+                     - start: "Payment Service"
+                       action: "processes payment"
+                       end: "PaymentGateway"
+                     - start: "Data Access"
+                       action: "stores data"
+                       end: "Database"
                    """;
 
         var config = _parser.ParseSystemConfiguration(yaml);
@@ -212,12 +213,10 @@ public class ConfigurationParserTests
     public void ParseContainerConfiguration_ParsesContainerMetadata()
     {
         var yaml = """
-
                    container:
                      name: "Web API"
                      description: "RESTful API"
                      technology: "ASP.NET Core 8"
-
                    """;
 
         var config = _parser.ParseContainerConfiguration(yaml);

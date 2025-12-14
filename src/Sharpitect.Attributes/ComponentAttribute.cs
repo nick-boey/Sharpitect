@@ -6,7 +6,7 @@ namespace Sharpitect.Attributes
     /// Marks an interface or class as a C4 component boundary.
     /// Classes implementing a [Component] interface are automatically grouped into that component.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+    [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Class, Inherited = false)]
     public sealed class ComponentAttribute : Attribute
     {
         /// <summary>

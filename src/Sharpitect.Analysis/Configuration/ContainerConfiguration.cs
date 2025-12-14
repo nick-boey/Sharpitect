@@ -13,5 +13,5 @@ public class ContainerConfiguration
     /// <summary>
     /// Gets or sets the namespace-based component mappings.
     /// </summary>
-    public List<ComponentDefinition>? Components { get; }
+    public List<ComponentDefinition>? Components { get; set; }
 }

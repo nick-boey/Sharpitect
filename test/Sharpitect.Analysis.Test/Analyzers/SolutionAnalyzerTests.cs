@@ -327,8 +327,12 @@ public class SolutionAnalyzerTests
                                                       description: "Primary relational data store"
 
                                                   relationships:
-                                                    - "processes payment"
-                                                    - "stores data"
+                                                    - start: "Payment Service"
+                                                      action: "processes payment"
+                                                      end: "PaymentGateway"
+                                                    - start: "Data Access"
+                                                      action: "stores data"
+                                                      end: "Database"
 
                                                   """);
 

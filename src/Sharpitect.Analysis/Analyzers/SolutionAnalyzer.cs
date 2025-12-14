@@ -74,7 +74,7 @@ public class SolutionAnalyzer
 
         foreach (var projectPath in projects)
         {
-            var (container, types) = AnalyzeProject(projectPath, systemConfig?.Relationships);
+            var (container, types) = AnalyzeProject(projectPath);
             system.AddContainer(container);
             allTypes.AddRange(types);
 
@@ -91,9 +91,7 @@ public class SolutionAnalyzer
         return model;
     }
 
-    private (Container Container, List<TypeAnalysisResult> Types) AnalyzeProject(
-        string projectPath,
-        List<string>? registeredRelationships)
+    private (Container Container, List<TypeAnalysisResult> Types) AnalyzeProject(string projectPath)
     {
         // Parse container configuration
         var containerYaml = _sourceProvider.GetYamlConfiguration(projectPath + ".c4");

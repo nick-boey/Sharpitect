@@ -26,9 +26,35 @@ public class SystemConfiguration
     public List<ExternalContainerDefinition>? ExternalContainers { get; set; }
 
     /// <summary>
-    /// Gets or sets the relationship name registry.
+    /// Gets or sets the relationships between elements.
     /// </summary>
-    public List<string>? Relationships { get; set; }
+    public List<RelationshipDefinition>? Relationships { get; set; }
+}
+
+/// <summary>
+/// Defines a relationship between two elements in the .sln.c4 file.
+/// </summary>
+public class RelationshipDefinition
+{
+    /// <summary>
+    /// Gets or sets the name of the source element.
+    /// </summary>
+    public string Start { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the action/description of the relationship.
+    /// </summary>
+    public string Action { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the name of the destination element.
+    /// </summary>
+    public string End { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the optional technology used for the relationship.
+    /// </summary>
+    public string? Technology { get; set; }
 }
 
 /// <summary>

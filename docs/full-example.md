@@ -70,44 +70,84 @@ externalContainers:
     technology: AWS S3
     description: "Product images and user uploads"
 
-# Relationship name registry
-# All [Action] attributes must use one of these exact names
+# Relationships between elements
+# Format: "start action end" reads as a sentence (e.g., "Payment Service processes payment PaymentGateway")
 relationships:
   # Payment related
-  - "processes payment"
-  - "refunds payment"
+  - start: "Payment Service"
+    action: "processes payment"
+    end: "PaymentGateway"
+  - start: "Payment Service"
+    action: "refunds payment"
+    end: "PaymentGateway"
 
   # Email related
-  - "sends order confirmation"
-  - "sends shipping notification"
-  - "sends password reset"
-  - "sends marketing email"
+  - start: "Notification Service"
+    action: "sends order confirmation"
+    end: "EmailService"
+  - start: "Notification Service"
+    action: "sends shipping notification"
+    end: "EmailService"
+  - start: "Notification Service"
+    action: "sends password reset"
+    end: "EmailService"
+  - start: "Notification Service"
+    action: "sends marketing email"
+    end: "EmailService"
 
   # Shipping related
-  - "calculates shipping rates"
-  - "creates shipping label"
-  - "tracks shipment"
+  - start: "Shipping Service"
+    action: "calculates shipping rates"
+    end: "ShippingProvider"
+  - start: "Shipping Service"
+    action: "creates shipping label"
+    end: "ShippingProvider"
+  - start: "Shipping Service"
+    action: "tracks shipment"
+    end: "ShippingProvider"
 
   # Data storage
-  - "stores data"
-  - "reads data"
-  - "caches data"
-  - "invalidates cache"
+  - start: "Data Access"
+    action: "stores data"
+    end: "Database"
+  - start: "Data Access"
+    action: "reads data"
+    end: "Database"
+  - start: "Cache Service"
+    action: "caches data"
+    end: "Cache"
+  - start: "Cache Service"
+    action: "invalidates cache"
+    end: "Cache"
 
   # Search
-  - "indexes product"
-  - "searches products"
+  - start: "Product Catalog"
+    action: "indexes product"
+    end: "SearchIndex"
+  - start: "Product Catalog"
+    action: "searches products"
+    end: "SearchIndex"
 
   # Messaging
-  - "publishes message"
-  - "consumes message"
+  - start: "Order Service"
+    action: "publishes message"
+    end: "MessageQueue"
+  - start: "Order Fulfillment"
+    action: "consumes message"
+    end: "MessageQueue"
 
   # Files
-  - "uploads file"
-  - "downloads file"
+  - start: "Product Catalog"
+    action: "uploads file"
+    end: "FileStorage"
+  - start: "Product Catalog"
+    action: "downloads file"
+    end: "FileStorage"
 
   # Analytics
-  - "tracks event"
+  - start: "Web API"
+    action: "tracks event"
+    end: "AnalyticsPlatform"
 ```
 
 ## Container Level: Web API
