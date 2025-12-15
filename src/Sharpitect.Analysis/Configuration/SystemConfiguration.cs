@@ -1,3 +1,5 @@
+using Sharpitect.Analysis.Configuration.Definitions;
+
 namespace Sharpitect.Analysis.Configuration;
 
 /// <summary>

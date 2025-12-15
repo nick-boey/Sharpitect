@@ -1,4 +1,5 @@
 using Sharpitect.Analysis.Configuration;
+using Sharpitect.Analysis.Configuration.Definitions;
 using Sharpitect.Analysis.Model;
 using Sharpitect.Analysis.Model.Code;
 

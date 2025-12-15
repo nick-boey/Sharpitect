@@ -1,4 +1,4 @@
-﻿namespace Sharpitect.Analysis.Configuration;
+﻿namespace Sharpitect.Analysis.Configuration.Definitions;
 
 /// <summary>
 /// Defines a namespace-based component mapping in the .csproj.c4 file.

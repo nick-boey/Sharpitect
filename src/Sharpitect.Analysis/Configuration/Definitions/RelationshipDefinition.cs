@@ -1,4 +1,4 @@
-﻿namespace Sharpitect.Analysis.Configuration;
+﻿namespace Sharpitect.Analysis.Configuration.Definitions;
 
 /// <summary>
 /// Defines a relationship between two elements in the .sln.c4 file.

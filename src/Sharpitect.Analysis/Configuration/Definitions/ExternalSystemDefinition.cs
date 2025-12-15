@@ -1,4 +1,4 @@
-﻿namespace Sharpitect.Analysis.Configuration;
+﻿namespace Sharpitect.Analysis.Configuration.Definitions;
 
 /// <summary>
 /// Defines an external system in the .sln.c4 file.

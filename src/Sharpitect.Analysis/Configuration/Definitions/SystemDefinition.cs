@@ -1,4 +1,4 @@
-﻿namespace Sharpitect.Analysis.Configuration;
+﻿namespace Sharpitect.Analysis.Configuration.Definitions;
 
 /// <summary>
 /// Defines a software system in the .sln.c4 file.
