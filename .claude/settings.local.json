@@ -3,7 +3,11 @@
     "allow": [
       "Bash(tree:*)",
       "Bash(dotnet build:*)",
-      "Bash(dotnet test:*)"
+      "Bash(dotnet test:*)",
+      "Bash(dotnet list:*)",
+      "Bash(dotnet add:*)",
+      "Bash(dotnet clean:*)",
+      "Bash(dotnet run:*)"
     ]
   }
 }
