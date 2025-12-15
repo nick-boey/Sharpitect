@@ -522,7 +522,7 @@ public class SolutionAnalyzerTests
         Assert.That(model.Systems, Has.Count.EqualTo(1));
         Assert.Multiple(() =>
         {
-            Assert.That(model.Systems[0].Name, Is.EqualTo("Unnamed System"));
+            Assert.That(model.Systems[0].Name, Is.EqualTo("Solution"));
             Assert.That(model.People, Is.Empty);
             Assert.That(model.ExternalSystems, Is.Empty);
             Assert.That(model.ExternalContainers, Is.Empty);

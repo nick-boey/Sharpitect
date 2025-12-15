@@ -35,9 +35,15 @@ public class SolutionAnalyzer
     {
         var model = new ArchitectureModel();
 
-        // 1. Parse system-level configuration
+        // Parse system-level configuration if it exists, otherwise adopt the same name as the solution.
         var systemYaml = _sourceProvider.GetYamlConfiguration(solutionPath + ".c4");
-        var systemConfig = _configParser.ParseSystemConfiguration(systemYaml ?? string.Empty);
+        var systemConfig = _configParser.ParseSystemConfiguration(systemYaml ?? string.Empty) ?? new SystemConfiguration
+        {
+            System = new SystemDefinition
+            {
+                Name = Path.GetFileNameWithoutExtension(solutionPath),
+            }
+        };
 
         // Build system from config
         var system = ModelBuilder.BuildSystem(systemConfig);
@@ -48,27 +54,26 @@ public class SolutionAnalyzer
         var componentMap = new Dictionary<string, Component>(StringComparer.OrdinalIgnoreCase);
 
         // Add people, external systems, external containers
-        if (systemConfig != null)
+        foreach (var personDef in systemConfig.People ?? Enumerable.Empty<PersonDefinition>())
         {
-            foreach (var personDef in systemConfig.People ?? Enumerable.Empty<PersonDefinition>())
-            {
-                var person = new Person(personDef.Name, personDef.Description);
-                model.AddPerson(person);
-                peopleMap[personDef.Name] = person;
-            }
-
-            foreach (var extSysDef in systemConfig.ExternalSystems ?? Enumerable.Empty<ExternalSystemDefinition>())
-            {
-                model.AddExternalSystem(new ExternalSystem(extSysDef.Name, extSysDef.Description));
-            }
-
-            foreach (var extContDef in systemConfig.ExternalContainers ?? Enumerable.Empty<ExternalContainerDefinition>())
-            {
-                model.AddExternalContainer(new ExternalContainer(extContDef.Name, extContDef.Technology, extContDef.Description));
-            }
+            var person = new Person(personDef.Name, personDef.Description);
+            model.AddPerson(person);
+            peopleMap[personDef.Name] = person;
         }
 
-        // 2. Analyze each project (container)
+        foreach (var extSysDef in systemConfig.ExternalSystems ?? Enumerable.Empty<ExternalSystemDefinition>())
+        {
+            model.AddExternalSystem(new ExternalSystem(extSysDef.Name, extSysDef.Description));
+        }
+
+        foreach (var extContDef in systemConfig.ExternalContainers ??
+                                   Enumerable.Empty<ExternalContainerDefinition>())
+        {
+            model.AddExternalContainer(new ExternalContainer(extContDef.Name, extContDef.Technology,
+                extContDef.Description));
+        }
+
+        // Analyse each project (container)
         var projects = _sourceProvider.GetProjects(solutionPath);
         var allTypes = new List<TypeAnalysisResult>();
 
@@ -85,7 +90,7 @@ public class SolutionAnalyzer
             }
         }
 
-        // 3. Build relationships
+        // Build relationships
         _modelBuilder.BuildRelationships(model, allTypes, componentMap, peopleMap);
 
         return model;
