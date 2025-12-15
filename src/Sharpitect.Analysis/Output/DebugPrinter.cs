@@ -31,7 +31,8 @@ public class DebugPrinter : IOutput
         }
     }
 
-    private void PrintElement(IElement element, TextWriter writer, string indent, bool isLast, IReadOnlyList<Relationship> relationships)
+    private void PrintElement(IElement element, TextWriter writer, string indent, bool isLast,
+        IReadOnlyList<Relationship> relationships)
     {
         var branch = isLast ? LastBranch : Branch;
         var childIndent = indent + (isLast ? Space : Vertical);
@@ -56,11 +57,11 @@ public class DebugPrinter : IOutput
             writer.WriteLine($"{childIndent}{relBranch}{relLabel}");
         }
 
-        for (var i = 0; i < children.Count; i++)
+        foreach (var child in children)
         {
             currentIndex++;
             var childIsLast = currentIndex == totalItems;
-            PrintElement(children[i], writer, childIndent, childIsLast, relationships);
+            PrintElement(child, writer, childIndent, childIsLast, relationships);
         }
     }
 
