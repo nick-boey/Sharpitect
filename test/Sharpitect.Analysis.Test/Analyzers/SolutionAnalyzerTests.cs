@@ -119,6 +119,7 @@ public class SolutionAnalyzerTests
               name: "Test System"
             """);
         sourceProvider.AddProject("Solution.sln", "Project/Project.csproj");
+        sourceProvider.SetProjectAsExecutable("Project/Project.csproj");
         sourceProvider.AddYaml("Project/Project.csproj.c4",
             """
             container:
@@ -150,6 +151,7 @@ public class SolutionAnalyzerTests
               name: "Test System"
             """);
         sourceProvider.AddProject("Solution.sln", "Project/Project.csproj");
+        sourceProvider.SetProjectAsExecutable("Project/Project.csproj");
         sourceProvider.AddSourceFile("Project/Project.csproj", "Project/IOrderService.cs");
         sourceProvider.AddSource("Project/IOrderService.cs",
             """
@@ -186,6 +188,7 @@ public class SolutionAnalyzerTests
               name: "Test System"
             """);
         sourceProvider.AddProject("Solution.sln", "Project/Project.csproj");
+        sourceProvider.SetProjectAsExecutable("Project/Project.csproj");
         sourceProvider.AddSourceFile("Project/Project.csproj", "Project/OrderService.cs");
         sourceProvider.AddSource("Project/OrderService.cs",
             """
@@ -227,6 +230,7 @@ public class SolutionAnalyzerTests
                 description: "Online shopper"
             """);
         sourceProvider.AddProject("Solution.sln", "Project/Project.csproj");
+        sourceProvider.SetProjectAsExecutable("Project/Project.csproj");
         sourceProvider.AddSourceFile("Project/Project.csproj", "Project/IOrderService.cs");
         sourceProvider.AddSource("Project/IOrderService.cs",
             """
@@ -265,6 +269,7 @@ public class SolutionAnalyzerTests
               name: "Test System"
             """);
         sourceProvider.AddProject("Solution.sln", "Project/Project.csproj");
+        sourceProvider.SetProjectAsExecutable("Project/Project.csproj");
         sourceProvider.AddYaml("Project/Project.csproj.c4",
             """
             container:
@@ -338,6 +343,7 @@ public class SolutionAnalyzerTests
 
         // Add API project
         sourceProvider.AddProject("Solution.sln", "Api/Api.csproj");
+        sourceProvider.SetProjectAsExecutable("Api/Api.csproj");
         sourceProvider.AddYaml("Api/Api.csproj.c4", """
 
                                                     container:
@@ -472,6 +478,7 @@ public class SolutionAnalyzerTests
 
         // Add first project
         sourceProvider.AddProject("Solution.sln", "Api/Api.csproj");
+        sourceProvider.SetProjectAsExecutable("Api/Api.csproj");
         sourceProvider.AddYaml("Api/Api.csproj.c4",
             """
             container:
@@ -488,6 +495,7 @@ public class SolutionAnalyzerTests
 
         // Add second project
         sourceProvider.AddProject("Solution.sln", "Worker/Worker.csproj");
+        sourceProvider.SetProjectAsExecutable("Worker/Worker.csproj");
         sourceProvider.AddYaml("Worker/Worker.csproj.c4",
             """
             container:
@@ -540,6 +548,7 @@ public class SolutionAnalyzerTests
 
                                                   """);
         sourceProvider.AddProject("Solution.sln", "Project/Project.csproj");
+        sourceProvider.SetProjectAsExecutable("Project/Project.csproj");
 
         // Add multiple source files
         sourceProvider.AddSourceFile("Project/Project.csproj", "Project/IOrderService.cs");
@@ -582,6 +591,7 @@ public class SolutionAnalyzerTests
 
                                                   """);
         sourceProvider.AddProject("Solution.sln", "MyProject/MyProject.csproj");
+        sourceProvider.SetProjectAsExecutable("MyProject/MyProject.csproj");
         // No container config
 
         var analyzer = new SolutionAnalyzer(sourceProvider);
@@ -589,5 +599,41 @@ public class SolutionAnalyzerTests
 
         var container = model.Systems[0].Containers[0];
         Assert.That(container.Name, Is.EqualTo("MyProject"));
+    }
+
+    [Test]
+    public void Analyze_ExcludesLibraryProjects()
+    {
+        var sourceProvider = new InMemorySourceProvider();
+        sourceProvider.AddYaml("Solution.sln.c4",
+            """
+            system:
+              name: "Test System"
+            """);
+
+        // Add an executable project
+        sourceProvider.AddProject("Solution.sln", "Api/Api.csproj");
+        sourceProvider.SetProjectAsExecutable("Api/Api.csproj");
+        sourceProvider.AddYaml("Api/Api.csproj.c4",
+            """
+            container:
+              name: "API"
+            """);
+
+        // Add a library project (not executable)
+        sourceProvider.AddProject("Solution.sln", "Core/Core.csproj");
+        // Note: NOT calling SetProjectAsExecutable for Core
+        sourceProvider.AddYaml("Core/Core.csproj.c4",
+            """
+            container:
+              name: "Core Library"
+            """);
+
+        var analyzer = new SolutionAnalyzer(sourceProvider);
+        var model = analyzer.Analyze("Solution.sln");
+
+        // Only the executable project should be a container
+        Assert.That(model.Systems[0].Containers, Has.Count.EqualTo(1));
+        Assert.That(model.Systems[0].Containers[0].Name, Is.EqualTo("API"));
     }
 }

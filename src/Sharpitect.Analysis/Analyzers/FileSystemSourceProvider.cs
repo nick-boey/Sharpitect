@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 
 namespace Sharpitect.Analysis.Analyzers;
 
@@ -52,6 +53,26 @@ public partial class FileSystemSourceProvider : ISourceProvider
             .Select(m => m.Groups[1].Value)
             .Where(p => p.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase))
             .Select(p => Path.GetFullPath(Path.Combine(solutionDir, p.Replace('\\', Path.DirectorySeparatorChar))));
+    }
+
+    /// <inheritdoc />
+    public bool IsExecutableProject(string projectPath)
+    {
+        if (!File.Exists(projectPath))
+        {
+            return false;
+        }
+
+        try
+        {
+            var doc = XDocument.Load(projectPath);
+            var outputType = doc.Descendants("OutputType").FirstOrDefault()?.Value;
+            return string.Equals(outputType, "Exe", StringComparison.OrdinalIgnoreCase);
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     [GeneratedRegex(@"Project\(""\{[^}]+\}""\)\s*=\s*""[^""]+"",\s*""([^""]+)""")]

@@ -34,4 +34,11 @@ public interface ISourceProvider
     /// <param name="solutionPath">The path to the solution file.</param>
     /// <returns>An enumerable of project file paths.</returns>
     IEnumerable<string> GetProjects(string solutionPath);
+
+    /// <summary>
+    /// Determines if a project is an executable (OutputType=Exe).
+    /// </summary>
+    /// <param name="projectPath">The path to the project file.</param>
+    /// <returns>True if the project has OutputType=Exe, false otherwise.</returns>
+    bool IsExecutableProject(string projectPath);
 }

@@ -74,8 +74,9 @@ public class SolutionAnalyzer
                 extContDef.Description));
         }
 
-        // Analyse each project (container)
-        var projects = _sourceProvider.GetProjects(solutionPath);
+        // Analyse each executable project (container)
+        var projects = _sourceProvider.GetProjects(solutionPath)
+            .Where(p => _sourceProvider.IsExecutableProject(p));
         var allTypes = new List<TypeAnalysisResult>();
 
         foreach (var projectPath in projects)

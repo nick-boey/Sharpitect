@@ -10,6 +10,7 @@ public class InMemorySourceProvider : ISourceProvider
     private readonly Dictionary<string, string> _yamlConfigs = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, List<string>> _projectFiles = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, List<string>> _solutionProjects = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string> _executableProjects = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
     /// Adds a source file with the specified content.
@@ -63,6 +64,15 @@ public class InMemorySourceProvider : ISourceProvider
         files.Add(sourceFile);
     }
 
+    /// <summary>
+    /// Marks a project as an executable (OutputType=Exe).
+    /// </summary>
+    /// <param name="projectPath">The path to the project file.</param>
+    public void SetProjectAsExecutable(string projectPath)
+    {
+        _executableProjects.Add(projectPath);
+    }
+
     /// <inheritdoc />
     public string GetSourceCode(string path)
     {
@@ -85,5 +95,11 @@ public class InMemorySourceProvider : ISourceProvider
     public IEnumerable<string> GetProjects(string solutionPath)
     {
         return _solutionProjects.TryGetValue(solutionPath, out var projects) ? projects : Enumerable.Empty<string>();
+    }
+
+    /// <inheritdoc />
+    public bool IsExecutableProject(string projectPath)
+    {
+        return _executableProjects.Contains(projectPath);
     }
 }
