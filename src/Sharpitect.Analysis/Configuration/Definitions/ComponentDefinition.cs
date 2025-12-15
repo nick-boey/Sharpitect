@@ -1,7 +1,7 @@
 ﻿namespace Sharpitect.Analysis.Configuration.Definitions;
 
 /// <summary>
-/// Defines a namespace-based component mapping in the .csproj.c4 file.
+/// Defines a namespace-based component mapping in the .csproj.yml file.
 /// </summary>
 public class ComponentDefinition
 {

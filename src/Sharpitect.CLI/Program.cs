@@ -19,9 +19,22 @@ var buildCommand = new Command("build", "Analyze a .NET solution and build the a
 
 buildCommand.SetHandler(HandleBuildCommand, pathArgument, debugOption);
 
+var initPathArgument = new Argument<string?>(
+    name: "path",
+    description: "Path to a directory containing a .sln or .slnx file. Defaults to current directory.",
+    getDefaultValue: () => null);
+
+var initCommand = new Command("init", "Initialize a new .sln.yml configuration file for a solution.")
+{
+    initPathArgument
+};
+
+initCommand.SetHandler(HandleInitCommand, initPathArgument);
+
 var rootCommand = new RootCommand("Sharpitect - Generate C4 architecture diagrams from annotated C# codebases.")
 {
-    buildCommand
+    buildCommand,
+    initCommand
 };
 
 return await rootCommand.InvokeAsync(args);
@@ -111,4 +124,85 @@ static string? ResolveSolutionPath(string? path)
     }
 
     return Path.GetFullPath(slnFiles[0]);
+}
+
+static void HandleInitCommand(string? path)
+{
+    var targetPath = string.IsNullOrEmpty(path) ? Directory.GetCurrentDirectory() : path;
+
+    if (!Directory.Exists(targetPath))
+    {
+        Console.Error.WriteLine($"Error: Directory not found: {targetPath}");
+        Environment.ExitCode = 1;
+        return;
+    }
+
+    var slnFiles = Directory.GetFiles(targetPath, "*.sln")
+        .Concat(Directory.GetFiles(targetPath, "*.slnx"))
+        .ToArray();
+
+    if (slnFiles.Length == 0)
+    {
+        Console.Error.WriteLine($"Error: No .sln or .slnx file found in: {Path.GetFullPath(targetPath)}");
+        Environment.ExitCode = 1;
+        return;
+    }
+
+    if (slnFiles.Length > 1)
+    {
+        Console.Error.WriteLine($"Error: Multiple solution files found in: {targetPath}");
+        foreach (var sln in slnFiles)
+        {
+            Console.Error.WriteLine($"  - {Path.GetFileName(sln)}");
+        }
+        Console.Error.WriteLine("Please specify which solution to initialize.");
+        Environment.ExitCode = 1;
+        return;
+    }
+
+    var solutionPath = slnFiles[0];
+    var solutionName = Path.GetFileNameWithoutExtension(solutionPath);
+    var configFileName = Path.GetFileName(solutionPath) + ".yml";
+    var configFilePath = Path.Combine(Path.GetDirectoryName(solutionPath)!, configFileName);
+
+    if (File.Exists(configFilePath))
+    {
+        Console.Error.WriteLine($"Error: Configuration file already exists: {configFileName}");
+        Environment.ExitCode = 1;
+        return;
+    }
+
+    var yamlContent = $"""
+        # Sharpitect C4 Configuration for {solutionName}
+        # See documentation for full configuration options.
+
+        system:
+          name: "{solutionName}"
+          description: "Description of the {solutionName} system."
+
+        # Define people/actors who interact with the system
+        people:
+          - name: "User"
+            description: "A user of the system."
+
+        # Define external systems that this system interacts with
+        externalSystems: []
+        #  - name: "External Service"
+        #    description: "An external service the system depends on."
+
+        # Define external containers (databases, message queues, etc.)
+        externalContainers: []
+        #  - name: "Database"
+        #    description: "The database used by the system."
+        #    technology: "PostgreSQL"
+
+        # Define relationships between elements
+        relationships: []
+        #  - from: "User"
+        #    to: "{solutionName}"
+        #    description: "Uses"
+        """;
+
+    File.WriteAllText(configFilePath, yamlContent);
+    Console.WriteLine($"Created: {configFileName}");
 }

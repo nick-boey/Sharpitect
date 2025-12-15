@@ -1,7 +1,7 @@
 ﻿namespace Sharpitect.Analysis.Configuration.Definitions;
 
 /// <summary>
-/// Defines a person/actor in the .sln.c4 file.
+/// Defines a person/actor in the .sln.yml file.
 /// </summary>
 public class PersonDefinition
 {

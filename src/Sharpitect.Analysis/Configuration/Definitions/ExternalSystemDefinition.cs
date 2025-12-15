@@ -1,7 +1,7 @@
 ﻿namespace Sharpitect.Analysis.Configuration.Definitions;
 
 /// <summary>
-/// Defines an external system in the .sln.c4 file.
+/// Defines an external system in the .sln.yml file.
 /// </summary>
 public class ExternalSystemDefinition
 {

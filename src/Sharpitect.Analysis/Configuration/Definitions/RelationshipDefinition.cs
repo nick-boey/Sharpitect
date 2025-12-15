@@ -1,7 +1,7 @@
 ﻿namespace Sharpitect.Analysis.Configuration.Definitions;
 
 /// <summary>
-/// Defines a relationship between two elements in the .sln.c4 file.
+/// Defines a relationship between two elements in the .sln.yml file.
 /// </summary>
 public class RelationshipDefinition
 {

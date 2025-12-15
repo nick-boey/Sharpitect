@@ -11,7 +11,7 @@ public class SolutionAnalyzerTests
     public void Analyze_BuildsSystemFromConfig()
     {
         var sourceProvider = new InMemorySourceProvider();
-        sourceProvider.AddYaml("Solution.sln.c4",
+        sourceProvider.AddYaml("Solution.sln.yml",
             """
             system:
               name: "Test System"
@@ -33,7 +33,7 @@ public class SolutionAnalyzerTests
     public void Analyze_BuildsPeopleFromConfig()
     {
         var sourceProvider = new InMemorySourceProvider();
-        sourceProvider.AddYaml("Solution.sln.c4",
+        sourceProvider.AddYaml("Solution.sln.yml",
             """
             system:
               name: "Test System"
@@ -61,7 +61,7 @@ public class SolutionAnalyzerTests
     public void Analyze_BuildsExternalSystemsFromConfig()
     {
         var sourceProvider = new InMemorySourceProvider();
-        sourceProvider.AddYaml("Solution.sln.c4",
+        sourceProvider.AddYaml("Solution.sln.yml",
             """
             system:
               name: "Test System"
@@ -86,7 +86,7 @@ public class SolutionAnalyzerTests
     public void Analyze_BuildsExternalContainersFromConfig()
     {
         var sourceProvider = new InMemorySourceProvider();
-        sourceProvider.AddYaml("Solution.sln.c4",
+        sourceProvider.AddYaml("Solution.sln.yml",
             """
             system:
               name: "Test System"
@@ -113,14 +113,14 @@ public class SolutionAnalyzerTests
     public void Analyze_BuildsContainerFromProject()
     {
         var sourceProvider = new InMemorySourceProvider();
-        sourceProvider.AddYaml("Solution.sln.c4",
+        sourceProvider.AddYaml("Solution.sln.yml",
             """
             system:
               name: "Test System"
             """);
         sourceProvider.AddProject("Solution.sln", "Project/Project.csproj");
         sourceProvider.SetProjectAsExecutable("Project/Project.csproj");
-        sourceProvider.AddYaml("Project/Project.csproj.c4",
+        sourceProvider.AddYaml("Project/Project.csproj.yml",
             """
             container:
               name: "Web API"
@@ -145,7 +145,7 @@ public class SolutionAnalyzerTests
     public void Analyze_BuildsComponentFromAttribute()
     {
         var sourceProvider = new InMemorySourceProvider();
-        sourceProvider.AddYaml("Solution.sln.c4",
+        sourceProvider.AddYaml("Solution.sln.yml",
             """
             system:
               name: "Test System"
@@ -182,7 +182,7 @@ public class SolutionAnalyzerTests
     public void Analyze_MapsClassToComponentViaInterface()
     {
         var sourceProvider = new InMemorySourceProvider();
-        sourceProvider.AddYaml("Solution.sln.c4",
+        sourceProvider.AddYaml("Solution.sln.yml",
             """
             system:
               name: "Test System"
@@ -220,7 +220,7 @@ public class SolutionAnalyzerTests
     public void Analyze_BuildsUserActionRelationship()
     {
         var sourceProvider = new InMemorySourceProvider();
-        sourceProvider.AddYaml("Solution.sln.c4",
+        sourceProvider.AddYaml("Solution.sln.yml",
             """
             system:
               name: "Test System"
@@ -263,14 +263,14 @@ public class SolutionAnalyzerTests
     public void Analyze_BuildsComponentFromNamespaceMapping()
     {
         var sourceProvider = new InMemorySourceProvider();
-        sourceProvider.AddYaml("Solution.sln.c4",
+        sourceProvider.AddYaml("Solution.sln.yml",
             """
             system:
               name: "Test System"
             """);
         sourceProvider.AddProject("Solution.sln", "Project/Project.csproj");
         sourceProvider.SetProjectAsExecutable("Project/Project.csproj");
-        sourceProvider.AddYaml("Project/Project.csproj.c4",
+        sourceProvider.AddYaml("Project/Project.csproj.yml",
             """
             container:
               name: "Web API"
@@ -310,7 +310,7 @@ public class SolutionAnalyzerTests
         var sourceProvider = new InMemorySourceProvider();
 
         // Add solution-level config
-        sourceProvider.AddYaml("Solution.sln.c4", """
+        sourceProvider.AddYaml("Solution.sln.yml", """
 
                                                   system:
                                                     name: "ShopEasy"
@@ -344,7 +344,7 @@ public class SolutionAnalyzerTests
         // Add API project
         sourceProvider.AddProject("Solution.sln", "Api/Api.csproj");
         sourceProvider.SetProjectAsExecutable("Api/Api.csproj");
-        sourceProvider.AddYaml("Api/Api.csproj.c4", """
+        sourceProvider.AddYaml("Api/Api.csproj.yml", """
 
                                                     container:
                                                       name: "Web API"
@@ -470,7 +470,7 @@ public class SolutionAnalyzerTests
     public void Analyze_HandlesMultipleProjects()
     {
         var sourceProvider = new InMemorySourceProvider();
-        sourceProvider.AddYaml("Solution.sln.c4",
+        sourceProvider.AddYaml("Solution.sln.yml",
             """
             system:
               name: "Test System"
@@ -479,7 +479,7 @@ public class SolutionAnalyzerTests
         // Add first project
         sourceProvider.AddProject("Solution.sln", "Api/Api.csproj");
         sourceProvider.SetProjectAsExecutable("Api/Api.csproj");
-        sourceProvider.AddYaml("Api/Api.csproj.c4",
+        sourceProvider.AddYaml("Api/Api.csproj.yml",
             """
             container:
               name: "API"
@@ -496,7 +496,7 @@ public class SolutionAnalyzerTests
         // Add second project
         sourceProvider.AddProject("Solution.sln", "Worker/Worker.csproj");
         sourceProvider.SetProjectAsExecutable("Worker/Worker.csproj");
-        sourceProvider.AddYaml("Worker/Worker.csproj.c4",
+        sourceProvider.AddYaml("Worker/Worker.csproj.yml",
             """
             container:
               name: "Worker"
@@ -541,7 +541,7 @@ public class SolutionAnalyzerTests
     public void Analyze_HandlesMultipleSourceFilesInProject()
     {
         var sourceProvider = new InMemorySourceProvider();
-        sourceProvider.AddYaml("Solution.sln.c4", """
+        sourceProvider.AddYaml("Solution.sln.yml", """
 
                                                   system:
                                                     name: "Test System"
@@ -584,7 +584,7 @@ public class SolutionAnalyzerTests
     public void Analyze_ContainerUsesProjectNameWhenNoConfig()
     {
         var sourceProvider = new InMemorySourceProvider();
-        sourceProvider.AddYaml("Solution.sln.c4", """
+        sourceProvider.AddYaml("Solution.sln.yml", """
 
                                                   system:
                                                     name: "Test System"
@@ -605,7 +605,7 @@ public class SolutionAnalyzerTests
     public void Analyze_ExcludesLibraryProjects()
     {
         var sourceProvider = new InMemorySourceProvider();
-        sourceProvider.AddYaml("Solution.sln.c4",
+        sourceProvider.AddYaml("Solution.sln.yml",
             """
             system:
               name: "Test System"
@@ -614,7 +614,7 @@ public class SolutionAnalyzerTests
         // Add an executable project
         sourceProvider.AddProject("Solution.sln", "Api/Api.csproj");
         sourceProvider.SetProjectAsExecutable("Api/Api.csproj");
-        sourceProvider.AddYaml("Api/Api.csproj.c4",
+        sourceProvider.AddYaml("Api/Api.csproj.yml",
             """
             container:
               name: "API"
@@ -623,7 +623,7 @@ public class SolutionAnalyzerTests
         // Add a library project (not executable)
         sourceProvider.AddProject("Solution.sln", "Core/Core.csproj");
         // Note: NOT calling SetProjectAsExecutable for Core
-        sourceProvider.AddYaml("Core/Core.csproj.c4",
+        sourceProvider.AddYaml("Core/Core.csproj.yml",
             """
             container:
               name: "Core Library"

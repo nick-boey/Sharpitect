@@ -3,7 +3,7 @@ using Sharpitect.Analysis.Configuration.Definitions;
 namespace Sharpitect.Analysis.Configuration;
 
 /// <summary>
-/// DTO for deserializing .sln.c4 YAML files.
+/// DTO for deserializing .sln.yml YAML files.
 /// </summary>
 public class SystemConfiguration
 {

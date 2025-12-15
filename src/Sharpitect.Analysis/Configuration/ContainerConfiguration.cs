@@ -3,7 +3,7 @@ using Sharpitect.Analysis.Configuration.Definitions;
 namespace Sharpitect.Analysis.Configuration;
 
 /// <summary>
-/// DTO for deserializing .csproj.c4 YAML files.
+/// DTO for deserializing .csproj.yml YAML files.
 /// </summary>
 public class ContainerConfiguration
 {

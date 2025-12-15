@@ -5,7 +5,7 @@ using YamlDotNet.Serialization.NamingConventions;
 namespace Sharpitect.Analysis.Analyzers;
 
 /// <summary>
-/// Parses YAML configuration files (.sln.c4, .csproj.c4).
+/// Parses YAML configuration files (.sln.yml, .csproj.yml).
 /// </summary>
 public class ConfigurationParser
 {

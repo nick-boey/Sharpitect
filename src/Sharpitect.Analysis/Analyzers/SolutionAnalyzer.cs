@@ -37,7 +37,7 @@ public class SolutionAnalyzer
         var model = new ArchitectureModel();
 
         // Parse system-level configuration if it exists, otherwise adopt the same name as the solution.
-        var systemYaml = _sourceProvider.GetYamlConfiguration(solutionPath + ".c4");
+        var systemYaml = _sourceProvider.GetYamlConfiguration(solutionPath + ".yml");
         var systemConfig = _configParser.ParseSystemConfiguration(systemYaml ?? string.Empty) ?? new SystemConfiguration
         {
             System = new SystemDefinition
@@ -101,7 +101,7 @@ public class SolutionAnalyzer
     private (Container Container, List<TypeAnalysisResult> Types) AnalyzeProject(string projectPath)
     {
         // Parse container configuration
-        var containerYaml = _sourceProvider.GetYamlConfiguration(projectPath + ".c4");
+        var containerYaml = _sourceProvider.GetYamlConfiguration(projectPath + ".yml");
         var containerConfig = _configParser.ParseContainerConfiguration(containerYaml ?? string.Empty);
 
         var container = ModelBuilder.BuildContainer(containerConfig, projectPath);

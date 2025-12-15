@@ -1,7 +1,7 @@
 ﻿namespace Sharpitect.Analysis.Configuration.Definitions;
 
 /// <summary>
-/// Defines a container in the .csproj.c4 file.
+/// Defines a container in the .csproj.yml file.
 /// </summary>
 public class ContainerDefinition
 {

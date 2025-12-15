@@ -4,7 +4,7 @@ namespace Sharpitect.Attributes
 {
     /// <summary>
     /// Marks a method as a user entry point, creating a relationship from a person to the component.
-    /// The person name must match an entry in the people section of the .sln.c4 file.
+    /// The person name must match an entry in the people section of the .sln.yml file.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, Inherited = false)]
     public sealed class UserActionAttribute : Attribute

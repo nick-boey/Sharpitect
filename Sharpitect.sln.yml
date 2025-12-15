@@ -1,0 +1,28 @@
+# Sharpitect C4 Configuration for Sharpitect
+# See documentation for full configuration options.
+
+system:
+  name: "Sharpitect"
+  description: "Description of the Sharpitect system."
+
+# Define people/actors who interact with the system
+people:
+  - name: "User"
+    description: "A user of the system."
+
+# Define external systems that this system interacts with
+externalSystems: []
+#  - name: "External Service"
+#    description: "An external service the system depends on."
+
+# Define external containers (databases, message queues, etc.)
+externalContainers: []
+#  - name: "Database"
+#    description: "The database used by the system."
+#    technology: "PostgreSQL"
+
+# Define relationships between elements
+relationships: []
+#  - from: "User"
+#    to: "Sharpitect"
+#    description: "Uses"

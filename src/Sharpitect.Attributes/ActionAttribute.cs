@@ -4,7 +4,7 @@ namespace Sharpitect.Attributes
 {
     /// <summary>
     /// Defines a custom relationship name for method calls between components.
-    /// The relationship name must match an entry in the relationships registry in the .sln.c4 file.
+    /// The relationship name must match an entry in the relationships registry in the .sln.yml file.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, Inherited = false)]
     public sealed class ActionAttribute : Attribute
