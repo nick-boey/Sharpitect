@@ -3,26 +3,26 @@
 
 system:
   name: "Sharpitect"
-  description: "Description of the Sharpitect system."
+  description: ".NET tools for visualising the architecture of a system and closing the architecture-code gap."
 
 # Define people/actors who interact with the system
 people:
-  - name: "User"
-    description: "A user of the system."
+  - name: "Architect"
+    description: "A programmer wishing to improve the architecture of their software."
 
 # Define external systems that this system interacts with
-externalSystems: []
+externalSystems: [ ]
 #  - name: "External Service"
 #    description: "An external service the system depends on."
 
 # Define external containers (databases, message queues, etc.)
-externalContainers: []
+externalContainers: [ ]
 #  - name: "Database"
 #    description: "The database used by the system."
 #    technology: "PostgreSQL"
 
 # Define relationships between elements
-relationships: []
+relationships: [ ]
 #  - from: "User"
 #    to: "Sharpitect"
 #    description: "Uses"
