@@ -31,6 +31,7 @@ public sealed class TextOutputFormatter : IOutputFormatter
             UsagesResult usages => FormatUsages(usages),
             SignatureResult signature => FormatSignature(signature),
             CodeResult code => FormatCodeResult(code),
+            TreeResult tree => FormatTree(tree),
             _ => result.ToString() ?? string.Empty
         };
     }
@@ -526,5 +527,33 @@ public sealed class TextOutputFormatter : IOutputFormatter
         }
 
         return sb.ToString().TrimEnd();
+    }
+
+    private static string FormatTree(TreeResult result)
+    {
+        var sb = new StringBuilder();
+        var header = result.RootId != null
+            ? $"Tree from {result.RootId}"
+            : "Containment tree";
+        sb.AppendLine($"{header} ({result.TotalNodes} nodes, depth {result.MaxDepth}):");
+        sb.AppendLine();
+
+        foreach (var root in result.Roots)
+        {
+            FormatTreeNode(sb, root, 0);
+        }
+
+        return sb.ToString().TrimEnd();
+    }
+
+    private static void FormatTreeNode(StringBuilder sb, TreeNode node, int depth)
+    {
+        var indent = new string(' ', depth * 2);
+        sb.AppendLine($"{indent}[{node.Kind}] {node.Name}");
+
+        foreach (var child in node.Children)
+        {
+            FormatTreeNode(sb, child, depth + 1);
+        }
     }
 }

@@ -339,6 +339,31 @@ public static class GraphNavigationTools
         return formatter.Format(result);
     }
 
+    /// <summary>
+    /// Gets the containment tree starting from a node or from solution roots.
+    /// </summary>
+    [McpServerTool, Description("Get the containment tree showing nested structure. If no root ID provided, shows from solution level.")]
+    public static async Task<string> GetTree(
+        IGraphNavigationService navigationService,
+        IOutputFormatterFactory formatterFactory,
+        [Description("Root node ID to start from. If omitted, starts from solution roots.")] string? rootId = null,
+        [Description("Filter to only show nodes of this kind: class, interface, method, property, namespace, project, etc.")] string? kind = null,
+        [Description("Maximum depth levels to display. Defaults to 2.")] int maxDepth = 2,
+        [Description("Output format: json or text. Defaults to json.")] string? format = null)
+    {
+        var formatter = formatterFactory.GetFormatter(format);
+        var kindFilter = kind != null ? ParseDeclarationKind(kind) : null;
+
+        var result = await navigationService.GetTreeAsync(rootId, kindFilter, maxDepth);
+
+        if (result.Roots.Count == 0 && rootId != null)
+        {
+            return formatter.Format(ErrorResponse.NotFound($"Node with ID '{rootId}' was not found in the graph."));
+        }
+
+        return formatter.Format(result);
+    }
+
     #region Parsing Helpers
 
     private static SearchMatchMode ParseMatchMode(string? mode)

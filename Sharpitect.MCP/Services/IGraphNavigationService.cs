@@ -126,6 +126,15 @@ public interface IGraphNavigationService
     /// Gets the node details and source code for a declaration.
     /// </summary>
     Task<CodeResult?> GetCodeAsync(string nodeId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the containment tree starting from a node or from solution roots.
+    /// </summary>
+    Task<TreeResult> GetTreeAsync(
+        string? rootId = null,
+        DeclarationKind? kindFilter = null,
+        int maxDepth = 2,
+        CancellationToken cancellationToken = default);
 }
 
 /// <summary>

@@ -549,6 +549,48 @@ public static class NavigationCommands
         return command;
     }
 
+    public static Command CreateTreeCommand()
+    {
+        var nodeNameArgument = new Argument<string?>(
+            name: "name",
+            getDefaultValue: () => null,
+            description: "Fully qualified name of the root node. If omitted, starts from solution root.");
+
+        var kindOption = new Option<DeclarationKind?>(
+            aliases: ["--kind", "-k"],
+            description: "Filter tree to only show nodes of this kind (e.g., Class, Method).");
+
+        var depthOption = new Option<int>(
+            aliases: ["--depth"],
+            getDefaultValue: () => 2,
+            description: "Maximum depth levels to display.");
+
+        var command = new Command("tree", "Display the containment tree starting from a node or solution root.")
+        {
+            nodeNameArgument,
+            DatabaseOption,
+            kindOption,
+            depthOption
+        };
+
+        command.SetHandler(async (nodeName, database, kind, depth) =>
+        {
+            await ExecuteWithServiceAsync(database, async (service, formatter) =>
+            {
+                var result = await service.GetTreeAsync(nodeName, kind, depth);
+                if (result.Roots.Count == 0 && nodeName != null)
+                {
+                    Console.Error.WriteLine($"Error: Node not found: {nodeName}");
+                    Environment.ExitCode = 1;
+                    return;
+                }
+                Console.WriteLine(formatter.Format(result));
+            });
+        }, nodeNameArgument, DatabaseOption, kindOption, depthOption);
+
+        return command;
+    }
+
     private static async Task ExecuteWithServiceAsync(string? databasePath, Func<IGraphNavigationService, IOutputFormatter, Task> action)
     {
         var dbPath = ResolveDatabasePath(databasePath);

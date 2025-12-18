@@ -10,6 +10,9 @@ var rootCommand = new RootCommand("Sharpitect - Analyze .NET codebases and build
     // MCP server command
     ServerCommands.CreateServeCommand(),
 
+    // Setup commands
+    SetupCommands.CreateInstallCommand(),
+
     // Navigation commands
     NavigationCommands.CreateSearchCommand(),
     NavigationCommands.CreateNodeCommand(),
@@ -25,7 +28,8 @@ var rootCommand = new RootCommand("Sharpitect - Analyze .NET codebases and build
     NavigationCommands.CreateFileCommand(),
     NavigationCommands.CreateUsagesCommand(),
     NavigationCommands.CreateSignatureCommand(),
-    NavigationCommands.CreateCodeCommand()
+    NavigationCommands.CreateCodeCommand(),
+    NavigationCommands.CreateTreeCommand()
 };
 
 return await rootCommand.InvokeAsync(args);

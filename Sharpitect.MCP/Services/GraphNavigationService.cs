@@ -904,4 +904,112 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
             return new CodeResult(nodeDetail, null, ex.Message);
         }
     }
+
+    public async Task<TreeResult> GetTreeAsync(
+        string? rootId = null,
+        DeclarationKind? kindFilter = null,
+        int maxDepth = 2,
+        CancellationToken cancellationToken = default)
+    {
+        var roots = new List<TreeNode>();
+        var nodeCount = 0;
+
+        if (rootId != null)
+        {
+            // Start from a specific node
+            var rootNode = await ResolveNodeAsync(rootId, cancellationToken).ConfigureAwait(false);
+            if (rootNode != null)
+            {
+                var tree = await BuildTreeNodeAsync(
+                    rootNode, kindFilter, maxDepth, 0, cancellationToken).ConfigureAwait(false);
+                if (tree.Node != null)
+                {
+                    roots.Add(tree.Node);
+                    nodeCount = tree.Count;
+                }
+            }
+        }
+        else
+        {
+            // Find solution roots (nodes with no Contains parent)
+            var solutionNodes = await _repository.GetNodesByKindAsync(DeclarationKind.Solution, cancellationToken)
+                .ConfigureAwait(false);
+
+            foreach (var solution in solutionNodes)
+            {
+                var tree = await BuildTreeNodeAsync(
+                    solution, kindFilter, maxDepth, 0, cancellationToken).ConfigureAwait(false);
+                if (tree.Node != null)
+                {
+                    roots.Add(tree.Node);
+                    nodeCount += tree.Count;
+                }
+            }
+        }
+
+        return new TreeResult(rootId, roots, nodeCount, maxDepth);
+    }
+
+    private async Task<(TreeNode? Node, int Count)> BuildTreeNodeAsync(
+        DeclarationNode node,
+        DeclarationKind? kindFilter,
+        int maxDepth,
+        int currentDepth,
+        CancellationToken cancellationToken)
+    {
+        // Check if this node passes the kind filter (but always include parents to maintain tree structure)
+        var passesFilter = kindFilter == null || node.Kind == kindFilter.Value;
+
+        if (currentDepth > maxDepth)
+        {
+            // Beyond max depth, don't include
+            return (null, 0);
+        }
+
+        var children = new List<TreeNode>();
+        var totalCount = passesFilter ? 1 : 0;
+
+        // Only fetch children if we're not at max depth
+        if (currentDepth < maxDepth)
+        {
+            var outgoingEdges = await _repository.GetOutgoingEdgesAsync(node.Id, cancellationToken).ConfigureAwait(false);
+            var containsEdges = outgoingEdges.Where(e => e.Kind == RelationshipKind.Contains).ToList();
+
+            foreach (var edge in containsEdges)
+            {
+                var childNode = await _repository.GetNodeAsync(edge.TargetId, cancellationToken).ConfigureAwait(false);
+                if (childNode == null) continue;
+
+                var childResult = await BuildTreeNodeAsync(
+                    childNode, kindFilter, maxDepth, currentDepth + 1, cancellationToken)
+                    .ConfigureAwait(false);
+
+                if (childResult.Node != null)
+                {
+                    children.Add(childResult.Node);
+                    totalCount += childResult.Count;
+                }
+            }
+        }
+
+        // If filtering and no children pass, only include this node if it passes the filter
+        if (kindFilter != null && !passesFilter && children.Count == 0)
+        {
+            return (null, 0);
+        }
+
+        // Include this node if it passes filter OR has children that pass
+        if (passesFilter || children.Count > 0)
+        {
+            var treeNode = new TreeNode(
+                node.Id,
+                node.Name,
+                node.FullyQualifiedName,
+                node.Kind.ToString(),
+                children);
+            return (treeNode, totalCount);
+        }
+
+        return (null, 0);
+    }
 }

@@ -258,7 +258,24 @@ The server communicates over stdio using the MCP protocol.
 
 ### Claude Code Integration
 
-Add Sharpitect to your Claude Code MCP configuration. Create or edit `.claude/settings.json` in your project:
+The easiest way to configure Sharpitect for Claude Code is using the `install` command:
+
+```bash
+# Configure for current project (creates .claude/settings.json)
+sharpitect install
+
+# Configure globally for all projects
+sharpitect install --global
+
+# Specify a custom database path
+sharpitect install --database ./custom/path/graph.db
+```
+
+After running the command, restart Claude Code to load the MCP server.
+
+#### Manual Configuration
+
+Alternatively, you can manually create or edit `.claude/settings.json` in your project:
 
 ```json
 {
