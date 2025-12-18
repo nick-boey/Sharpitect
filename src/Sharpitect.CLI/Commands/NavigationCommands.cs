@@ -70,8 +70,8 @@ public static class NavigationCommands
     public static Command CreateNodeCommand()
     {
         var idArgument = new Argument<string>(
-            name: "id",
-            description: "Fully qualified ID of the declaration node.");
+            name: "name",
+            description: "Fully qualified name of the declaration (e.g., Namespace.Class.Method).");
 
         var command = new Command("node", "Get detailed information about a declaration node.")
         {
@@ -100,8 +100,8 @@ public static class NavigationCommands
     public static Command CreateChildrenCommand()
     {
         var parentIdArgument = new Argument<string>(
-            name: "parent-id",
-            description: "Fully qualified ID of the parent node.");
+            name: "parent-name",
+            description: "Fully qualified name of the parent declaration (e.g., Namespace.Class).");
 
         var kindOption = new Option<DeclarationKind?>(
             aliases: ["--kind", "-k"],
@@ -136,8 +136,8 @@ public static class NavigationCommands
     public static Command CreateAncestorsCommand()
     {
         var nodeIdArgument = new Argument<string>(
-            name: "node-id",
-            description: "Fully qualified ID of the node.");
+            name: "name",
+            description: "Fully qualified name of the declaration (e.g., Namespace.Class.Method).");
 
         var command = new Command("ancestors", "Get containment hierarchy path from root to a node.")
         {
@@ -166,8 +166,8 @@ public static class NavigationCommands
     public static Command CreateRelationshipsCommand()
     {
         var nodeIdArgument = new Argument<string>(
-            name: "node-id",
-            description: "Fully qualified ID of the node.");
+            name: "name",
+            description: "Fully qualified name of the declaration (e.g., Namespace.Class).");
 
         var directionOption = new Option<RelationshipDirection>(
             aliases: ["--direction"],
@@ -208,8 +208,8 @@ public static class NavigationCommands
     public static Command CreateCallersCommand()
     {
         var nodeIdArgument = new Argument<string>(
-            name: "node-id",
-            description: "Fully qualified ID of the method or property.");
+            name: "name",
+            description: "Fully qualified name of the method or property (e.g., Namespace.Class.Method).");
 
         var depthOption = new Option<int>(
             aliases: ["--depth"],
@@ -245,8 +245,8 @@ public static class NavigationCommands
     public static Command CreateCalleesCommand()
     {
         var nodeIdArgument = new Argument<string>(
-            name: "node-id",
-            description: "Fully qualified ID of the method or property.");
+            name: "name",
+            description: "Fully qualified name of the method or property (e.g., Namespace.Class.Method).");
 
         var depthOption = new Option<int>(
             aliases: ["--depth"],
@@ -282,8 +282,8 @@ public static class NavigationCommands
     public static Command CreateInheritanceCommand()
     {
         var nodeIdArgument = new Argument<string>(
-            name: "node-id",
-            description: "Fully qualified ID of the class or interface.");
+            name: "name",
+            description: "Fully qualified name of the class or interface (e.g., Namespace.MyClass).");
 
         var directionOption = new Option<InheritanceDirection>(
             aliases: ["--direction"],
@@ -329,7 +329,7 @@ public static class NavigationCommands
 
         var scopeOption = new Option<string?>(
             aliases: ["--scope", "-s"],
-            description: "Scope node ID to limit search within.");
+            description: "Fully qualified name of a scope to limit search within.");
 
         var command = new Command("list", "List all declarations of a specific kind.")
         {
@@ -354,8 +354,8 @@ public static class NavigationCommands
     public static Command CreateDependenciesCommand()
     {
         var projectIdArgument = new Argument<string>(
-            name: "project-id",
-            description: "Fully qualified ID of the project.");
+            name: "project-name",
+            description: "Name or fully qualified name of the project.");
 
         var transitiveOption = new Option<bool>(
             aliases: ["--transitive", "-t"],
@@ -390,8 +390,8 @@ public static class NavigationCommands
     public static Command CreateDependentsCommand()
     {
         var projectIdArgument = new Argument<string>(
-            name: "project-id",
-            description: "Fully qualified ID of the project.");
+            name: "project-name",
+            description: "Name or fully qualified name of the project.");
 
         var transitiveOption = new Option<bool>(
             aliases: ["--transitive", "-t"],
@@ -456,8 +456,8 @@ public static class NavigationCommands
     public static Command CreateUsagesCommand()
     {
         var nodeIdArgument = new Argument<string>(
-            name: "node-id",
-            description: "Fully qualified ID of the type, method, or property.");
+            name: "name",
+            description: "Fully qualified name of the type, method, or property (e.g., Namespace.Class).");
 
         var usageKindOption = new Option<UsageKind?>(
             aliases: ["--kind", "-k"],
@@ -492,8 +492,8 @@ public static class NavigationCommands
     public static Command CreateSignatureCommand()
     {
         var nodeIdArgument = new Argument<string>(
-            name: "node-id",
-            description: "Fully qualified ID of the method, property, or type.");
+            name: "name",
+            description: "Fully qualified name of the method, property, or type (e.g., Namespace.Class.Method).");
 
         var command = new Command("signature", "Get full signature and type information.")
         {
@@ -522,7 +522,7 @@ public static class NavigationCommands
     public static Command CreateCodeCommand()
     {
         var nodeIdArgument = new Argument<string>(
-            name: "node-id",
+            name: "name",
             description: "Fully qualified name of the declaration (e.g., Namespace.Class.Method).");
 
         var command = new Command("code", "Display declaration summary and source code.")

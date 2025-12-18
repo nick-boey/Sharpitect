@@ -211,6 +211,42 @@ public class SqliteGraphRepositoryTests
         });
     }
 
+    [Test]
+    public async Task GetNodeByFullyQualifiedNameAsync_ShouldReturnMatchingNode()
+    {
+        var node = new DeclarationNode
+        {
+            Id = "hash-id",
+            Name = "MyClass",
+            FullyQualifiedName = "MyNamespace.MyClass",
+            Kind = DeclarationKind.Class,
+            FilePath = "test.cs",
+            StartLine = 1,
+            StartColumn = 1,
+            EndLine = 1,
+            EndColumn = 1
+        };
+        await _repository.SaveNodeAsync(node);
+
+        var retrieved = await _repository.GetNodeByFullyQualifiedNameAsync("MyNamespace.MyClass");
+
+        Assert.That(retrieved, Is.Not.Null);
+        Assert.Multiple(() =>
+        {
+            Assert.That(retrieved!.Id, Is.EqualTo("hash-id"));
+            Assert.That(retrieved.Name, Is.EqualTo("MyClass"));
+            Assert.That(retrieved.FullyQualifiedName, Is.EqualTo("MyNamespace.MyClass"));
+        });
+    }
+
+    [Test]
+    public async Task GetNodeByFullyQualifiedNameAsync_ShouldReturnNullWhenNotFound()
+    {
+        var retrieved = await _repository.GetNodeByFullyQualifiedNameAsync("NonExistent.Class");
+
+        Assert.That(retrieved, Is.Null);
+    }
+
     private async Task SetupNodesAndEdges()
     {
         var nodes = new[]

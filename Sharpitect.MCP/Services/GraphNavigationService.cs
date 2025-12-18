@@ -12,6 +12,22 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
 {
     private readonly IGraphRepository _repository = repository ?? throw new ArgumentNullException(nameof(repository));
 
+    /// <summary>
+    /// Resolves a node by identifier, trying fully qualified name first, then falling back to ID.
+    /// </summary>
+    private async Task<DeclarationNode?> ResolveNodeAsync(string identifier, CancellationToken cancellationToken)
+    {
+        // First try to find by fully qualified name
+        var node = await _repository.GetNodeByFullyQualifiedNameAsync(identifier, cancellationToken).ConfigureAwait(false);
+        if (node != null)
+        {
+            return node;
+        }
+
+        // Fall back to ID lookup for backward compatibility
+        return await _repository.GetNodeAsync(identifier, cancellationToken).ConfigureAwait(false);
+    }
+
     public async Task<SearchResults> SearchAsync(
         string query,
         SearchMatchMode matchMode = SearchMatchMode.Contains,
@@ -46,7 +62,7 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
 
     public async Task<NodeDetail?> GetNodeAsync(string id, CancellationToken cancellationToken = default)
     {
-        var node = await _repository.GetNodeAsync(id, cancellationToken).ConfigureAwait(false);
+        var node = await ResolveNodeAsync(id, cancellationToken).ConfigureAwait(false);
         return node == null ? null : NodeDetail.FromDeclarationNode(node);
     }
 
@@ -56,13 +72,13 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
         int limit = 100,
         CancellationToken cancellationToken = default)
     {
-        var parentNode = await _repository.GetNodeAsync(parentId, cancellationToken).ConfigureAwait(false);
+        var parentNode = await ResolveNodeAsync(parentId, cancellationToken).ConfigureAwait(false);
         if (parentNode == null)
         {
             return null;
         }
 
-        var edges = await _repository.GetOutgoingEdgesAsync(parentId, cancellationToken).ConfigureAwait(false);
+        var edges = await _repository.GetOutgoingEdgesAsync(parentNode.Id, cancellationToken).ConfigureAwait(false);
         var containsEdges = edges.Where(e => e.Kind == RelationshipKind.Contains).ToList();
 
         var children = new List<NodeSummary>();
@@ -85,15 +101,15 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
 
     public async Task<AncestorsResult?> GetAncestorsAsync(string nodeId, CancellationToken cancellationToken = default)
     {
-        var node = await _repository.GetNodeAsync(nodeId, cancellationToken).ConfigureAwait(false);
+        var node = await ResolveNodeAsync(nodeId, cancellationToken).ConfigureAwait(false);
         if (node == null)
         {
             return null;
         }
 
         var ancestors = new List<NodeSummary>();
-        var currentId = nodeId;
-        var visited = new HashSet<string> { nodeId };
+        var currentId = node.Id;
+        var visited = new HashSet<string> { node.Id };
 
         while (true)
         {
@@ -132,7 +148,7 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
         int limit = 50,
         CancellationToken cancellationToken = default)
     {
-        var node = await _repository.GetNodeAsync(nodeId, cancellationToken).ConfigureAwait(false);
+        var node = await ResolveNodeAsync(nodeId, cancellationToken).ConfigureAwait(false);
         if (node == null)
         {
             return null;
@@ -144,7 +160,7 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
         if (direction == RelationshipDirection.Outgoing || direction == RelationshipDirection.Both)
         {
             var outgoingEdges =
-                await _repository.GetOutgoingEdgesAsync(nodeId, cancellationToken).ConfigureAwait(false);
+                await _repository.GetOutgoingEdgesAsync(node.Id, cancellationToken).ConfigureAwait(false);
             foreach (var edge in outgoingEdges.Where(e => e.Kind != RelationshipKind.Contains))
             {
                 if (kindFilter.HasValue && edge.Kind != kindFilter.Value)
@@ -168,7 +184,7 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
         if (direction == RelationshipDirection.Incoming || direction == RelationshipDirection.Both)
         {
             var incomingEdges =
-                await _repository.GetIncomingEdgesAsync(nodeId, cancellationToken).ConfigureAwait(false);
+                await _repository.GetIncomingEdgesAsync(node.Id, cancellationToken).ConfigureAwait(false);
             foreach (var edge in incomingEdges.Where(e => e.Kind != RelationshipKind.Contains))
             {
                 if (kindFilter.HasValue && edge.Kind != kindFilter.Value)
@@ -198,7 +214,7 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
         int limit = 50,
         CancellationToken cancellationToken = default)
     {
-        var node = await _repository.GetNodeAsync(nodeId, cancellationToken).ConfigureAwait(false);
+        var node = await ResolveNodeAsync(nodeId, cancellationToken).ConfigureAwait(false);
         if (node == null)
         {
             return null;
@@ -206,9 +222,9 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
 
         var maxDepth = Math.Min(depth, 5);
         var callers = new List<CallerEntry>();
-        var visited = new HashSet<string> { nodeId };
+        var visited = new HashSet<string> { node.Id };
         var queue = new Queue<(string Id, int Depth)>();
-        queue.Enqueue((nodeId, 0));
+        queue.Enqueue((node.Id, 0));
 
         while (queue.Count > 0 && callers.Count < limit)
         {
@@ -260,7 +276,7 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
         int limit = 50,
         CancellationToken cancellationToken = default)
     {
-        var node = await _repository.GetNodeAsync(nodeId, cancellationToken).ConfigureAwait(false);
+        var node = await ResolveNodeAsync(nodeId, cancellationToken).ConfigureAwait(false);
         if (node == null)
         {
             return null;
@@ -268,9 +284,9 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
 
         var maxDepth = Math.Min(depth, 5);
         var callees = new List<CalleeEntry>();
-        var visited = new HashSet<string> { nodeId };
+        var visited = new HashSet<string> { node.Id };
         var queue = new Queue<(string Id, int Depth)>();
-        queue.Enqueue((nodeId, 0));
+        queue.Enqueue((node.Id, 0));
 
         while (queue.Count > 0 && callees.Count < limit)
         {
@@ -322,7 +338,7 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
         int depth = 10,
         CancellationToken cancellationToken = default)
     {
-        var node = await _repository.GetNodeAsync(nodeId, cancellationToken).ConfigureAwait(false);
+        var node = await ResolveNodeAsync(nodeId, cancellationToken).ConfigureAwait(false);
         if (node == null)
         {
             return null;
@@ -333,12 +349,12 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
 
         if (direction == InheritanceDirection.Ancestors || direction == InheritanceDirection.Both)
         {
-            await GetInheritanceAncestorsAsync(nodeId, ancestors, depth, 1).ConfigureAwait(false);
+            await GetInheritanceAncestorsAsync(node.Id, ancestors, depth, 1).ConfigureAwait(false);
         }
 
         if (direction == InheritanceDirection.Descendants || direction == InheritanceDirection.Both)
         {
-            await GetInheritanceDescendantsAsync(nodeId, descendants, depth, 1).ConfigureAwait(false);
+            await GetInheritanceDescendantsAsync(node.Id, descendants, depth, 1).ConfigureAwait(false);
         }
 
         return new InheritanceResult(nodeId, ancestors, descendants);
@@ -439,8 +455,12 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
 
         if (scopeId != null)
         {
-            var scopeDescendants = await GetAllDescendantsAsync(scopeId).ConfigureAwait(false);
-            nodesList = nodesList.Where(n => scopeDescendants.Contains(n.Id)).ToList();
+            var scopeNode = await ResolveNodeAsync(scopeId, cancellationToken).ConfigureAwait(false);
+            if (scopeNode != null)
+            {
+                var scopeDescendants = await GetAllDescendantsAsync(scopeNode.Id).ConfigureAwait(false);
+                nodesList = nodesList.Where(n => scopeDescendants.Contains(n.Id)).ToList();
+            }
         }
 
         var totalCount = nodesList.Count;
@@ -486,16 +506,16 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
         bool includeTransitive = false,
         CancellationToken cancellationToken = default)
     {
-        var projectNode = await _repository.GetNodeAsync(projectId, cancellationToken).ConfigureAwait(false);
+        var projectNode = await ResolveNodeAsync(projectId, cancellationToken).ConfigureAwait(false);
         if (projectNode == null || projectNode.Kind != DeclarationKind.Project)
         {
             return null;
         }
 
         var dependencies = new List<DependencyEntry>();
-        var visited = new HashSet<string> { projectId };
+        var visited = new HashSet<string> { projectNode.Id };
 
-        await GetProjectDependenciesAsync(projectId, dependencies, visited, includeTransitive, null)
+        await GetProjectDependenciesAsync(projectNode.Id, dependencies, visited, includeTransitive, null)
             .ConfigureAwait(false);
 
         return new DependenciesResult(projectId, dependencies);
@@ -543,16 +563,16 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
         bool includeTransitive = false,
         CancellationToken cancellationToken = default)
     {
-        var projectNode = await _repository.GetNodeAsync(projectId, cancellationToken).ConfigureAwait(false);
+        var projectNode = await ResolveNodeAsync(projectId, cancellationToken).ConfigureAwait(false);
         if (projectNode is not { Kind: DeclarationKind.Project })
         {
             return null;
         }
 
         var dependents = new List<DependentEntry>();
-        var visited = new HashSet<string> { projectId };
+        var visited = new HashSet<string> { projectNode.Id };
 
-        await GetProjectDependentsAsync(projectId, dependents, visited, includeTransitive, false).ConfigureAwait(false);
+        await GetProjectDependentsAsync(projectNode.Id, dependents, visited, includeTransitive, false).ConfigureAwait(false);
 
         return new DependentsResult(projectId, dependents);
     }
@@ -691,14 +711,14 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
         int limit = 100,
         CancellationToken cancellationToken = default)
     {
-        var node = await _repository.GetNodeAsync(nodeId, cancellationToken).ConfigureAwait(false);
+        var node = await ResolveNodeAsync(nodeId, cancellationToken).ConfigureAwait(false);
         if (node == null)
         {
             return null;
         }
 
         var usages = new List<UsageEntry>();
-        var incomingEdges = await _repository.GetIncomingEdgesAsync(nodeId, cancellationToken).ConfigureAwait(false);
+        var incomingEdges = await _repository.GetIncomingEdgesAsync(node.Id, cancellationToken).ConfigureAwait(false);
 
         foreach (var edge in incomingEdges)
         {
@@ -749,7 +769,7 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
 
     public async Task<SignatureResult?> GetSignatureAsync(string nodeId, CancellationToken cancellationToken = default)
     {
-        var node = await _repository.GetNodeAsync(nodeId, cancellationToken).ConfigureAwait(false);
+        var node = await ResolveNodeAsync(nodeId, cancellationToken).ConfigureAwait(false);
         if (node == null)
         {
             return null;
@@ -842,7 +862,7 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
 
     public async Task<CodeResult?> GetCodeAsync(string nodeId, CancellationToken cancellationToken = default)
     {
-        var node = await _repository.GetNodeAsync(nodeId, cancellationToken).ConfigureAwait(false);
+        var node = await ResolveNodeAsync(nodeId, cancellationToken).ConfigureAwait(false);
         if (node == null)
         {
             return null;

@@ -138,6 +138,26 @@ public sealed class SqliteGraphRepository : IGraphRepository
     }
 
     /// <inheritdoc />
+    public async Task<DeclarationNode?> GetNodeByFullyQualifiedNameAsync(string fullyQualifiedName, CancellationToken cancellationToken = default)
+    {
+        EnsureInitialized();
+
+        const string sql = "SELECT * FROM nodes WHERE fully_qualified_name = $fqn";
+
+        await using var command = _connection!.CreateCommand();
+        command.CommandText = sql;
+        command.Parameters.AddWithValue("$fqn", fullyQualifiedName);
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        if (await reader.ReadAsync(cancellationToken))
+        {
+            return ReadNode(reader);
+        }
+
+        return null;
+    }
+
+    /// <inheritdoc />
     public async Task<IReadOnlyList<DeclarationNode>> GetNodesByKindAsync(DeclarationKind kind,
         CancellationToken cancellationToken = default)
     {

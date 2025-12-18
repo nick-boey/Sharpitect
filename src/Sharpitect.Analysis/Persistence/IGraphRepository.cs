@@ -50,6 +50,14 @@ public interface IGraphRepository : IAsyncDisposable
     Task<DeclarationNode?> GetNodeAsync(string id, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Gets a node by fully qualified name.
+    /// </summary>
+    /// <param name="fullyQualifiedName">The fully qualified name of the node.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The node if found, otherwise null.</returns>
+    Task<DeclarationNode?> GetNodeByFullyQualifiedNameAsync(string fullyQualifiedName, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets nodes by kind.
     /// </summary>
     /// <param name="kind">The declaration kind to filter by.</param>
