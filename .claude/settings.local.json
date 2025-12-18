@@ -11,7 +11,13 @@
       "WebSearch",
       "WebFetch(domain:devblogs.microsoft.com)",
       "Bash(dir \"C:\\\\Users\\\\nboey\\\\Documents\\\\src\\\\Sharpitect\" /s /b)",
-      "Bash(dotnet pack:*)"
+      "Bash(dotnet pack:*)",
+      "mcp__Sharpitect__get_inheritance",
+      "mcp__Sharpitect__search_declarations"
     ]
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "Sharpitect"
+  ]
 }
