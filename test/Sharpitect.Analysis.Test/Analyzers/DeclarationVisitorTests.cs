@@ -26,8 +26,11 @@ public class DeclarationVisitorTests
 
         var classNode = nodes.SingleOrDefault(n => n.Kind == DeclarationKind.Class);
         Assert.That(classNode, Is.Not.Null);
-        Assert.That(classNode!.Name, Is.EqualTo("MyClass"));
-        Assert.That(classNode.FullyQualifiedName, Is.EqualTo("TestNamespace.MyClass"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(classNode!.Name, Is.EqualTo("MyClass"));
+            Assert.That(classNode.FullyQualifiedName, Is.EqualTo("TestNamespace.MyClass"));
+        });
     }
 
     [Test]
@@ -75,8 +78,11 @@ public class DeclarationVisitorTests
 
         var classNode = nodes.SingleOrDefault(n => n.Kind == DeclarationKind.Class);
         Assert.That(classNode, Is.Not.Null);
-        Assert.That(classNode!.Name, Is.EqualTo("GenericClass"));
-        Assert.That(classNode.FullyQualifiedName, Is.EqualTo("TestNamespace.GenericClass<T>"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(classNode!.Name, Is.EqualTo("GenericClass"));
+            Assert.That(classNode.FullyQualifiedName, Is.EqualTo("TestNamespace.GenericClass<T>"));
+        });
 
         var typeParam = nodes.SingleOrDefault(n => n.Kind == DeclarationKind.TypeParameter);
         Assert.That(typeParam, Is.Not.Null);
@@ -104,8 +110,11 @@ public class DeclarationVisitorTests
 
         var interfaceNode = nodes.SingleOrDefault(n => n.Kind == DeclarationKind.Interface);
         Assert.That(interfaceNode, Is.Not.Null);
-        Assert.That(interfaceNode!.Name, Is.EqualTo("IMyInterface"));
-        Assert.That(interfaceNode.FullyQualifiedName, Is.EqualTo("TestNamespace.IMyInterface"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(interfaceNode!.Name, Is.EqualTo("IMyInterface"));
+            Assert.That(interfaceNode.FullyQualifiedName, Is.EqualTo("TestNamespace.IMyInterface"));
+        });
     }
 
     #endregion
@@ -129,8 +138,11 @@ public class DeclarationVisitorTests
 
         var structNode = nodes.SingleOrDefault(n => n.Kind == DeclarationKind.Struct);
         Assert.That(structNode, Is.Not.Null);
-        Assert.That(structNode!.Name, Is.EqualTo("MyStruct"));
-        Assert.That(structNode.FullyQualifiedName, Is.EqualTo("TestNamespace.MyStruct"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(structNode!.Name, Is.EqualTo("MyStruct"));
+            Assert.That(structNode.FullyQualifiedName, Is.EqualTo("TestNamespace.MyStruct"));
+        });
     }
 
     #endregion
@@ -151,8 +163,11 @@ public class DeclarationVisitorTests
 
         var recordNode = nodes.SingleOrDefault(n => n.Kind == DeclarationKind.Record);
         Assert.That(recordNode, Is.Not.Null);
-        Assert.That(recordNode!.Name, Is.EqualTo("MyRecord"));
-        Assert.That(recordNode.FullyQualifiedName, Is.EqualTo("TestNamespace.MyRecord"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(recordNode!.Name, Is.EqualTo("MyRecord"));
+            Assert.That(recordNode.FullyQualifiedName, Is.EqualTo("TestNamespace.MyRecord"));
+        });
     }
 
     [Test]
@@ -195,8 +210,11 @@ public class DeclarationVisitorTests
 
         var enumNode = nodes.SingleOrDefault(n => n.Kind == DeclarationKind.Enum);
         Assert.That(enumNode, Is.Not.Null);
-        Assert.That(enumNode!.Name, Is.EqualTo("Status"));
-        Assert.That(enumNode.FullyQualifiedName, Is.EqualTo("TestNamespace.Status"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(enumNode!.Name, Is.EqualTo("Status"));
+            Assert.That(enumNode.FullyQualifiedName, Is.EqualTo("TestNamespace.Status"));
+        });
     }
 
     [Test]
@@ -239,8 +257,11 @@ public class DeclarationVisitorTests
 
         var delegateNode = nodes.SingleOrDefault(n => n.Kind == DeclarationKind.Delegate);
         Assert.That(delegateNode, Is.Not.Null);
-        Assert.That(delegateNode!.Name, Is.EqualTo("MyDelegate"));
-        Assert.That(delegateNode.FullyQualifiedName, Is.EqualTo("TestNamespace.MyDelegate"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(delegateNode!.Name, Is.EqualTo("MyDelegate"));
+            Assert.That(delegateNode.FullyQualifiedName, Is.EqualTo("TestNamespace.MyDelegate"));
+        });
     }
 
     #endregion
@@ -264,8 +285,11 @@ public class DeclarationVisitorTests
 
         var methodNode = nodes.SingleOrDefault(n => n.Kind == DeclarationKind.Method);
         Assert.That(methodNode, Is.Not.Null);
-        Assert.That(methodNode!.Name, Is.EqualTo("MyMethod"));
-        Assert.That(methodNode.FullyQualifiedName, Is.EqualTo("TestNamespace.MyClass.MyMethod()"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(methodNode!.Name, Is.EqualTo("MyMethod"));
+            Assert.That(methodNode.FullyQualifiedName, Is.EqualTo("TestNamespace.MyClass.MyMethod()"));
+        });
     }
 
     [Test]
@@ -285,8 +309,11 @@ public class DeclarationVisitorTests
 
         var methodNode = nodes.SingleOrDefault(n => n.Kind == DeclarationKind.Method);
         Assert.That(methodNode, Is.Not.Null);
-        Assert.That(methodNode!.Name, Is.EqualTo("Add"));
-        Assert.That(methodNode.FullyQualifiedName, Is.EqualTo("TestNamespace.MyClass.Add(int, int)"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(methodNode!.Name, Is.EqualTo("Add"));
+            Assert.That(methodNode.FullyQualifiedName, Is.EqualTo("TestNamespace.MyClass.Add(int, int)"));
+        });
 
         var parameters = nodes.Where(n => n.Kind == DeclarationKind.Parameter).ToList();
         Assert.That(parameters, Has.Count.EqualTo(2));
@@ -404,8 +431,11 @@ public class DeclarationVisitorTests
 
         var propNode = nodes.SingleOrDefault(n => n.Kind == DeclarationKind.Property);
         Assert.That(propNode, Is.Not.Null);
-        Assert.That(propNode!.Name, Is.EqualTo("Name"));
-        Assert.That(propNode.FullyQualifiedName, Is.EqualTo("TestNamespace.MyClass.Name"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(propNode!.Name, Is.EqualTo("Name"));
+            Assert.That(propNode.FullyQualifiedName, Is.EqualTo("TestNamespace.MyClass.Name"));
+        });
     }
 
     [Test]
@@ -478,8 +508,11 @@ public class DeclarationVisitorTests
 
         var fieldNode = nodes.SingleOrDefault(n => n.Kind == DeclarationKind.Field);
         Assert.That(fieldNode, Is.Not.Null);
-        Assert.That(fieldNode!.Name, Is.EqualTo("_count"));
-        Assert.That(fieldNode.FullyQualifiedName, Is.EqualTo("TestNamespace.MyClass._count"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(fieldNode!.Name, Is.EqualTo("_count"));
+            Assert.That(fieldNode.FullyQualifiedName, Is.EqualTo("TestNamespace.MyClass._count"));
+        });
     }
 
     [Test]
@@ -724,8 +757,11 @@ public class DeclarationVisitorTests
 
         var nsNode = nodes.SingleOrDefault(n => n.Kind == DeclarationKind.Namespace);
         Assert.That(nsNode, Is.Not.Null);
-        Assert.That(nsNode!.Name, Is.EqualTo("TestNamespace"));
-        Assert.That(nsNode.FullyQualifiedName, Is.EqualTo("TestNamespace"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(nsNode!.Name, Is.EqualTo("TestNamespace"));
+            Assert.That(nsNode.FullyQualifiedName, Is.EqualTo("TestNamespace"));
+        });
     }
 
     [Test]
@@ -947,17 +983,20 @@ public class DeclarationVisitorTests
 
         var (nodes, _) = AnalyzeCode(code);
 
-        Assert.That(nodes.Any(n => n.Kind == DeclarationKind.Namespace), Is.True);
-        Assert.That(nodes.Any(n => n.Kind == DeclarationKind.Class), Is.True);
-        Assert.That(nodes.Count(n => n.Kind == DeclarationKind.Field), Is.EqualTo(2)); // _field and Constant
-        Assert.That(nodes.Any(n => n.Kind == DeclarationKind.Event), Is.True);
-        Assert.That(nodes.Any(n => n.Kind == DeclarationKind.Constructor), Is.True);
-        Assert.That(nodes.Any(n => n.Kind == DeclarationKind.Property), Is.True);
-        Assert.That(nodes.Any(n => n.Kind == DeclarationKind.Method), Is.True);
-        Assert.That(nodes.Any(n => n.Kind == DeclarationKind.Parameter), Is.True);
-        Assert.That(nodes.Any(n => n.Kind == DeclarationKind.LocalVariable), Is.True);
-        Assert.That(nodes.Any(n => n.Kind == DeclarationKind.LocalFunction), Is.True);
-        Assert.That(nodes.Any(n => n.Kind == DeclarationKind.Indexer), Is.True);
+        Assert.Multiple(() =>
+        {
+            Assert.That(nodes.Any(n => n.Kind == DeclarationKind.Namespace), Is.True);
+            Assert.That(nodes.Any(n => n.Kind == DeclarationKind.Class), Is.True);
+            Assert.That(nodes.Count(n => n.Kind == DeclarationKind.Field), Is.EqualTo(2)); // _field and Constant
+            Assert.That(nodes.Any(n => n.Kind == DeclarationKind.Event), Is.True);
+            Assert.That(nodes.Any(n => n.Kind == DeclarationKind.Constructor), Is.True);
+            Assert.That(nodes.Any(n => n.Kind == DeclarationKind.Property), Is.True);
+            Assert.That(nodes.Any(n => n.Kind == DeclarationKind.Method), Is.True);
+            Assert.That(nodes.Any(n => n.Kind == DeclarationKind.Parameter), Is.True);
+            Assert.That(nodes.Any(n => n.Kind == DeclarationKind.LocalVariable), Is.True);
+            Assert.That(nodes.Any(n => n.Kind == DeclarationKind.LocalFunction), Is.True);
+            Assert.That(nodes.Any(n => n.Kind == DeclarationKind.Indexer), Is.True);
+        });
     }
 
     [Test]

@@ -51,8 +51,11 @@ public class SqliteGraphRepositoryTests
 
         var retrieved = await _repository.GetNodeAsync("test-id");
         Assert.That(retrieved, Is.Not.Null);
-        Assert.That(retrieved!.Name, Is.EqualTo("TestClass"));
-        Assert.That(retrieved.Kind, Is.EqualTo(DeclarationKind.Class));
+        Assert.Multiple(() =>
+        {
+            Assert.That(retrieved!.Name, Is.EqualTo("TestClass"));
+            Assert.That(retrieved.Kind, Is.EqualTo(DeclarationKind.Class));
+        });
     }
 
     [Test]
@@ -157,8 +160,11 @@ public class SqliteGraphRepositoryTests
 
         var graph = await _repository.LoadGraphAsync();
 
-        Assert.That(graph.NodeCount, Is.EqualTo(3));
-        Assert.That(graph.EdgeCount, Is.EqualTo(3));
+        Assert.Multiple(() =>
+        {
+            Assert.That(graph.NodeCount, Is.EqualTo(3));
+            Assert.That(graph.EdgeCount, Is.EqualTo(3));
+        });
     }
 
     [Test]
@@ -170,8 +176,11 @@ public class SqliteGraphRepositoryTests
 
         var nodeCount = await _repository.GetNodeCountAsync();
         var edgeCount = await _repository.GetEdgeCountAsync();
-        Assert.That(nodeCount, Is.EqualTo(0));
-        Assert.That(edgeCount, Is.EqualTo(0));
+        Assert.Multiple(() =>
+        {
+            Assert.That(nodeCount, Is.EqualTo(0));
+            Assert.That(edgeCount, Is.EqualTo(0));
+        });
     }
 
     [Test]
@@ -195,8 +204,11 @@ public class SqliteGraphRepositoryTests
         await _repository.SaveNodeAsync(node);
 
         var retrieved = await _repository.GetNodeAsync("test-id");
-        Assert.That(retrieved!.C4Level, Is.EqualTo(C4Level.Component));
-        Assert.That(retrieved.C4Description, Is.EqualTo("A test component"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(retrieved!.C4Level, Is.EqualTo(C4Level.Component));
+            Assert.That(retrieved.C4Description, Is.EqualTo("A test component"));
+        });
     }
 
     private async Task SetupNodesAndEdges()

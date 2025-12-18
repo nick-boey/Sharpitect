@@ -13,8 +13,11 @@ public class DeclarationGraphTests
 
         graph.AddNode(node);
 
-        Assert.That(graph.NodeCount, Is.EqualTo(1));
-        Assert.That(graph.GetNode("test-id"), Is.EqualTo(node));
+        Assert.Multiple(() =>
+        {
+            Assert.That(graph.NodeCount, Is.EqualTo(1));
+            Assert.That(graph.GetNode("test-id"), Is.EqualTo(node));
+        });
     }
 
     [Test]
@@ -27,8 +30,11 @@ public class DeclarationGraphTests
         graph.AddNode(node1);
         graph.AddNode(node2);
 
-        Assert.That(graph.NodeCount, Is.EqualTo(1));
-        Assert.That(graph.GetNode("test-id")?.Name, Is.EqualTo("NewName"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(graph.NodeCount, Is.EqualTo(1));
+            Assert.That(graph.GetNode("test-id")?.Name, Is.EqualTo("NewName"));
+        });
     }
 
     [Test]
@@ -121,8 +127,11 @@ public class DeclarationGraphTests
         var graph = new DeclarationGraph();
         graph.AddNode(CreateTestNode("test-id", "Test", DeclarationKind.Class));
 
-        Assert.That(graph.ContainsNode("test-id"), Is.True);
-        Assert.That(graph.ContainsNode("non-existent"), Is.False);
+        Assert.Multiple(() =>
+        {
+            Assert.That(graph.ContainsNode("test-id"), Is.True);
+            Assert.That(graph.ContainsNode("non-existent"), Is.False);
+        });
     }
 
     [Test]
@@ -134,8 +143,11 @@ public class DeclarationGraphTests
 
         graph.Clear();
 
-        Assert.That(graph.NodeCount, Is.EqualTo(0));
-        Assert.That(graph.EdgeCount, Is.EqualTo(0));
+        Assert.Multiple(() =>
+        {
+            Assert.That(graph.NodeCount, Is.EqualTo(0));
+            Assert.That(graph.EdgeCount, Is.EqualTo(0));
+        });
     }
 
     private static DeclarationNode CreateTestNode(string id, string name, DeclarationKind kind)
