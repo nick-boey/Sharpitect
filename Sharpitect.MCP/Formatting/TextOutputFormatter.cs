@@ -97,6 +97,7 @@ public sealed class TextOutputFormatter : IOutputFormatter
     private static void AppendNodeSummaryLine(StringBuilder sb, NodeSummary node)
     {
         sb.AppendLine($"[{node.Kind}] {node.Name}");
+        sb.AppendLine($"  Full name: {node.FullyQualifiedName}");
 
         if (node.FilePath != null)
         {
@@ -106,7 +107,6 @@ public sealed class TextOutputFormatter : IOutputFormatter
             sb.AppendLine($"  Path: {location}");
         }
 
-        sb.AppendLine($"  Full ID: {node.Id}");
         sb.AppendLine();
     }
 

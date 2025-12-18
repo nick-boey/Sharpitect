@@ -27,7 +27,7 @@ public class GraphNavigationToolsTests
     public async Task SearchDeclarations_ReturnsJsonByDefault()
     {
         var searchResults = new SearchResults(
-            new List<NodeSummary> { new("id1", "TestClass", "Class", "Code", "test.cs", 10) },
+            new List<NodeSummary> { new("id1", "TestClass", "Namespace.TestClass", "Class", "Code", "test.cs", 10) },
             TotalCount: 1,
             Truncated: false);
         _navigationService.SearchAsync(
@@ -52,7 +52,7 @@ public class GraphNavigationToolsTests
     public async Task SearchDeclarations_ReturnsTextWhenRequested()
     {
         var searchResults = new SearchResults(
-            new List<NodeSummary> { new("id1", "TestClass", "Class", "Code", "test.cs", 10) },
+            new List<NodeSummary> { new("id1", "TestClass", "Namespace.TestClass", "Class", "Code", "test.cs", 10) },
             TotalCount: 1,
             Truncated: false);
         _navigationService.SearchAsync(
@@ -175,7 +175,7 @@ public class GraphNavigationToolsTests
     {
         var childrenResult = new ChildrenResult(
             "parent-id",
-            new List<NodeSummary> { new("child-id", "ChildMethod", "Method", "Code", "test.cs", 20) },
+            new List<NodeSummary> { new("child-id", "ChildMethod", "Namespace.Class.ChildMethod", "Method", "Code", "test.cs", 20) },
             TotalCount: 1,
             Truncated: false);
         _navigationService.GetChildrenAsync("parent-id", Arg.Any<DeclarationKind?>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
@@ -258,7 +258,7 @@ public class GraphNavigationToolsTests
         var listResult = new ListByKindResult(
             "Class",
             null,
-            new List<NodeSummary> { new("id1", "TestClass", "Class", "Code", "test.cs", 10) },
+            new List<NodeSummary> { new("id1", "TestClass", "Namespace.TestClass", "Class", "Code", "test.cs", 10) },
             TotalCount: 1,
             Truncated: false);
         _navigationService.ListByKindAsync(
@@ -299,8 +299,8 @@ public class GraphNavigationToolsTests
             "method-id",
             new List<NodeSummary>
             {
-                new("sln-id", "MySolution", "Solution", "System", null, null),
-                new("proj-id", "MyProject", "Project", "Container", null, null)
+                new("sln-id", "MySolution", "MySolution", "Solution", "System", null, null),
+                new("proj-id", "MyProject", "MySolution.MyProject", "Project", "Container", null, null)
             });
         _navigationService.GetAncestorsAsync("method-id", Arg.Any<CancellationToken>())
             .Returns(ancestorsResult);
