@@ -8,7 +8,7 @@ namespace Sharpitect.MCP.Formatting;
 /// </summary>
 public sealed class JsonOutputFormatter : IOutputFormatter
 {
-    private static readonly JsonSerializerOptions s_options = new()
+    private static readonly JsonSerializerOptions SOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
@@ -19,6 +19,6 @@ public sealed class JsonOutputFormatter : IOutputFormatter
 
     public string Format<T>(T result) where T : notnull
     {
-        return JsonSerializer.Serialize(result, s_options);
+        return JsonSerializer.Serialize(result, SOptions);
     }
 }

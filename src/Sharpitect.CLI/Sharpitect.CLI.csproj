@@ -5,15 +5,36 @@
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+
+        <!-- Dotnet Tool Configuration -->
+        <PackAsTool>true</PackAsTool>
+        <ToolCommandName>sharpitect</ToolCommandName>
+        <PackageId>Sharpitect</PackageId>
+        <Version>0.1.0</Version>
+        <Authors>Nick Boey, Sharpitect Contributors</Authors>
+        <Description>
+            Analyze .NET codebases and generate C4 architecture diagrams.
+            Includes CLI commands for graph navigation and an MCP server for IDE integration.
+        </Description>
+        <PackageTags>dotnet;c4;architecture;roslyn;mcp;claude</PackageTags>
+        <PackageProjectUrl>https://github.com/nick-boey/sharpitect</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/nick-boey/sharpitect</RepositoryUrl>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Sharpitect.Analysis\Sharpitect.Analysis.csproj" />
-      <ProjectReference Include="..\Sharpitect.Attributes\Sharpitect.Attributes.csproj" />
+        <None Include="..\..\README.md" Pack="true" PackagePath="\"/>
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+        <ProjectReference Include="..\Sharpitect.Analysis\Sharpitect.Analysis.csproj"/>
+        <ProjectReference Include="..\Sharpitect.Attributes\Sharpitect.Attributes.csproj"/>
+        <ProjectReference Include="..\..\Sharpitect.MCP\Sharpitect.MCP.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1"/>
     </ItemGroup>
 
 </Project>

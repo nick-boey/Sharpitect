@@ -9,7 +9,9 @@
       "Bash(dotnet clean:*)",
       "Bash(dotnet run:*)",
       "WebSearch",
-      "WebFetch(domain:devblogs.microsoft.com)"
+      "WebFetch(domain:devblogs.microsoft.com)",
+      "Bash(dir \"C:\\\\Users\\\\nboey\\\\Documents\\\\src\\\\Sharpitect\" /s /b)",
+      "Bash(dotnet pack:*)"
     ]
   }
 }

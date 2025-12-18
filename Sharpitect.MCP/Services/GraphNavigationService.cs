@@ -8,14 +8,9 @@ namespace Sharpitect.MCP.Services;
 /// <summary>
 /// Implementation of IGraphNavigationService using IGraphRepository.
 /// </summary>
-public sealed class GraphNavigationService : IGraphNavigationService
+public sealed class GraphNavigationService(IGraphRepository repository) : IGraphNavigationService
 {
-    private readonly IGraphRepository _repository;
-
-    public GraphNavigationService(IGraphRepository repository)
-    {
-        _repository = repository ?? throw new ArgumentNullException(nameof(repository));
-    }
+    private readonly IGraphRepository _repository = repository ?? throw new ArgumentNullException(nameof(repository));
 
     public async Task<SearchResults> SearchAsync(
         string query,
@@ -25,7 +20,7 @@ public sealed class GraphNavigationService : IGraphNavigationService
         int limit = 50,
         CancellationToken cancellationToken = default)
     {
-        var graph = await _repository.LoadGraphAsync().ConfigureAwait(false);
+        var graph = await _repository.LoadGraphAsync(cancellationToken).ConfigureAwait(false);
         var source = new InMemoryGraphSource(graph);
         var searchService = new GraphSearchService(source);
 
@@ -51,7 +46,7 @@ public sealed class GraphNavigationService : IGraphNavigationService
 
     public async Task<NodeDetail?> GetNodeAsync(string id, CancellationToken cancellationToken = default)
     {
-        var node = await _repository.GetNodeAsync(id).ConfigureAwait(false);
+        var node = await _repository.GetNodeAsync(id, cancellationToken).ConfigureAwait(false);
         return node == null ? null : NodeDetail.FromDeclarationNode(node);
     }
 
@@ -61,25 +56,23 @@ public sealed class GraphNavigationService : IGraphNavigationService
         int limit = 100,
         CancellationToken cancellationToken = default)
     {
-        var parentNode = await _repository.GetNodeAsync(parentId).ConfigureAwait(false);
+        var parentNode = await _repository.GetNodeAsync(parentId, cancellationToken).ConfigureAwait(false);
         if (parentNode == null)
         {
             return null;
         }
 
-        var edges = await _repository.GetOutgoingEdgesAsync(parentId).ConfigureAwait(false);
+        var edges = await _repository.GetOutgoingEdgesAsync(parentId, cancellationToken).ConfigureAwait(false);
         var containsEdges = edges.Where(e => e.Kind == RelationshipKind.Contains).ToList();
 
         var children = new List<NodeSummary>();
         foreach (var edge in containsEdges)
         {
-            var childNode = await _repository.GetNodeAsync(edge.TargetId).ConfigureAwait(false);
-            if (childNode != null)
+            var childNode = await _repository.GetNodeAsync(edge.TargetId, cancellationToken).ConfigureAwait(false);
+            if (childNode == null) continue;
+            if (kindFilter == null || childNode.Kind == kindFilter.Value)
             {
-                if (kindFilter == null || childNode.Kind == kindFilter.Value)
-                {
-                    children.Add(NodeSummary.FromDeclarationNode(childNode));
-                }
+                children.Add(NodeSummary.FromDeclarationNode(childNode));
             }
         }
 
@@ -92,7 +85,7 @@ public sealed class GraphNavigationService : IGraphNavigationService
 
     public async Task<AncestorsResult?> GetAncestorsAsync(string nodeId, CancellationToken cancellationToken = default)
     {
-        var node = await _repository.GetNodeAsync(nodeId).ConfigureAwait(false);
+        var node = await _repository.GetNodeAsync(nodeId, cancellationToken).ConfigureAwait(false);
         if (node == null)
         {
             return null;
@@ -104,7 +97,8 @@ public sealed class GraphNavigationService : IGraphNavigationService
 
         while (true)
         {
-            var incomingEdges = await _repository.GetIncomingEdgesAsync(currentId).ConfigureAwait(false);
+            var incomingEdges =
+                await _repository.GetIncomingEdgesAsync(currentId, cancellationToken).ConfigureAwait(false);
             var containsEdge = incomingEdges.FirstOrDefault(e => e.Kind == RelationshipKind.Contains);
 
             if (containsEdge == null)
@@ -112,14 +106,13 @@ public sealed class GraphNavigationService : IGraphNavigationService
                 break;
             }
 
-            if (visited.Contains(containsEdge.SourceId))
+            if (!visited.Add(containsEdge.SourceId))
             {
                 break;
             }
 
-            visited.Add(containsEdge.SourceId);
-
-            var parentNode = await _repository.GetNodeAsync(containsEdge.SourceId).ConfigureAwait(false);
+            var parentNode = await _repository.GetNodeAsync(containsEdge.SourceId, cancellationToken)
+                .ConfigureAwait(false);
             if (parentNode == null)
             {
                 break;
@@ -139,7 +132,7 @@ public sealed class GraphNavigationService : IGraphNavigationService
         int limit = 50,
         CancellationToken cancellationToken = default)
     {
-        var node = await _repository.GetNodeAsync(nodeId).ConfigureAwait(false);
+        var node = await _repository.GetNodeAsync(nodeId, cancellationToken).ConfigureAwait(false);
         if (node == null)
         {
             return null;
@@ -150,7 +143,8 @@ public sealed class GraphNavigationService : IGraphNavigationService
 
         if (direction == RelationshipDirection.Outgoing || direction == RelationshipDirection.Both)
         {
-            var outgoingEdges = await _repository.GetOutgoingEdgesAsync(nodeId).ConfigureAwait(false);
+            var outgoingEdges =
+                await _repository.GetOutgoingEdgesAsync(nodeId, cancellationToken).ConfigureAwait(false);
             foreach (var edge in outgoingEdges.Where(e => e.Kind != RelationshipKind.Contains))
             {
                 if (kindFilter.HasValue && edge.Kind != kindFilter.Value)
@@ -158,7 +152,7 @@ public sealed class GraphNavigationService : IGraphNavigationService
                     continue;
                 }
 
-                var targetNode = await _repository.GetNodeAsync(edge.TargetId).ConfigureAwait(false);
+                var targetNode = await _repository.GetNodeAsync(edge.TargetId, cancellationToken).ConfigureAwait(false);
                 if (targetNode != null)
                 {
                     outgoing.Add(RelationshipInfo.FromEdge(edge, targetNode));
@@ -173,7 +167,8 @@ public sealed class GraphNavigationService : IGraphNavigationService
 
         if (direction == RelationshipDirection.Incoming || direction == RelationshipDirection.Both)
         {
-            var incomingEdges = await _repository.GetIncomingEdgesAsync(nodeId).ConfigureAwait(false);
+            var incomingEdges =
+                await _repository.GetIncomingEdgesAsync(nodeId, cancellationToken).ConfigureAwait(false);
             foreach (var edge in incomingEdges.Where(e => e.Kind != RelationshipKind.Contains))
             {
                 if (kindFilter.HasValue && edge.Kind != kindFilter.Value)
@@ -181,7 +176,7 @@ public sealed class GraphNavigationService : IGraphNavigationService
                     continue;
                 }
 
-                var sourceNode = await _repository.GetNodeAsync(edge.SourceId).ConfigureAwait(false);
+                var sourceNode = await _repository.GetNodeAsync(edge.SourceId, cancellationToken).ConfigureAwait(false);
                 if (sourceNode != null)
                 {
                     incoming.Add(IncomingRelationshipInfo.FromEdge(edge, sourceNode));
@@ -203,7 +198,7 @@ public sealed class GraphNavigationService : IGraphNavigationService
         int limit = 50,
         CancellationToken cancellationToken = default)
     {
-        var node = await _repository.GetNodeAsync(nodeId).ConfigureAwait(false);
+        var node = await _repository.GetNodeAsync(nodeId, cancellationToken).ConfigureAwait(false);
         if (node == null)
         {
             return null;
@@ -224,19 +219,18 @@ public sealed class GraphNavigationService : IGraphNavigationService
                 continue;
             }
 
-            var incomingEdges = await _repository.GetIncomingEdgesAsync(currentId).ConfigureAwait(false);
+            var incomingEdges =
+                await _repository.GetIncomingEdgesAsync(currentId, cancellationToken).ConfigureAwait(false);
             var callEdges = incomingEdges.Where(e => e.Kind == RelationshipKind.Calls).ToList();
 
             foreach (var edge in callEdges)
             {
-                if (visited.Contains(edge.SourceId))
+                if (!visited.Add(edge.SourceId))
                 {
                     continue;
                 }
 
-                visited.Add(edge.SourceId);
-
-                var callerNode = await _repository.GetNodeAsync(edge.SourceId).ConfigureAwait(false);
+                var callerNode = await _repository.GetNodeAsync(edge.SourceId, cancellationToken).ConfigureAwait(false);
                 if (callerNode != null)
                 {
                     callers.Add(new CallerEntry(
@@ -266,7 +260,7 @@ public sealed class GraphNavigationService : IGraphNavigationService
         int limit = 50,
         CancellationToken cancellationToken = default)
     {
-        var node = await _repository.GetNodeAsync(nodeId).ConfigureAwait(false);
+        var node = await _repository.GetNodeAsync(nodeId, cancellationToken).ConfigureAwait(false);
         if (node == null)
         {
             return null;
@@ -287,19 +281,18 @@ public sealed class GraphNavigationService : IGraphNavigationService
                 continue;
             }
 
-            var outgoingEdges = await _repository.GetOutgoingEdgesAsync(currentId).ConfigureAwait(false);
+            var outgoingEdges =
+                await _repository.GetOutgoingEdgesAsync(currentId, cancellationToken).ConfigureAwait(false);
             var callEdges = outgoingEdges.Where(e => e.Kind == RelationshipKind.Calls).ToList();
 
             foreach (var edge in callEdges)
             {
-                if (visited.Contains(edge.TargetId))
+                if (!visited.Add(edge.TargetId))
                 {
                     continue;
                 }
 
-                visited.Add(edge.TargetId);
-
-                var calleeNode = await _repository.GetNodeAsync(edge.TargetId).ConfigureAwait(false);
+                var calleeNode = await _repository.GetNodeAsync(edge.TargetId, cancellationToken).ConfigureAwait(false);
                 if (calleeNode != null)
                 {
                     callees.Add(new CalleeEntry(
@@ -329,7 +322,7 @@ public sealed class GraphNavigationService : IGraphNavigationService
         int depth = 10,
         CancellationToken cancellationToken = default)
     {
-        var node = await _repository.GetNodeAsync(nodeId).ConfigureAwait(false);
+        var node = await _repository.GetNodeAsync(nodeId, cancellationToken).ConfigureAwait(false);
         if (node == null)
         {
             return null;
@@ -358,7 +351,7 @@ public sealed class GraphNavigationService : IGraphNavigationService
         int currentDepth,
         HashSet<string>? visited = null)
     {
-        visited ??= new HashSet<string> { nodeId };
+        visited ??= [nodeId];
 
         if (currentDepth > maxDepth)
         {
@@ -372,12 +365,10 @@ public sealed class GraphNavigationService : IGraphNavigationService
 
         foreach (var edge in inheritanceEdges)
         {
-            if (visited.Contains(edge.TargetId))
+            if (!visited.Add(edge.TargetId))
             {
                 continue;
             }
-
-            visited.Add(edge.TargetId);
 
             var targetNode = await _repository.GetNodeAsync(edge.TargetId).ConfigureAwait(false);
             if (targetNode != null)
@@ -402,7 +393,7 @@ public sealed class GraphNavigationService : IGraphNavigationService
         int currentDepth,
         HashSet<string>? visited = null)
     {
-        visited ??= new HashSet<string> { nodeId };
+        visited ??= [nodeId];
 
         if (currentDepth > maxDepth)
         {
@@ -411,17 +402,15 @@ public sealed class GraphNavigationService : IGraphNavigationService
 
         var incomingEdges = await _repository.GetIncomingEdgesAsync(nodeId).ConfigureAwait(false);
         var inheritanceEdges = incomingEdges
-            .Where(e => e.Kind == RelationshipKind.Inherits || e.Kind == RelationshipKind.Implements)
+            .Where(e => e.Kind is RelationshipKind.Inherits or RelationshipKind.Implements)
             .ToList();
 
         foreach (var edge in inheritanceEdges)
         {
-            if (visited.Contains(edge.SourceId))
+            if (!visited.Add(edge.SourceId))
             {
                 continue;
             }
-
-            visited.Add(edge.SourceId);
 
             var sourceNode = await _repository.GetNodeAsync(edge.SourceId).ConfigureAwait(false);
             if (sourceNode != null)
@@ -445,7 +434,7 @@ public sealed class GraphNavigationService : IGraphNavigationService
         int limit = 100,
         CancellationToken cancellationToken = default)
     {
-        var nodes = await _repository.GetNodesByKindAsync(kind).ConfigureAwait(false);
+        var nodes = await _repository.GetNodesByKindAsync(kind, cancellationToken).ConfigureAwait(false);
         var nodesList = nodes.ToList();
 
         if (scopeId != null)
@@ -475,12 +464,10 @@ public sealed class GraphNavigationService : IGraphNavigationService
         while (queue.Count > 0)
         {
             var currentId = queue.Dequeue();
-            if (descendants.Contains(currentId))
+            if (!descendants.Add(currentId))
             {
                 continue;
             }
-
-            descendants.Add(currentId);
 
             var outgoingEdges = await _repository.GetOutgoingEdgesAsync(currentId).ConfigureAwait(false);
             var containsEdges = outgoingEdges.Where(e => e.Kind == RelationshipKind.Contains);
@@ -499,7 +486,7 @@ public sealed class GraphNavigationService : IGraphNavigationService
         bool includeTransitive = false,
         CancellationToken cancellationToken = default)
     {
-        var projectNode = await _repository.GetNodeAsync(projectId).ConfigureAwait(false);
+        var projectNode = await _repository.GetNodeAsync(projectId, cancellationToken).ConfigureAwait(false);
         if (projectNode == null || projectNode.Kind != DeclarationKind.Project)
         {
             return null;
@@ -508,7 +495,8 @@ public sealed class GraphNavigationService : IGraphNavigationService
         var dependencies = new List<DependencyEntry>();
         var visited = new HashSet<string> { projectId };
 
-        await GetProjectDependenciesAsync(projectId, dependencies, visited, includeTransitive, null).ConfigureAwait(false);
+        await GetProjectDependenciesAsync(projectId, dependencies, visited, includeTransitive, null)
+            .ConfigureAwait(false);
 
         return new DependenciesResult(projectId, dependencies);
     }
@@ -525,12 +513,10 @@ public sealed class GraphNavigationService : IGraphNavigationService
 
         foreach (var edge in dependsOnEdges)
         {
-            if (visited.Contains(edge.TargetId))
+            if (!visited.Add(edge.TargetId))
             {
                 continue;
             }
-
-            visited.Add(edge.TargetId);
 
             var targetNode = await _repository.GetNodeAsync(edge.TargetId).ConfigureAwait(false);
             if (targetNode != null)
@@ -557,8 +543,8 @@ public sealed class GraphNavigationService : IGraphNavigationService
         bool includeTransitive = false,
         CancellationToken cancellationToken = default)
     {
-        var projectNode = await _repository.GetNodeAsync(projectId).ConfigureAwait(false);
-        if (projectNode == null || projectNode.Kind != DeclarationKind.Project)
+        var projectNode = await _repository.GetNodeAsync(projectId, cancellationToken).ConfigureAwait(false);
+        if (projectNode is not { Kind: DeclarationKind.Project })
         {
             return null;
         }
@@ -583,12 +569,10 @@ public sealed class GraphNavigationService : IGraphNavigationService
 
         foreach (var edge in dependsOnEdges)
         {
-            if (visited.Contains(edge.SourceId))
+            if (!visited.Add(edge.SourceId))
             {
                 continue;
             }
-
-            visited.Add(edge.SourceId);
 
             var sourceNode = await _repository.GetNodeAsync(edge.SourceId).ConfigureAwait(false);
             if (sourceNode != null)
@@ -612,7 +596,7 @@ public sealed class GraphNavigationService : IGraphNavigationService
         string filePath,
         CancellationToken cancellationToken = default)
     {
-        var nodes = await _repository.GetNodesByFileAsync(filePath).ConfigureAwait(false);
+        var nodes = await _repository.GetNodesByFileAsync(filePath, cancellationToken).ConfigureAwait(false);
         var nodesList = nodes.ToList();
 
         if (nodesList.Count == 0)
@@ -644,7 +628,8 @@ public sealed class GraphNavigationService : IGraphNavigationService
             var parentId = await FindParentInFileAsync(node.Id, nodeIds).ConfigureAwait(false);
             if (parentId == null)
             {
-                var declWithChildren = await BuildDeclarationNodeAsync(node, nodeMap, nodeIds, processed).ConfigureAwait(false);
+                var declWithChildren =
+                    await BuildDeclarationNodeAsync(node, nodeMap, nodeIds, processed).ConfigureAwait(false);
                 rootNodes.Add(declWithChildren);
             }
         }
@@ -686,7 +671,8 @@ public sealed class GraphNavigationService : IGraphNavigationService
 
             if (nodeMap.TryGetValue(edge.TargetId, out var childNode))
             {
-                var childDecl = await BuildDeclarationNodeAsync(childNode, nodeMap, fileNodeIds, processed).ConfigureAwait(false);
+                var childDecl = await BuildDeclarationNodeAsync(childNode, nodeMap, fileNodeIds, processed)
+                    .ConfigureAwait(false);
                 childDeclarations.Add(childDecl);
             }
         }
@@ -705,14 +691,14 @@ public sealed class GraphNavigationService : IGraphNavigationService
         int limit = 100,
         CancellationToken cancellationToken = default)
     {
-        var node = await _repository.GetNodeAsync(nodeId).ConfigureAwait(false);
+        var node = await _repository.GetNodeAsync(nodeId, cancellationToken).ConfigureAwait(false);
         if (node == null)
         {
             return null;
         }
 
         var usages = new List<UsageEntry>();
-        var incomingEdges = await _repository.GetIncomingEdgesAsync(nodeId).ConfigureAwait(false);
+        var incomingEdges = await _repository.GetIncomingEdgesAsync(nodeId, cancellationToken).ConfigureAwait(false);
 
         foreach (var edge in incomingEdges)
         {
@@ -722,12 +708,13 @@ public sealed class GraphNavigationService : IGraphNavigationService
             }
 
             var usageKind = MapEdgeKindToUsageKind(edge.Kind);
-            if (usageKindFilter.HasValue && usageKindFilter != UsageKind.All && usageKind != usageKindFilter.Value.ToString())
+            if (usageKindFilter.HasValue && usageKindFilter != UsageKind.All &&
+                usageKind != usageKindFilter.Value.ToString())
             {
                 continue;
             }
 
-            var sourceNode = await _repository.GetNodeAsync(edge.SourceId).ConfigureAwait(false);
+            var sourceNode = await _repository.GetNodeAsync(edge.SourceId, cancellationToken).ConfigureAwait(false);
             if (sourceNode != null)
             {
                 usages.Add(new UsageEntry(
@@ -762,7 +749,7 @@ public sealed class GraphNavigationService : IGraphNavigationService
 
     public async Task<SignatureResult?> GetSignatureAsync(string nodeId, CancellationToken cancellationToken = default)
     {
-        var node = await _repository.GetNodeAsync(nodeId).ConfigureAwait(false);
+        var node = await _repository.GetNodeAsync(nodeId, cancellationToken).ConfigureAwait(false);
         if (node == null)
         {
             return null;
@@ -814,13 +801,15 @@ public sealed class GraphNavigationService : IGraphNavigationService
                     {
                         var name = param.GetProperty("name").GetString() ?? "";
                         var type = param.GetProperty("type").GetString() ?? "";
-                        var isOptional = param.TryGetProperty("isOptional", out var optElement) && optElement.GetBoolean();
+                        var isOptional = param.TryGetProperty("isOptional", out var optElement) &&
+                                         optElement.GetBoolean();
                         parameters.Add(new ParameterInfo(name, type, isOptional));
                     }
                 }
 
                 if (root.TryGetProperty("typeParameters", out var typeParamsElement))
                 {
+                    // TODO: Fix nullability
                     typeParameters = typeParamsElement.EnumerateArray()
                         .Select(e => e.GetString()!)
                         .Where(s => s != null)

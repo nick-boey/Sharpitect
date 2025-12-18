@@ -1,400 +1,372 @@
 # Sharpitect Quick Start Guide
 
-Sharpitect generates [C4 model](https://c4model.com/) architecture diagrams from annotated C# codebases. It
-analyzes your solution structure, project configurations, and code annotations to produce System Context, Container,
-Component, and Code diagrams.
+Sharpitect analyzes .NET codebases and builds a declaration graph that enables powerful code navigation and exploration. This guide covers installation and usage of the CLI tool and MCP server.
 
 ## Table of Contents
 
+- [Prerequisites](#prerequisites)
 - [Installation](#installation)
-- [C4 Model Overview](#c4-model-overview)
-- [System Level](#system-level)
-- [Container Level](#container-level)
-- [Component Level](#component-level)
-- [Code Level](#code-level)
-- [Relationships](#relationships)
-- [Running the Tool](#running-the-tool)
-- [Validation and Errors](#validation-and-errors)
+  - [Install as a Global Tool](#install-as-a-global-tool)
+  - [Build from Source](#build-from-source)
+- [CLI Usage](#cli-usage)
+  - [Analyzing a Solution](#analyzing-a-solution)
+  - [Searching the Graph](#searching-the-graph)
+  - [Navigating Declarations](#navigating-declarations)
+  - [Exploring Relationships](#exploring-relationships)
+  - [Project Dependencies](#project-dependencies)
+- [MCP Server](#mcp-server)
+  - [Starting the Server](#starting-the-server)
+  - [Claude Code Integration](#claude-code-integration)
+  - [Available Tools](#available-tools)
+- [Development Setup](#development-setup)
+
+---
+
+## Prerequisites
+
+- [.NET 10.0 SDK](https://dotnet.microsoft.com/download) or later
+- A .NET solution (`.sln`) to analyze
+
+---
 
 ## Installation
 
-Add the Sharpitect attributes package to projects you want to annotate:
+### Install as a Global Tool
 
-```bash
-dotnet add package Sharpitect.Attributes
-```
-
-Install the CLI tool globally:
+Install Sharpitect as a global .NET tool:
 
 ```bash
 dotnet tool install -g Sharpitect.Tool
 ```
 
-## C4 Model Overview
-
-Sharpitect maps C# constructs to C4 model elements:
-
-| C4 Level      | C# Construct                   | Configuration                            |
-|---------------|--------------------------------|------------------------------------------|
-| **System**    | Solution (`.sln`)              | `*.sln.c4` YAML file                     |
-| **Container** | Executable project             | `*.csproj.c4` YAML or `.csproj` metadata |
-| **Component** | Interface with `[Component]` | Attribute or namespace mapping           |
-| **Code**      | Classes                        | Auto-generated class diagrams            |
-
-## System Level
-
-Systems are defined at the solution level. Create a YAML file alongside your solution with the `.c4` extension:
-
-```
-MySolution.sln
-MySolution.sln.c4    <-- System configuration
-```
-
-For SDK-style solutions using `.slnx`, use `MySolution.slnx.c4`.
-
-### System Configuration Schema
-
-```yaml
-# MySolution.sln.c4
-
-system:
-  name: "My Application"
-  description: "A brief description of what the system does"
-
-# People who interact with the system
-people:
-  - name: Customer
-    description: "End user who purchases products"
-  - name: Admin
-    description: "Internal user who manages the system"
-
-# External systems that this system interacts with
-externalSystems:
-  - name: PaymentGateway
-    description: "Third-party payment processor (e.g., Stripe)"
-  - name: EmailService
-    description: "Transactional email provider (e.g., SendGrid)"
-
-# Containers that exist outside the codebase (databases, storage, etc.)
-externalContainers:
-  - name: Database
-    technology: PostgreSQL
-    description: "Primary relational data store"
-  - name: Cache
-    technology: Redis
-    description: "Session and data caching"
-  - name: FileStorage
-    technology: Azure Blob Storage
-    description: "User uploads and documents"
-
-# Relationship name registry - all [Action] annotations must use these names
-relationships:
-  - "processes payments"
-  - "sends emails"
-  - "stores data"
-  - "reads data"
-  - "caches session"
-```
-
-### Key Points
-
-- **People**: Define all actors that interact with your system. These names are referenced in `[UserAction]`
-  attributes.
-- **External Systems**: Third-party systems outside your control.
-- **External Containers**: Infrastructure components (databases, caches, storage) that don't exist as projects in your
-  solution.
-- **Relationships**: A registry of allowed relationship names. Code annotations using `[Action]` must match these
-  names exactly.
-
-## Container Level
-
-Containers are executable projects in your solution. Configure them using either:
-
-1. A separate `*.csproj.c4` YAML file (recommended)
-2. MSBuild properties in the `.csproj` file
-
-### Option 1: YAML Configuration (Recommended)
-
-Create a `.c4` file alongside your project file:
-
-```
-MyProject/
-  MyProject.csproj
-  MyProject.csproj.c4    <-- Container configuration
-```
-
-```yaml
-# MyProject.csproj.c4
-
-container:
-  name: "Web API"
-  description: "RESTful API serving the web and mobile frontends"
-  technology: "ASP.NET Core 8"
-
-# Optional: Define components by namespace instead of attributes
-components:
-  - namespace: MyProject.Services
-    name: "Business Services"
-    description: "Core business logic and orchestration"
-  - namespace: MyProject.Data
-    name: "Data Access"
-    description: "Repository implementations and database access"
-```
-
-### Option 2: MSBuild Properties
-
-Add C4 metadata directly to your `.csproj` file:
-
-```xml
-
-<Project Sdk="Microsoft.NET.Sdk.Web">
-    <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
-
-        <!-- C4 Container metadata -->
-        <C4ContainerName>Web API</C4ContainerName>
-        <C4ContainerDescription>RESTful API serving the web and mobile frontends</C4ContainerDescription>
-        <C4ContainerTechnology>ASP.NET Core 8</C4ContainerTechnology>
-    </PropertyGroup>
-</Project>
-```
-
-### Which Projects Are Containers?
-
-By default, Sharpitect treats the following as containers:
-
-- Web applications (`Microsoft.NET.Sdk.Web`)
-- Console applications with `<OutputType>Exe</OutputType>`
-- Worker services
-
-Class libraries are **not** containers unless explicitly configured.
-
-## Component Level
-
-Components represent logical groupings within a container. Define them using:
-
-1. The `[Component]` attribute on interfaces (recommended)
-2. Namespace mappings in the container's `.c4` file
-
-### Option 1: Attribute-Based Components
-
-Apply `[Component]` to interfaces that represent component boundaries:
-
-```csharp
-using Sharpitect.Attributes;
-
-[Component("Order Service", Description = "Handles order creation and management")]
-public interface IOrderService
-{
-    Order CreateOrder(OrderRequest request);
-    Order GetOrder(int orderId);
-    void CancelOrder(int orderId);
-}
-```
-
-**Component Grouping**: Any class that implements a `[Component]` interface is automatically grouped into that
-component:
-
-```csharp
-// This class belongs to the "Order Service" component
-public class OrderService : IOrderService
-{
-    public Order CreateOrder(OrderRequest request) { /* ... */ }
-    public Order GetOrder(int orderId) { /* ... */ }
-    public void CancelOrder(int orderId) { /* ... */ }
-}
-
-// Helper classes used only by OrderService also belong to the component
-internal class OrderValidator : IOrderService
-{
-    // ...
-}
-```
-
-### Option 2: Namespace-Based Components
-
-Define components by namespace in the container's `.c4` file:
-
-```yaml
-# MyProject.csproj.c4
-
-components:
-  - namespace: MyProject.Orders
-    name: "Order Service"
-    description: "Handles order creation and management"
-  - namespace: MyProject.Inventory
-    name: "Inventory Service"
-    description: "Tracks product stock levels"
-```
-
-All classes within the specified namespace become part of that component.
-
-### Component Rules
-
-1. **No Nesting**: Components cannot contain other components. The tool reports an error if nesting is detected.
-2. **Single Assignment**: A class can only belong to one component.
-3. **Attribute Priority**: If a class implements a `[Component]` interface and is also in a namespace-mapped
-   component, the attribute takes precedence.
-
-## Code Level
-
-The Code level consists of class diagrams that are automatically generated from your codebase. No additional
-configuration is required.
-
-Sharpitect generates class diagrams showing:
-
-- Classes within each component
-- Properties and methods
-- Inheritance and implementation relationships
-- Associations between classes
-
-## Relationships
-
-Relationships between elements are determined by analyzing method calls and property usage across component boundaries.
-
-### Automatic Detection
-
-When code in one component calls a method or accesses a property in another component, a relationship is automatically
-created:
-
-```csharp
-public class OrderService : IOrderService
-{
-    private readonly IInventoryService _inventory;
-
-    public Order CreateOrder(OrderRequest request)
-    {
-        // This creates a relationship: Order Service -> Inventory Service
-        var available = _inventory.CheckStock(request.ProductId);
-        // ...
-    }
-}
-```
-
-The relationship name defaults to the method name (`CheckStock`).
-
-### Custom Relationship Names with `[Action]`
-
-Override the default relationship name using `[Action]`:
-
-```csharp
-[Component("Inventory Service")]
-public interface IInventoryService
-{
-    [Action("checks product availability")]
-    bool CheckStock(int productId);
-
-    [Action("reserves inventory")]
-    void ReserveStock(int productId, int quantity);
-}
-```
-
-**Important**: The relationship name must match an entry in the `relationships` registry in your `.sln.c4` file. The
-tool reports an error if a name is used that isn't registered.
-
-### User Interactions with `[UserAction]`
-
-Mark methods that represent user entry points with `[UserAction]`:
-
-```csharp
-[Component("Order Service")]
-public interface IOrderService
-{
-    [UserAction("Customer", "places an order")]
-    Order CreateOrder(OrderRequest request);
-
-    [UserAction("Admin", "cancels customer order")]
-    void CancelOrder(int orderId);
-}
-```
-
-This creates relationships from the named person to the component:
-
-- `Customer` --"places an order"--> `Order Service`
-- `Admin` --"cancels customer order"--> `Order Service`
-
-**Important**: The person name must match an entry in the `people` section of your `.sln.c4` file.
-
-### Relationships to External Systems
-
-Mark methods that call external systems:
-
-```csharp
-public class PaymentProcessor : IPaymentProcessor
-{
-    [Action("processes payments")]  // Must match relationships registry
-    public PaymentResult ProcessPayment(PaymentRequest request)
-    {
-        // Call to external payment gateway
-    }
-}
-```
-
-## Running the Tool
-
-Generate diagrams from your solution:
+Verify the installation:
 
 ```bash
-# Generate all diagram levels
-c4sharp analyze MySolution.sln
-
-# Generate specific diagram levels
-c4sharp analyze MySolution.sln --level context
-c4sharp analyze MySolution.sln --level container
-c4sharp analyze MySolution.sln --level component
-c4sharp analyze MySolution.sln --level code
-
-# Specify output directory
-c4sharp analyze MySolution.sln --output ./diagrams
-
-# Specify output format
-c4sharp analyze MySolution.sln --format png
-c4sharp analyze MySolution.sln --format svg
-c4sharp analyze MySolution.sln --format puml
+sharpitect --help
 ```
 
-## Validation and Errors
+To update to the latest version:
 
-Sharpitect validates your configuration and annotations, reporting errors for:
+```bash
+dotnet tool update -g Sharpitect.Tool
+```
 
-### Configuration Errors
+### Build from Source
 
-| Error   | Description                               |
-|---------|-------------------------------------------|
-| `C4001` | Missing `.sln.c4` file for solution       |
-| `C4002` | Invalid YAML syntax in configuration file |
-| `C4003` | Missing required field in configuration   |
+Clone the repository and build:
 
-### Component Errors
+```bash
+git clone https://github.com/nick-boey/sharpitect.git
+cd sharpitect
+dotnet build Sharpitect.sln
+```
 
-| Error   | Description                                     |
-|---------|-------------------------------------------------|
-| `C4101` | Nested components detected                      |
-| `C4102` | Class assigned to multiple components           |
-| `C4103` | Component name conflicts with another component |
+Run the CLI directly:
 
-### Relationship Errors
+```bash
+dotnet run --project src/Sharpitect.CLI -- --help
+```
 
-| Error   | Description                                      |
-|---------|--------------------------------------------------|
-| `C4201` | `[Action]` uses unregistered relationship name |
-| `C4202` | `[UserAction]` references undefined person     |
-| `C4203` | Circular dependency detected between components  |
+Or install as a local tool for development:
 
-### Example Error Output
+```bash
+dotnet pack src/Sharpitect.CLI -o ./nupkg
+dotnet tool install --global --add-source ./nupkg Sharpitect
+```
+
+---
+
+## CLI Usage
+
+### Analyzing a Solution
+
+Before using navigation commands, analyze your solution to build the declaration graph:
+
+```bash
+# Analyze the solution in the current directory
+sharpitect analyze
+
+# Analyze a specific solution file
+sharpitect analyze path/to/MySolution.sln
+
+# Specify a custom output database path
+sharpitect analyze --output ./my-graph.db
+```
+
+The analysis creates a SQLite database at `.sharpitect/graph.db` containing all declarations and relationships found in your codebase.
+
+**Output example:**
 
 ```
-error C4201: Relationship name "sends notification" is not registered.
-  --> src/Services/NotificationService.cs:15
-   |
-15 |     [Action("sends notification")]
-   |              ^^^^^^^^^^^^^^^^^^^^
-   |
-  = help: Add "sends notification" to the relationships list in MySolution.sln.c4
-  = note: Did you mean "sends notifications"?
+Analyzing solution: C:\src\MySolution\MySolution.sln
+Output database: C:\src\MySolution\.sharpitect\graph.db
+
+Analysis complete:
+  Nodes: 1,234
+  Edges: 5,678
+
+Graph saved to: C:\src\MySolution\.sharpitect\graph.db
 ```
+
+### Searching the Graph
+
+Search for declarations by name:
+
+```bash
+# Search for declarations containing "Service"
+sharpitect search Service
+
+# Filter by declaration kind
+sharpitect search Service --kind class
+sharpitect search Get --kind method
+
+# Use different match modes
+sharpitect search Graph --match starts_with
+sharpitect search Service --match exact
+
+# Case-sensitive search
+sharpitect search graphService --case-sensitive
+
+# Limit results
+sharpitect search Service --limit 10
+```
+
+**Declaration kinds:** `solution`, `project`, `namespace`, `class`, `interface`, `struct`, `record`, `enum`, `delegate`, `method`, `constructor`, `property`, `field`, `event`
+
+**Match modes:** `contains` (default), `starts_with`, `ends_with`, `exact`
+
+### Navigating Declarations
+
+Get detailed information about specific declarations:
+
+```bash
+# Get node details by fully qualified ID
+sharpitect node MyNamespace.MyClass
+
+# Get children of a node (contents of a class, namespace, etc.)
+sharpitect children MyNamespace.MyClass
+sharpitect children MyNamespace.MyClass --kind method
+
+# Get the ancestor chain (containment hierarchy)
+sharpitect ancestors MyNamespace.MyClass.MyMethod
+
+# Get all declarations in a source file
+sharpitect file src/MyClass.cs
+
+# Get full signature of a method or property
+sharpitect signature MyNamespace.MyClass.MyMethod
+
+# List all declarations of a specific kind
+sharpitect list class
+sharpitect list interface --scope MyNamespace
+```
+
+### Exploring Relationships
+
+Understand how code elements relate to each other:
+
+```bash
+# Get all relationships for a node
+sharpitect relationships MyNamespace.MyClass
+
+# Filter by direction
+sharpitect relationships MyClass --direction outgoing
+sharpitect relationships MyClass --direction incoming
+
+# Filter by relationship kind
+sharpitect relationships MyClass --kind implements
+
+# Find callers of a method (what calls this method)
+sharpitect callers MyNamespace.MyClass.MyMethod
+sharpitect callers MyNamespace.MyClass.MyMethod --depth 2
+
+# Find callees of a method (what this method calls)
+sharpitect callees MyNamespace.MyClass.MyMethod
+
+# Get inheritance hierarchy
+sharpitect inheritance MyNamespace.MyClass
+sharpitect inheritance IMyInterface --direction descendants
+
+# Find all usages of a type, method, or property
+sharpitect usages MyNamespace.MyClass
+sharpitect usages MyClass.MyMethod --kind call
+```
+
+**Relationship kinds:** `calls`, `inherits`, `implements`, `references`, `uses`, `constructs`, `contains`, `overrides`
+
+**Usage kinds:** `call`, `type_reference`, `inheritance`, `instantiation`
+
+### Project Dependencies
+
+Explore project-level dependencies:
+
+```bash
+# Get dependencies of a project
+sharpitect dependencies MyProject
+
+# Include transitive dependencies
+sharpitect dependencies MyProject --transitive
+
+# Get projects that depend on a project
+sharpitect dependents MyProject
+sharpitect dependents MyProject --transitive
+```
+
+### Common Options
+
+Most navigation commands support:
+
+| Option | Description |
+|--------|-------------|
+| `-d, --database <path>` | Path to the SQLite database (defaults to `.sharpitect/graph.db`) |
+| `-l, --limit <n>` | Maximum number of results (default: 50) |
+
+---
+
+## MCP Server
+
+The MCP (Model Context Protocol) server enables AI assistants like Claude to navigate your codebase through structured tools.
+
+### Starting the Server
+
+Start the MCP server with a pre-analyzed database:
+
+```bash
+sharpitect serve .sharpitect/graph.db
+```
+
+The server communicates over stdio using the MCP protocol.
+
+### Claude Code Integration
+
+Add Sharpitect to your Claude Code MCP configuration. Create or edit `.claude/settings.json` in your project:
+
+```json
+{
+  "mcpServers": {
+    "sharpitect": {
+      "command": "sharpitect",
+      "args": ["serve", ".sharpitect/graph.db"]
+    }
+  }
+}
+```
+
+Or configure globally in your user settings at `~/.claude/settings.json`:
+
+```json
+{
+  "mcpServers": {
+    "sharpitect": {
+      "command": "sharpitect",
+      "args": ["serve", "/path/to/your/project/.sharpitect/graph.db"]
+    }
+  }
+}
+```
+
+After configuration, restart Claude Code to load the MCP server.
+
+### Available Tools
+
+The MCP server provides these tools for AI-assisted code navigation:
+
+| Tool | Description |
+|------|-------------|
+| `SearchDeclarations` | Search for declarations by name with filters |
+| `GetNode` | Get detailed information about a declaration |
+| `GetChildren` | Get contents of a class, namespace, or project |
+| `GetAncestors` | Get containment hierarchy path |
+| `GetRelationships` | Get relationships (calls, inherits, etc.) |
+| `GetCallers` | Find methods that call a specific method |
+| `GetCallees` | Find methods called by a specific method |
+| `GetInheritance` | Get inheritance hierarchy |
+| `ListByKind` | List all declarations of a kind |
+| `GetDependencies` | Get project dependencies |
+| `GetDependents` | Get projects that depend on a project |
+| `GetFileDeclarations` | Get declarations in a source file |
+| `GetUsages` | Find all usages of a type or method |
+| `GetSignature` | Get full signature information |
+
+All tools support `json` (default) or `text` output formats via the `format` parameter.
+
+For detailed tool documentation including parameters and examples, see [MCP Server Reference](mcp-server.md).
+
+---
+
+## Development Setup
+
+### Building the Solution
+
+```bash
+# Clone the repository
+git clone https://github.com/your-org/sharpitect.git
+cd sharpitect
+
+# Build all projects
+dotnet build Sharpitect.sln
+
+# Run tests
+dotnet test Sharpitect.sln
+```
+
+### Project Structure
+
+| Project | Description |
+|---------|-------------|
+| `Sharpitect.CLI` | Command-line tool entry point |
+| `Sharpitect.MCP` | MCP server implementation |
+| `Sharpitect.Analysis` | Code analysis engine using Roslyn |
+| `Sharpitect.Attributes` | Attributes for annotating code |
+| `Sharpitect.Analysis.Test` | Unit tests |
+
+### Running During Development
+
+Run the CLI without installing:
+
+```bash
+# Run help
+dotnet run --project src/Sharpitect.CLI -- --help
+
+# Analyze a solution
+dotnet run --project src/Sharpitect.CLI -- analyze ../other-project
+
+# Start MCP server
+dotnet run --project src/Sharpitect.CLI -- serve .sharpitect/graph.db
+```
+
+### Creating a Local Tool Package
+
+Build and install as a local tool:
+
+```bash
+# Create the NuGet package
+dotnet pack src/Sharpitect.CLI -c Release -o ./nupkg
+
+# Install from local package
+dotnet tool install --global --add-source ./nupkg Sharpitect.Tool
+
+# Or update if already installed
+dotnet tool update --global --add-source ./nupkg Sharpitect.Tool
+```
+
+### Running Tests
+
+```bash
+# Run all tests
+dotnet test Sharpitect.sln
+
+# Run specific tests
+dotnet test test/Sharpitect.Analysis.Test --filter "FullyQualifiedName~GraphSearchServiceTests"
+
+# Run with verbose output
+dotnet test Sharpitect.sln --logger "console;verbosity=detailed"
+```
+
+---
 
 ## Next Steps
 
-- See [Full Example](full-example.md) for a complete e-commerce system walkthrough
-- Review the [C4 Model](https://c4model.com/) documentation for architecture concepts
+- See [MCP Server Reference](mcp-server.md) for detailed tool documentation
+- See [C4 Quick Start](c4/quick-start-c4.md) for generating C4 architecture diagrams
+- See [Full Example](c4/full-example-c4.md) for a complete walkthrough
