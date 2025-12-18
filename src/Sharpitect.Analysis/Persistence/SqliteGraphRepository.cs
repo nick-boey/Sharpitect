@@ -35,10 +35,10 @@ public sealed class SqliteGraphRepository : IGraphRepository
         EnsureInitialized();
 
         const string sql = """
-            INSERT OR REPLACE INTO nodes
-            (id, name, fully_qualified_name, kind, file_path, start_line, start_column, end_line, end_column, c4_level, c4_description, metadata)
-            VALUES ($id, $name, $fqn, $kind, $file_path, $start_line, $start_column, $end_line, $end_column, $c4_level, $c4_description, $metadata)
-            """;
+                           INSERT OR REPLACE INTO nodes
+                           (id, name, fully_qualified_name, kind, file_path, start_line, start_column, end_line, end_column, c4_level, c4_description, metadata)
+                           VALUES ($id, $name, $fqn, $kind, $file_path, $start_line, $start_column, $end_line, $end_column, $c4_level, $c4_description, $metadata)
+                           """;
 
         await using var command = _connection!.CreateCommand();
         command.CommandText = sql;
@@ -53,11 +53,11 @@ public sealed class SqliteGraphRepository : IGraphRepository
 
         await using var transaction = await _connection!.BeginTransactionAsync(cancellationToken);
 
-        const string sql = """
-            INSERT OR REPLACE INTO nodes
-            (id, name, fully_qualified_name, kind, file_path, start_line, start_column, end_line, end_column, c4_level, c4_description, metadata)
-            VALUES ($id, $name, $fqn, $kind, $file_path, $start_line, $start_column, $end_line, $end_column, $c4_level, $c4_description, $metadata)
-            """;
+        const string sql = $"""
+                            INSERT OR REPLACE INTO nodes
+                            (id, name, fully_qualified_name, kind, file_path, start_line, start_column, end_line, end_column, c4_level, c4_description, metadata)
+                            VALUES ($id, $name, $fqn, $kind, $file_path, $start_line, $start_column, $end_line, $end_column, $c4_level, $c4_description, $metadata)
+                            """;
 
         await using var command = _connection.CreateCommand();
         command.CommandText = sql;
@@ -79,10 +79,10 @@ public sealed class SqliteGraphRepository : IGraphRepository
         EnsureInitialized();
 
         const string sql = """
-            INSERT OR REPLACE INTO edges
-            (id, source_id, target_id, kind, source_file_path, source_line, metadata)
-            VALUES ($id, $source_id, $target_id, $kind, $source_file_path, $source_line, $metadata)
-            """;
+                           INSERT OR REPLACE INTO edges
+                           (id, source_id, target_id, kind, source_file_path, source_line, metadata)
+                           VALUES ($id, $source_id, $target_id, $kind, $source_file_path, $source_line, $metadata)
+                           """;
 
         await using var command = _connection!.CreateCommand();
         command.CommandText = sql;
@@ -98,10 +98,10 @@ public sealed class SqliteGraphRepository : IGraphRepository
         await using var transaction = await _connection!.BeginTransactionAsync(cancellationToken);
 
         const string sql = """
-            INSERT OR REPLACE INTO edges
-            (id, source_id, target_id, kind, source_file_path, source_line, metadata)
-            VALUES ($id, $source_id, $target_id, $kind, $source_file_path, $source_line, $metadata)
-            """;
+                           INSERT OR REPLACE INTO edges
+                           (id, source_id, target_id, kind, source_file_path, source_line, metadata)
+                           VALUES ($id, $source_id, $target_id, $kind, $source_file_path, $source_line, $metadata)
+                           """;
 
         await using var command = _connection.CreateCommand();
         command.CommandText = sql;
@@ -138,7 +138,8 @@ public sealed class SqliteGraphRepository : IGraphRepository
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyList<DeclarationNode>> GetNodesByKindAsync(DeclarationKind kind, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<DeclarationNode>> GetNodesByKindAsync(DeclarationKind kind,
+        CancellationToken cancellationToken = default)
     {
         EnsureInitialized();
 
@@ -152,7 +153,8 @@ public sealed class SqliteGraphRepository : IGraphRepository
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyList<DeclarationNode>> GetNodesByFileAsync(string filePath, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<DeclarationNode>> GetNodesByFileAsync(string filePath,
+        CancellationToken cancellationToken = default)
     {
         EnsureInitialized();
 
@@ -166,7 +168,8 @@ public sealed class SqliteGraphRepository : IGraphRepository
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyList<RelationshipEdge>> GetOutgoingEdgesAsync(string nodeId, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<RelationshipEdge>> GetOutgoingEdgesAsync(string nodeId,
+        CancellationToken cancellationToken = default)
     {
         EnsureInitialized();
 
@@ -180,7 +183,8 @@ public sealed class SqliteGraphRepository : IGraphRepository
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyList<RelationshipEdge>> GetIncomingEdgesAsync(string nodeId, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<RelationshipEdge>> GetIncomingEdgesAsync(string nodeId,
+        CancellationToken cancellationToken = default)
     {
         EnsureInitialized();
 
@@ -194,7 +198,8 @@ public sealed class SqliteGraphRepository : IGraphRepository
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyList<RelationshipEdge>> GetEdgesByKindAsync(RelationshipKind kind, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<RelationshipEdge>> GetEdgesByKindAsync(RelationshipKind kind,
+        CancellationToken cancellationToken = default)
     {
         EnsureInitialized();
 
@@ -213,9 +218,9 @@ public sealed class SqliteGraphRepository : IGraphRepository
         EnsureInitialized();
 
         const string sql = """
-            DELETE FROM edges;
-            DELETE FROM nodes;
-            """;
+                           DELETE FROM edges;
+                           DELETE FROM nodes;
+                           """;
 
         await ExecuteNonQueryAsync(sql, cancellationToken);
     }
@@ -320,7 +325,8 @@ public sealed class SqliteGraphRepository : IGraphRepository
         command.Parameters.AddWithValue("$metadata", (object?)edge.Metadata ?? DBNull.Value);
     }
 
-    private static async Task<List<DeclarationNode>> ReadNodesAsync(SqliteCommand command, CancellationToken cancellationToken)
+    private static async Task<List<DeclarationNode>> ReadNodesAsync(SqliteCommand command,
+        CancellationToken cancellationToken)
     {
         var nodes = new List<DeclarationNode>();
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
@@ -328,6 +334,7 @@ public sealed class SqliteGraphRepository : IGraphRepository
         {
             nodes.Add(ReadNode(reader));
         }
+
         return nodes;
     }
 
@@ -345,12 +352,17 @@ public sealed class SqliteGraphRepository : IGraphRepository
             EndLine = reader.GetInt32(reader.GetOrdinal("end_line")),
             EndColumn = reader.GetInt32(reader.GetOrdinal("end_column")),
             C4Level = (C4Level)reader.GetInt32(reader.GetOrdinal("c4_level")),
-            C4Description = reader.IsDBNull(reader.GetOrdinal("c4_description")) ? null : reader.GetString(reader.GetOrdinal("c4_description")),
-            Metadata = reader.IsDBNull(reader.GetOrdinal("metadata")) ? null : reader.GetString(reader.GetOrdinal("metadata"))
+            C4Description = reader.IsDBNull(reader.GetOrdinal("c4_description"))
+                ? null
+                : reader.GetString(reader.GetOrdinal("c4_description")),
+            Metadata = reader.IsDBNull(reader.GetOrdinal("metadata"))
+                ? null
+                : reader.GetString(reader.GetOrdinal("metadata"))
         };
     }
 
-    private static async Task<List<RelationshipEdge>> ReadEdgesAsync(SqliteCommand command, CancellationToken cancellationToken)
+    private static async Task<List<RelationshipEdge>> ReadEdgesAsync(SqliteCommand command,
+        CancellationToken cancellationToken)
     {
         var edges = new List<RelationshipEdge>();
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
@@ -358,6 +370,7 @@ public sealed class SqliteGraphRepository : IGraphRepository
         {
             edges.Add(ReadEdge(reader));
         }
+
         return edges;
     }
 
@@ -369,49 +382,55 @@ public sealed class SqliteGraphRepository : IGraphRepository
             SourceId = reader.GetString(reader.GetOrdinal("source_id")),
             TargetId = reader.GetString(reader.GetOrdinal("target_id")),
             Kind = (RelationshipKind)reader.GetInt32(reader.GetOrdinal("kind")),
-            SourceFilePath = reader.IsDBNull(reader.GetOrdinal("source_file_path")) ? null : reader.GetString(reader.GetOrdinal("source_file_path")),
-            SourceLine = reader.IsDBNull(reader.GetOrdinal("source_line")) ? null : reader.GetInt32(reader.GetOrdinal("source_line")),
-            Metadata = reader.IsDBNull(reader.GetOrdinal("metadata")) ? null : reader.GetString(reader.GetOrdinal("metadata"))
+            SourceFilePath = reader.IsDBNull(reader.GetOrdinal("source_file_path"))
+                ? null
+                : reader.GetString(reader.GetOrdinal("source_file_path")),
+            SourceLine = reader.IsDBNull(reader.GetOrdinal("source_line"))
+                ? null
+                : reader.GetInt32(reader.GetOrdinal("source_line")),
+            Metadata = reader.IsDBNull(reader.GetOrdinal("metadata"))
+                ? null
+                : reader.GetString(reader.GetOrdinal("metadata"))
         };
     }
 
     private const string CreateTablesScript = """
-        CREATE TABLE IF NOT EXISTS nodes (
-            id TEXT PRIMARY KEY,
-            name TEXT NOT NULL,
-            fully_qualified_name TEXT NOT NULL,
-            kind INTEGER NOT NULL,
-            file_path TEXT NOT NULL,
-            start_line INTEGER NOT NULL,
-            start_column INTEGER NOT NULL,
-            end_line INTEGER NOT NULL,
-            end_column INTEGER NOT NULL,
-            c4_level INTEGER NOT NULL DEFAULT 0,
-            c4_description TEXT,
-            metadata TEXT
-        );
+                                              CREATE TABLE IF NOT EXISTS nodes (
+                                                  id TEXT PRIMARY KEY,
+                                                  name TEXT NOT NULL,
+                                                  fully_qualified_name TEXT NOT NULL,
+                                                  kind INTEGER NOT NULL,
+                                                  file_path TEXT NOT NULL,
+                                                  start_line INTEGER NOT NULL,
+                                                  start_column INTEGER NOT NULL,
+                                                  end_line INTEGER NOT NULL,
+                                                  end_column INTEGER NOT NULL,
+                                                  c4_level INTEGER NOT NULL DEFAULT 0,
+                                                  c4_description TEXT,
+                                                  metadata TEXT
+                                              );
 
-        CREATE TABLE IF NOT EXISTS edges (
-            id TEXT PRIMARY KEY,
-            source_id TEXT NOT NULL,
-            target_id TEXT NOT NULL,
-            kind INTEGER NOT NULL,
-            source_file_path TEXT,
-            source_line INTEGER,
-            metadata TEXT,
-            FOREIGN KEY (source_id) REFERENCES nodes(id) ON DELETE CASCADE,
-            FOREIGN KEY (target_id) REFERENCES nodes(id) ON DELETE CASCADE
-        );
+                                              CREATE TABLE IF NOT EXISTS edges (
+                                                  id TEXT PRIMARY KEY,
+                                                  source_id TEXT NOT NULL,
+                                                  target_id TEXT NOT NULL,
+                                                  kind INTEGER NOT NULL,
+                                                  source_file_path TEXT,
+                                                  source_line INTEGER,
+                                                  metadata TEXT,
+                                                  FOREIGN KEY (source_id) REFERENCES nodes(id) ON DELETE CASCADE,
+                                                  FOREIGN KEY (target_id) REFERENCES nodes(id) ON DELETE CASCADE
+                                              );
 
-        CREATE INDEX IF NOT EXISTS idx_nodes_kind ON nodes(kind);
-        CREATE INDEX IF NOT EXISTS idx_nodes_fqn ON nodes(fully_qualified_name);
-        CREATE INDEX IF NOT EXISTS idx_nodes_file ON nodes(file_path);
-        CREATE INDEX IF NOT EXISTS idx_nodes_name ON nodes(name);
+                                              CREATE INDEX IF NOT EXISTS idx_nodes_kind ON nodes(kind);
+                                              CREATE INDEX IF NOT EXISTS idx_nodes_fqn ON nodes(fully_qualified_name);
+                                              CREATE INDEX IF NOT EXISTS idx_nodes_file ON nodes(file_path);
+                                              CREATE INDEX IF NOT EXISTS idx_nodes_name ON nodes(name);
 
-        CREATE INDEX IF NOT EXISTS idx_edges_source ON edges(source_id);
-        CREATE INDEX IF NOT EXISTS idx_edges_target ON edges(target_id);
-        CREATE INDEX IF NOT EXISTS idx_edges_kind ON edges(kind);
-        CREATE INDEX IF NOT EXISTS idx_edges_source_kind ON edges(source_id, kind);
-        CREATE INDEX IF NOT EXISTS idx_edges_target_kind ON edges(target_id, kind);
-        """;
+                                              CREATE INDEX IF NOT EXISTS idx_edges_source ON edges(source_id);
+                                              CREATE INDEX IF NOT EXISTS idx_edges_target ON edges(target_id);
+                                              CREATE INDEX IF NOT EXISTS idx_edges_kind ON edges(kind);
+                                              CREATE INDEX IF NOT EXISTS idx_edges_source_kind ON edges(source_id, kind);
+                                              CREATE INDEX IF NOT EXISTS idx_edges_target_kind ON edges(target_id, kind);
+                                              """;
 }
