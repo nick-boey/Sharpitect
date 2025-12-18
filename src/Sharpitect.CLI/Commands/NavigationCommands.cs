@@ -519,6 +519,36 @@ public static class NavigationCommands
         return command;
     }
 
+    public static Command CreateCodeCommand()
+    {
+        var nodeIdArgument = new Argument<string>(
+            name: "node-id",
+            description: "Fully qualified name of the declaration (e.g., Namespace.Class.Method).");
+
+        var command = new Command("code", "Display declaration summary and source code.")
+        {
+            nodeIdArgument,
+            DatabaseOption
+        };
+
+        command.SetHandler(async (nodeId, database) =>
+        {
+            await ExecuteWithServiceAsync(database, async (service, formatter) =>
+            {
+                var result = await service.GetCodeAsync(nodeId);
+                if (result == null)
+                {
+                    Console.Error.WriteLine($"Error: Node not found: {nodeId}");
+                    Environment.ExitCode = 1;
+                    return;
+                }
+                Console.WriteLine(formatter.Format(result));
+            });
+        }, nodeIdArgument, DatabaseOption);
+
+        return command;
+    }
+
     private static async Task ExecuteWithServiceAsync(string? databasePath, Func<IGraphNavigationService, IOutputFormatter, Task> action)
     {
         var dbPath = ResolveDatabasePath(databasePath);

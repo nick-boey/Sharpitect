@@ -30,6 +30,7 @@ public sealed class TextOutputFormatter : IOutputFormatter
             FileDeclarationsResult fileDeclarations => FormatFileDeclarations(fileDeclarations),
             UsagesResult usages => FormatUsages(usages),
             SignatureResult signature => FormatSignature(signature),
+            CodeResult code => FormatCodeResult(code),
             _ => result.ToString() ?? string.Empty
         };
     }
@@ -37,6 +38,23 @@ public sealed class TextOutputFormatter : IOutputFormatter
     private static string FormatError(ErrorResponse error)
     {
         return $"ERROR [{error.ErrorCode}]: {error.Message}";
+    }
+
+    private static string FormatLocation(string? filePath, int? startLine, int? endLine)
+    {
+        if (filePath == null) return string.Empty;
+
+        if (startLine.HasValue && endLine.HasValue && endLine.Value > startLine.Value)
+        {
+            return $"{filePath}:{startLine}-{endLine}";
+        }
+
+        if (startLine.HasValue)
+        {
+            return $"{filePath}:{startLine}";
+        }
+
+        return filePath;
     }
 
     private static string FormatSearchResults(SearchResults results)
@@ -64,14 +82,12 @@ public sealed class TextOutputFormatter : IOutputFormatter
     {
         var sb = new StringBuilder();
         sb.AppendLine($"[{node.Kind}] {node.Name}");
-        sb.AppendLine($"  Full ID: {node.FullyQualifiedName}");
+        sb.AppendLine($"  Full name: {node.FullyQualifiedName}");
 
         if (node.FilePath != null)
         {
-            var location = node.LineNumber.HasValue
-                ? $"{node.FilePath}:{node.LineNumber}"
-                : node.FilePath;
-            sb.AppendLine($"  File: {location}");
+            var location = FormatLocation(node.FilePath, node.LineNumber, node.EndLineNumber);
+            sb.AppendLine($"  Path: {location}");
         }
 
         if (node.C4Level != null)
@@ -101,9 +117,7 @@ public sealed class TextOutputFormatter : IOutputFormatter
 
         if (node.FilePath != null)
         {
-            var location = node.LineNumber.HasValue
-                ? $"{node.FilePath}:{node.LineNumber}"
-                : node.FilePath;
+            var location = FormatLocation(node.FilePath, node.LineNumber, node.EndLineNumber);
             sb.AppendLine($"  Path: {location}");
         }
 
@@ -127,7 +141,10 @@ public sealed class TextOutputFormatter : IOutputFormatter
             sb.AppendLine($"  [{child.Kind}] {child.Name}");
             if (child.LineNumber.HasValue)
             {
-                sb.AppendLine($"    Line: {child.LineNumber}");
+                var lineRange = child.EndLineNumber.HasValue && child.EndLineNumber > child.LineNumber
+                    ? $"{child.LineNumber}-{child.EndLineNumber}"
+                    : $"{child.LineNumber}";
+                sb.AppendLine($"    Lines: {lineRange}");
             }
         }
 
@@ -300,9 +317,7 @@ public sealed class TextOutputFormatter : IOutputFormatter
             sb.AppendLine($"  {node.Name}");
             if (node.FilePath != null)
             {
-                var location = node.LineNumber.HasValue
-                    ? $"{node.FilePath}:{node.LineNumber}"
-                    : node.FilePath;
+                var location = FormatLocation(node.FilePath, node.LineNumber, node.EndLineNumber);
                 sb.AppendLine($"    {location}");
             }
         }
@@ -468,6 +483,46 @@ public sealed class TextOutputFormatter : IOutputFormatter
             sb.AppendLine();
             sb.AppendLine("  Documentation:");
             sb.AppendLine($"    {result.Documentation}");
+        }
+
+        return sb.ToString().TrimEnd();
+    }
+
+    private static string FormatCodeResult(CodeResult result)
+    {
+        var sb = new StringBuilder();
+
+        // Format the node summary
+        sb.AppendLine($"[{result.Node.Kind}] {result.Node.Name}");
+        sb.AppendLine($"  Full name: {result.Node.FullyQualifiedName}");
+
+        if (result.Node.FilePath != null)
+        {
+            var location = FormatLocation(result.Node.FilePath, result.Node.LineNumber, result.Node.EndLineNumber);
+            sb.AppendLine($"  Path: {location}");
+        }
+
+        if (result.Node.C4Level != null)
+        {
+            sb.AppendLine($"  C4 Level: {result.Node.C4Level}");
+        }
+
+        sb.AppendLine();
+
+        if (result.Error != null)
+        {
+            sb.AppendLine($"Error reading source code: {result.Error}");
+        }
+        else if (result.SourceCode != null)
+        {
+            sb.AppendLine("Source code:");
+            sb.AppendLine("```");
+            sb.AppendLine(result.SourceCode);
+            sb.AppendLine("```");
+        }
+        else
+        {
+            sb.AppendLine("No source code available.");
         }
 
         return sb.ToString().TrimEnd();

@@ -156,9 +156,28 @@ sharpitect file src/MyClass.cs
 # Get full signature of a method or property
 sharpitect signature MyNamespace.MyClass.MyMethod
 
+# View source code for a declaration
+sharpitect code MyNamespace.MyClass.MyMethod
+
 # List all declarations of a specific kind
 sharpitect list class
 sharpitect list interface --scope MyNamespace
+```
+
+The `code` command displays declaration details along with the source code:
+
+```
+[Method] MyMethod
+  Full name: MyNamespace.MyClass.MyMethod
+  Path: src/MyClass.cs:42-55
+
+Source code:
+```
+public void MyMethod()
+{
+    // method implementation
+}
+```
 ```
 
 ### Exploring Relationships
@@ -287,6 +306,7 @@ The MCP server provides these tools for AI-assisted code navigation:
 | `GetFileDeclarations` | Get declarations in a source file |
 | `GetUsages` | Find all usages of a type or method |
 | `GetSignature` | Get full signature information |
+| `GetCode` | Get declaration details and source code |
 
 All tools support `json` (default) or `text` output formats via the `format` parameter.
 

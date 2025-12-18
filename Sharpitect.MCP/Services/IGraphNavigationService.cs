@@ -121,6 +121,11 @@ public interface IGraphNavigationService
     /// Gets signature information for a method, property, or type.
     /// </summary>
     Task<SignatureResult?> GetSignatureAsync(string nodeId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the node details and source code for a declaration.
+    /// </summary>
+    Task<CodeResult?> GetCodeAsync(string nodeId, CancellationToken cancellationToken = default);
 }
 
 /// <summary>

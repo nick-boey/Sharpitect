@@ -26,7 +26,7 @@ public class TextOutputFormatterTests
         var searchResults = new SearchResults(
             new List<NodeSummary>
             {
-                new("id1", "TestClass", "Namespace.TestClass", "Class", "Code", "src/Test.cs", 42)
+                new("id1", "TestClass", "Namespace.TestClass", "Class", "Code", "src/Test.cs", 42, 80)
             },
             TotalCount: 1,
             Truncated: false);
@@ -34,7 +34,7 @@ public class TextOutputFormatterTests
         var result = _formatter.Format(searchResults);
 
         Assert.That(result, Does.Contain("[Class] TestClass"));
-        Assert.That(result, Does.Contain("src/Test.cs:42"));
+        Assert.That(result, Does.Contain("src/Test.cs:42-80"));
         Assert.That(result, Does.Contain("1 match"));
     }
 
@@ -44,8 +44,8 @@ public class TextOutputFormatterTests
         var searchResults = new SearchResults(
             new List<NodeSummary>
             {
-                new("id1", "Class1", "Namespace.Class1", "Class", "Code", "test1.cs", 10),
-                new("id2", "Class2", "Namespace.Class2", "Class", "Code", "test2.cs", 20)
+                new("id1", "Class1", "Namespace.Class1", "Class", "Code", "test1.cs", 10, 50),
+                new("id2", "Class2", "Namespace.Class2", "Class", "Code", "test2.cs", 20, 60)
             },
             TotalCount: 2,
             Truncated: false);
@@ -61,7 +61,7 @@ public class TextOutputFormatterTests
         var searchResults = new SearchResults(
             new List<NodeSummary>
             {
-                new("id1", "Class1", "Namespace.Class1", "Class", "Code", "test.cs", 10)
+                new("id1", "Class1", "Namespace.Class1", "Class", "Code", "test.cs", 10, 50)
             },
             TotalCount: 100,
             Truncated: true);
@@ -89,7 +89,7 @@ public class TextOutputFormatterTests
 
         Assert.That(result, Does.Contain("[Class] TestClass"));
         Assert.That(result, Does.Contain("Namespace.TestClass"));
-        Assert.That(result, Does.Contain("src/Test.cs:42"));
+        Assert.That(result, Does.Contain("src/Test.cs:42-100"));
     }
 
     [Test]
@@ -111,10 +111,10 @@ public class TextOutputFormatterTests
             "method.id",
             new List<NodeSummary>
             {
-                new("sln.id", "MySolution", "MySolution", "Solution", "System", null, null),
-                new("proj.id", "MyProject", "MySolution.MyProject", "Project", "Container", null, null),
-                new("ns.id", "MyNamespace", "MyNamespace", "Namespace", null, null, null),
-                new("class.id", "MyClass", "MyNamespace.MyClass", "Class", "Code", "test.cs", 10)
+                new("sln.id", "MySolution", "MySolution", "Solution", "System", null, null, null),
+                new("proj.id", "MyProject", "MySolution.MyProject", "Project", "Container", null, null, null),
+                new("ns.id", "MyNamespace", "MyNamespace", "Namespace", null, null, null, null),
+                new("class.id", "MyClass", "MyNamespace.MyClass", "Class", "Code", "test.cs", 10, 50)
             });
 
         var formatted = _formatter.Format(result);

@@ -24,7 +24,8 @@ var rootCommand = new RootCommand("Sharpitect - Analyze .NET codebases and build
     NavigationCommands.CreateDependentsCommand(),
     NavigationCommands.CreateFileCommand(),
     NavigationCommands.CreateUsagesCommand(),
-    NavigationCommands.CreateSignatureCommand()
+    NavigationCommands.CreateSignatureCommand(),
+    NavigationCommands.CreateCodeCommand()
 };
 
 return await rootCommand.InvokeAsync(args);

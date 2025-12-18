@@ -12,7 +12,8 @@ public sealed record NodeSummary(
     string Kind,
     string? C4Level,
     string? FilePath,
-    int? LineNumber)
+    int? LineNumber,
+    int? EndLineNumber)
 {
     public static NodeSummary FromDeclarationNode(DeclarationNode node) =>
         new(
@@ -22,5 +23,6 @@ public sealed record NodeSummary(
             node.Kind.ToString(),
             node.C4Level == Analysis.Graph.C4Level.None ? null : node.C4Level.ToString(),
             node.FilePath,
-            node.StartLine > 0 ? node.StartLine : null);
+            node.StartLine > 0 ? node.StartLine : null,
+            node.EndLine > 0 ? node.EndLine : null);
 }

@@ -839,4 +839,49 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
             typeParameters,
             documentation ?? node.C4Description);
     }
+
+    public async Task<CodeResult?> GetCodeAsync(string nodeId, CancellationToken cancellationToken = default)
+    {
+        var node = await _repository.GetNodeAsync(nodeId, cancellationToken).ConfigureAwait(false);
+        if (node == null)
+        {
+            return null;
+        }
+
+        var nodeDetail = NodeDetail.FromDeclarationNode(node);
+
+        // Check if we have valid file path and line numbers
+        if (string.IsNullOrEmpty(node.FilePath) || node.StartLine <= 0 || node.EndLine <= 0)
+        {
+            return new CodeResult(nodeDetail, null, "No source location information available.");
+        }
+
+        try
+        {
+            if (!File.Exists(node.FilePath))
+            {
+                return new CodeResult(nodeDetail, null, $"Source file not found: {node.FilePath}");
+            }
+
+            var allLines = await File.ReadAllLinesAsync(node.FilePath, cancellationToken).ConfigureAwait(false);
+
+            // Lines are 1-based, array is 0-based
+            var startIndex = node.StartLine - 1;
+            var endIndex = node.EndLine - 1;
+
+            if (startIndex < 0 || endIndex >= allLines.Length || startIndex > endIndex)
+            {
+                return new CodeResult(nodeDetail, null, "Invalid line range for source file.");
+            }
+
+            var codeLines = allLines.Skip(startIndex).Take(endIndex - startIndex + 1);
+            var sourceCode = string.Join(Environment.NewLine, codeLines);
+
+            return new CodeResult(nodeDetail, sourceCode, null);
+        }
+        catch (Exception ex)
+        {
+            return new CodeResult(nodeDetail, null, ex.Message);
+        }
+    }
 }
