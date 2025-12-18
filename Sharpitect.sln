@@ -8,6 +8,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sharpitect.Attributes", "sr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sharpitect.CLI", "src\Sharpitect.CLI\Sharpitect.CLI.csproj", "{2A64E0E8-E753-43E2-81B7-25451FB89616}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sharpitect.MCP", "Sharpitect.MCP\Sharpitect.MCP.csproj", "{D412787F-C2DA-4530-9B09-BF50BBFA0D95}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sharpitect.MCP.Test", "test\Sharpitect.MCP.Test\Sharpitect.MCP.Test.csproj", "{613E86D7-2ECD-45E8-9434-2E254883709E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +34,13 @@ Global
 		{2A64E0E8-E753-43E2-81B7-25451FB89616}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2A64E0E8-E753-43E2-81B7-25451FB89616}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2A64E0E8-E753-43E2-81B7-25451FB89616}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D412787F-C2DA-4530-9B09-BF50BBFA0D95}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D412787F-C2DA-4530-9B09-BF50BBFA0D95}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D412787F-C2DA-4530-9B09-BF50BBFA0D95}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D412787F-C2DA-4530-9B09-BF50BBFA0D95}.Release|Any CPU.Build.0 = Release|Any CPU
+		{613E86D7-2ECD-45E8-9434-2E254883709E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{613E86D7-2ECD-45E8-9434-2E254883709E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{613E86D7-2ECD-45E8-9434-2E254883709E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{613E86D7-2ECD-45E8-9434-2E254883709E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

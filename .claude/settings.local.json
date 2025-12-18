@@ -7,7 +7,9 @@
       "Bash(dotnet list:*)",
       "Bash(dotnet add:*)",
       "Bash(dotnet clean:*)",
-      "Bash(dotnet run:*)"
+      "Bash(dotnet run:*)",
+      "WebSearch",
+      "WebFetch(domain:devblogs.microsoft.com)"
     ]
   }
 }
