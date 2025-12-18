@@ -1,23 +1,23 @@
 using System.CommandLine;
 using Sharpitect.Analysis.Analyzers;
-using Sharpitect.Analysis.Output;
+using Sharpitect.Analysis.Persistence;
 
 var pathArgument = new Argument<string?>(
     name: "path",
     description: "Path to a .sln file or directory containing one. Defaults to current directory.",
     getDefaultValue: () => null);
 
-var debugOption = new Option<bool>(
-    name: "--debug",
-    description: "Output the architecture model as a debug tree.");
+var outputOption = new Option<string?>(
+    name: "--output",
+    description: "Path to the SQLite database file. Defaults to .sharpitect/graph.db in the solution directory.");
 
-var buildCommand = new Command("build", "Analyze a .NET solution and build the architecture model.")
+var analyzeCommand = new Command("analyze", "Analyze a .NET solution and build the declaration graph.")
 {
     pathArgument,
-    debugOption
+    outputOption
 };
 
-buildCommand.SetHandler(HandleBuildCommand, pathArgument, debugOption);
+analyzeCommand.SetHandler(HandleAnalyzeCommand, pathArgument, outputOption);
 
 var initPathArgument = new Argument<string?>(
     name: "path",
@@ -31,15 +31,15 @@ var initCommand = new Command("init", "Initialize a new .sln.yml configuration f
 
 initCommand.SetHandler(HandleInitCommand, initPathArgument);
 
-var rootCommand = new RootCommand("Sharpitect - Generate C4 architecture diagrams from annotated C# codebases.")
+var rootCommand = new RootCommand("Sharpitect - Analyze .NET codebases and build declaration graphs.")
 {
-    buildCommand,
+    analyzeCommand,
     initCommand
 };
 
 return await rootCommand.InvokeAsync(args);
 
-static void HandleBuildCommand(string? path, bool debug)
+static async Task HandleAnalyzeCommand(string? path, string? outputPath)
 {
     var solutionPath = ResolveSolutionPath(path);
     if (solutionPath == null)
@@ -48,25 +48,40 @@ static void HandleBuildCommand(string? path, bool debug)
         return;
     }
 
-    if (!debug)
+    // Determine database path
+    var dbPath = outputPath;
+    if (string.IsNullOrEmpty(dbPath))
     {
-        Console.Error.WriteLine("Error: An output format is required. Use --debug to output the architecture model.");
-        Environment.ExitCode = 1;
-        return;
+        var solutionDir = Path.GetDirectoryName(solutionPath)!;
+        var sharpitectDir = Path.Combine(solutionDir, ".sharpitect");
+        Directory.CreateDirectory(sharpitectDir);
+        dbPath = Path.Combine(sharpitectDir, "graph.db");
     }
 
-    var sourceProvider = new FileSystemSourceProvider();
-    var analyzer = new SolutionAnalyzer(sourceProvider);
+    Console.WriteLine($"Analyzing solution: {solutionPath}");
+    Console.WriteLine($"Output database: {dbPath}");
 
     try
     {
-        var model = analyzer.Analyze(solutionPath);
-        var printer = new DebugPrinter();
-        printer.Write(model, Console.Out);
+        await using var repository = new SqliteGraphRepository(dbPath);
+        var analyzer = new GraphSolutionAnalyzer(repository);
+
+        var graph = await analyzer.AnalyzeAsync(solutionPath);
+
+        Console.WriteLine();
+        Console.WriteLine($"Analysis complete:");
+        Console.WriteLine($"  Nodes: {graph.NodeCount}");
+        Console.WriteLine($"  Edges: {graph.EdgeCount}");
+        Console.WriteLine();
+        Console.WriteLine($"Graph saved to: {dbPath}");
     }
     catch (Exception ex)
     {
         Console.Error.WriteLine($"Error analyzing solution: {ex.Message}");
+        if (ex.InnerException != null)
+        {
+            Console.Error.WriteLine($"  Inner: {ex.InnerException.Message}");
+        }
         Environment.ExitCode = 1;
     }
 }
