@@ -1,4 +1,5 @@
 using System.CommandLine;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
@@ -9,6 +10,8 @@ namespace Sharpitect.CLI.Commands;
 /// </summary>
 public static class SetupCommands
 {
+    private const string ServerName = "Sharpitect";
+
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = true
@@ -16,95 +19,53 @@ public static class SetupCommands
 
     public static Command CreateInstallCommand()
     {
-        var globalOption = new Option<bool>(
-            aliases: ["--global", "-g"],
-            description: "Install to user-level settings (~/.claude/settings.json) instead of project-level.");
-
         var databaseOption = new Option<string?>(
             aliases: ["--database", "-d"],
             description: "Path to the SQLite database file. Defaults to .sharpitect/graph.db in current directory.");
 
         var command = new Command("install", "Configure Sharpitect as an MCP server for Claude Code.")
         {
-            globalOption,
             databaseOption
         };
 
-        command.SetHandler(async (global, database) =>
+        command.SetHandler(async (database) =>
         {
-            await InstallAsync(global, database);
-        }, globalOption, databaseOption);
+            await InstallAsync(database);
+        }, databaseOption);
 
         return command;
     }
 
-    private static async Task InstallAsync(bool global, string? databasePath)
+    public static Command CreateUninstallCommand()
     {
-        // Determine settings file path
-        string settingsPath;
-        if (global)
-        {
-            var userHome = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            settingsPath = Path.Combine(userHome, ".claude", "settings.json");
-        }
-        else
-        {
-            settingsPath = Path.Combine(Directory.GetCurrentDirectory(), ".claude", "settings.json");
-        }
+        var command = new Command("uninstall", "Remove Sharpitect MCP server configuration from Claude Code.");
 
-        // Determine database path
+        command.SetHandler(async () =>
+        {
+            await UninstallAsync();
+        });
+
+        return command;
+    }
+
+    private static async Task InstallAsync(string? databasePath)
+    {
+        var projectDir = Directory.GetCurrentDirectory();
         var dbPath = databasePath ?? ".sharpitect/graph.db";
-
-        // For global install with relative path, make it absolute from current directory
-        if (global && !Path.IsPathRooted(dbPath))
-        {
-            dbPath = Path.Combine(Directory.GetCurrentDirectory(), dbPath);
-        }
 
         try
         {
-            // Read existing settings or create new
-            JsonObject settings;
-            if (File.Exists(settingsPath))
-            {
-                var existingContent = await File.ReadAllTextAsync(settingsPath);
-                settings = JsonNode.Parse(existingContent)?.AsObject() ?? new JsonObject();
-            }
-            else
-            {
-                settings = new JsonObject();
-            }
+            // 1. Update .mcp.json with MCP server configuration
+            await UpdateMcpJsonAsync(projectDir, dbPath);
 
-            // Get or create mcpServers object
-            if (!settings.ContainsKey("mcpServers"))
-            {
-                settings["mcpServers"] = new JsonObject();
-            }
-            var mcpServers = settings["mcpServers"]!.AsObject();
+            // 2. Update .claude/settings.local.json to enable the server
+            await UpdateSettingsLocalJsonAsync(projectDir);
 
-            // Add sharpitect server configuration
-            var sharpitectConfig = new JsonObject
-            {
-                ["command"] = "sharpitect",
-                ["args"] = new JsonArray("serve", dbPath)
-            };
-            mcpServers["sharpitect"] = sharpitectConfig;
-
-            // Ensure directory exists
-            var settingsDir = Path.GetDirectoryName(settingsPath);
-            if (!string.IsNullOrEmpty(settingsDir) && !Directory.Exists(settingsDir))
-            {
-                Directory.CreateDirectory(settingsDir);
-            }
-
-            // Write settings file
-            var json = settings.ToJsonString(JsonOptions);
-            await File.WriteAllTextAsync(settingsPath, json);
-
-            Console.WriteLine($"Sharpitect MCP server configured in: {settingsPath}");
+            Console.WriteLine("Sharpitect MCP server installed successfully.");
             Console.WriteLine();
-            Console.WriteLine("Configuration added:");
-            Console.WriteLine($"  Command: sharpitect serve {dbPath}");
+            Console.WriteLine("Files updated:");
+            Console.WriteLine($"  - .mcp.json (MCP server configuration)");
+            Console.WriteLine($"  - .claude/settings.local.json (server enabled)");
             Console.WriteLine();
             Console.WriteLine("Restart Claude Code to load the MCP server.");
         }
@@ -113,5 +74,230 @@ public static class SetupCommands
             Console.Error.WriteLine($"Error: {ex.Message}");
             Environment.ExitCode = 1;
         }
+    }
+
+    private static async Task UpdateMcpJsonAsync(string projectDir, string dbPath)
+    {
+        var mcpJsonPath = Path.Combine(projectDir, ".mcp.json");
+
+        // Read existing or create new
+        JsonObject mcpJson;
+        if (File.Exists(mcpJsonPath))
+        {
+            var existingContent = await File.ReadAllTextAsync(mcpJsonPath);
+            mcpJson = JsonNode.Parse(existingContent)?.AsObject() ?? new JsonObject();
+        }
+        else
+        {
+            mcpJson = new JsonObject();
+        }
+
+        // Get or create mcpServers object
+        if (!mcpJson.ContainsKey("mcpServers"))
+        {
+            mcpJson["mcpServers"] = new JsonObject();
+        }
+        var mcpServers = mcpJson["mcpServers"]!.AsObject();
+
+        // Build command args based on platform
+        JsonArray args;
+        string command;
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            command = "cmd";
+            args = new JsonArray("/c", "sharpitect", "serve", dbPath);
+        }
+        else
+        {
+            command = "sharpitect";
+            args = new JsonArray("serve", dbPath);
+        }
+
+        // Add sharpitect server configuration
+        var sharpitectConfig = new JsonObject
+        {
+            ["type"] = "stdio",
+            ["command"] = command,
+            ["args"] = args,
+            ["env"] = new JsonObject()
+        };
+        mcpServers[ServerName] = sharpitectConfig;
+
+        // Write .mcp.json
+        var json = mcpJson.ToJsonString(JsonOptions);
+        await File.WriteAllTextAsync(mcpJsonPath, json + Environment.NewLine);
+    }
+
+    private static async Task UpdateSettingsLocalJsonAsync(string projectDir)
+    {
+        var claudeDir = Path.Combine(projectDir, ".claude");
+        var settingsPath = Path.Combine(claudeDir, "settings.local.json");
+
+        // Ensure .claude directory exists
+        if (!Directory.Exists(claudeDir))
+        {
+            Directory.CreateDirectory(claudeDir);
+        }
+
+        // Read existing or create new
+        JsonObject settings;
+        if (File.Exists(settingsPath))
+        {
+            var existingContent = await File.ReadAllTextAsync(settingsPath);
+            settings = JsonNode.Parse(existingContent)?.AsObject() ?? new JsonObject();
+        }
+        else
+        {
+            settings = new JsonObject();
+        }
+
+        // Enable project MCP servers
+        settings["enableAllProjectMcpServers"] = true;
+
+        // Get or create enabledMcpjsonServers array
+        JsonArray enabledServers;
+        if (settings.ContainsKey("enabledMcpjsonServers") && settings["enabledMcpjsonServers"] is JsonArray existingArray)
+        {
+            enabledServers = existingArray;
+        }
+        else
+        {
+            enabledServers = new JsonArray();
+            settings["enabledMcpjsonServers"] = enabledServers;
+        }
+
+        // Add Sharpitect if not already present
+        var hasServer = enabledServers.Any(s => s?.GetValue<string>() == ServerName);
+        if (!hasServer)
+        {
+            enabledServers.Add(ServerName);
+        }
+
+        // Write settings.local.json
+        var json = settings.ToJsonString(JsonOptions);
+        await File.WriteAllTextAsync(settingsPath, json + Environment.NewLine);
+    }
+
+    private static async Task UninstallAsync()
+    {
+        var projectDir = Directory.GetCurrentDirectory();
+        var filesModified = new List<string>();
+
+        try
+        {
+            // 1. Remove from .mcp.json
+            if (await RemoveFromMcpJsonAsync(projectDir))
+            {
+                filesModified.Add(".mcp.json");
+            }
+
+            // 2. Remove from .claude/settings.local.json
+            if (await RemoveFromSettingsLocalJsonAsync(projectDir))
+            {
+                filesModified.Add(".claude/settings.local.json");
+            }
+
+            if (filesModified.Count > 0)
+            {
+                Console.WriteLine("Sharpitect MCP server uninstalled successfully.");
+                Console.WriteLine();
+                Console.WriteLine("Files updated:");
+                foreach (var file in filesModified)
+                {
+                    Console.WriteLine($"  - {file}");
+                }
+                Console.WriteLine();
+                Console.WriteLine("Restart Claude Code to apply changes.");
+            }
+            else
+            {
+                Console.WriteLine("Sharpitect was not installed in this project.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error: {ex.Message}");
+            Environment.ExitCode = 1;
+        }
+    }
+
+    private static async Task<bool> RemoveFromMcpJsonAsync(string projectDir)
+    {
+        var mcpJsonPath = Path.Combine(projectDir, ".mcp.json");
+
+        if (!File.Exists(mcpJsonPath))
+        {
+            return false;
+        }
+
+        var content = await File.ReadAllTextAsync(mcpJsonPath);
+        var mcpJson = JsonNode.Parse(content)?.AsObject();
+
+        if (mcpJson == null)
+        {
+            return false;
+        }
+
+        if (!mcpJson.ContainsKey("mcpServers"))
+        {
+            return false;
+        }
+
+        var mcpServers = mcpJson["mcpServers"]!.AsObject();
+
+        if (!mcpServers.ContainsKey(ServerName))
+        {
+            return false;
+        }
+
+        mcpServers.Remove(ServerName);
+
+        // Write back
+        var json = mcpJson.ToJsonString(JsonOptions);
+        await File.WriteAllTextAsync(mcpJsonPath, json + Environment.NewLine);
+
+        return true;
+    }
+
+    private static async Task<bool> RemoveFromSettingsLocalJsonAsync(string projectDir)
+    {
+        var settingsPath = Path.Combine(projectDir, ".claude", "settings.local.json");
+
+        if (!File.Exists(settingsPath))
+        {
+            return false;
+        }
+
+        var content = await File.ReadAllTextAsync(settingsPath);
+        var settings = JsonNode.Parse(content)?.AsObject();
+
+        if (settings == null)
+        {
+            return false;
+        }
+
+        var modified = false;
+
+        // Remove from enabledMcpjsonServers array
+        if (settings.ContainsKey("enabledMcpjsonServers") && settings["enabledMcpjsonServers"] is JsonArray enabledServers)
+        {
+            for (int i = enabledServers.Count - 1; i >= 0; i--)
+            {
+                if (enabledServers[i]?.GetValue<string>() == ServerName)
+                {
+                    enabledServers.RemoveAt(i);
+                    modified = true;
+                }
+            }
+        }
+
+        if (modified)
+        {
+            var json = settings.ToJsonString(JsonOptions);
+            await File.WriteAllTextAsync(settingsPath, json + Environment.NewLine);
+        }
+
+        return modified;
     }
 }
