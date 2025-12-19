@@ -54,11 +54,6 @@ public static class NavigationCommands
         name: "parent-name",
         description: "Fully qualified name of the parent declaration (e.g., Namespace.Class).");
 
-
-    private static readonly Argument<string> NodeIdArgument = new(
-        name: "name",
-        description: "Fully qualified name of the declaration (e.g., Namespace.Class.Method).");
-
     private static readonly Option<RelationshipDirection> RelationshipDirectionOption = new(
         aliases: ["--direction"],
         getDefaultValue: () => RelationshipDirection.Both,
@@ -176,7 +171,7 @@ public static class NavigationCommands
     {
         var command = new Command("ancestors", "Get containment hierarchy path from root to a node.")
         {
-            NodeIdArgument,
+            IdArgument,
             DatabaseOption
         };
 
@@ -194,7 +189,7 @@ public static class NavigationCommands
 
                 Console.WriteLine(formatter.Format(result));
             });
-        }, NodeIdArgument, DatabaseOption);
+        }, IdArgument, DatabaseOption);
 
         return command;
     }
@@ -203,7 +198,7 @@ public static class NavigationCommands
     {
         var command = new Command("relationships", "Get relationships (calls, inherits, references, etc.) for a node.")
         {
-            NodeIdArgument,
+            IdArgument,
             DatabaseOption,
             RelationshipDirectionOption,
             RelationshipKindOption,
@@ -224,7 +219,7 @@ public static class NavigationCommands
 
                 Console.WriteLine(formatter.Format(result));
             });
-        }, NodeIdArgument, DatabaseOption, RelationshipDirectionOption, RelationshipKindOption, LimitOption);
+        }, IdArgument, DatabaseOption, RelationshipDirectionOption, RelationshipKindOption, LimitOption);
 
         return command;
     }
@@ -233,7 +228,7 @@ public static class NavigationCommands
     {
         var command = new Command("callers", "Find methods/properties that call a specific method.")
         {
-            NodeIdArgument,
+            IdArgument,
             DatabaseOption,
             DepthOption,
             LimitOption
@@ -253,7 +248,7 @@ public static class NavigationCommands
 
                 Console.WriteLine(formatter.Format(result));
             });
-        }, NodeIdArgument, DatabaseOption, DepthOption, LimitOption);
+        }, IdArgument, DatabaseOption, DepthOption, LimitOption);
 
         return command;
     }
@@ -262,7 +257,7 @@ public static class NavigationCommands
     {
         var command = new Command("callees", "Find methods/properties called by a specific method.")
         {
-            NodeIdArgument,
+            IdArgument,
             DatabaseOption,
             DepthOption,
             LimitOption
@@ -282,7 +277,7 @@ public static class NavigationCommands
 
                 Console.WriteLine(formatter.Format(result));
             });
-        }, NodeIdArgument, DatabaseOption, DepthOption, LimitOption);
+        }, IdArgument, DatabaseOption, DepthOption, LimitOption);
 
         return command;
     }
@@ -291,7 +286,7 @@ public static class NavigationCommands
     {
         var command = new Command("inheritance", "Get inheritance hierarchy (base types and derived types).")
         {
-            NodeIdArgument,
+            IdArgument,
             DatabaseOption,
             InheritanceDirectionOption,
             DepthOption
@@ -311,7 +306,7 @@ public static class NavigationCommands
 
                 Console.WriteLine(formatter.Format(result));
             });
-        }, NodeIdArgument, DatabaseOption, InheritanceDirectionOption, DepthOption);
+        }, IdArgument, DatabaseOption, InheritanceDirectionOption, DepthOption);
 
         return command;
     }
@@ -433,7 +428,7 @@ public static class NavigationCommands
     {
         var command = new Command("usages", "Find all usages of a type, method, or property.")
         {
-            NodeIdArgument,
+            IdArgument,
             DatabaseOption,
             UsageKindOption,
             LimitOption
@@ -453,7 +448,7 @@ public static class NavigationCommands
 
                 Console.WriteLine(formatter.Format(result));
             });
-        }, NodeIdArgument, DatabaseOption, UsageKindOption, LimitOption);
+        }, IdArgument, DatabaseOption, UsageKindOption, LimitOption);
 
         return command;
     }
@@ -462,7 +457,7 @@ public static class NavigationCommands
     {
         var command = new Command("signature", "Get full signature and type information.")
         {
-            NodeIdArgument,
+            IdArgument,
             DatabaseOption
         };
 
@@ -480,7 +475,7 @@ public static class NavigationCommands
 
                 Console.WriteLine(formatter.Format(result));
             });
-        }, NodeIdArgument, DatabaseOption);
+        }, IdArgument, DatabaseOption);
 
         return command;
     }
@@ -489,7 +484,7 @@ public static class NavigationCommands
     {
         var command = new Command("code", "Display declaration summary and source code.")
         {
-            NodeIdArgument,
+            IdArgument,
             DatabaseOption
         };
 
@@ -507,7 +502,7 @@ public static class NavigationCommands
 
                 Console.WriteLine(formatter.Format(result));
             });
-        }, NodeIdArgument, DatabaseOption);
+        }, IdArgument, DatabaseOption);
 
         return command;
     }
@@ -516,7 +511,7 @@ public static class NavigationCommands
     {
         var command = new Command("tree", "Display the containment tree starting from a node or solution root.")
         {
-            NodeIdArgument,
+            IdArgument,
             DatabaseOption,
             DeclarationKindOption,
             DepthOption
@@ -536,7 +531,7 @@ public static class NavigationCommands
 
                 Console.WriteLine(formatter.Format(result));
             });
-        }, NodeIdArgument, DatabaseOption, DeclarationKindOption, DepthOption);
+        }, IdArgument, DatabaseOption, DeclarationKindOption, DepthOption);
 
         return command;
     }
