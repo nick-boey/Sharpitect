@@ -9,12 +9,12 @@ namespace Sharpitect.CLI.Commands;
 /// </summary>
 public static class AnalysisCommands
 {
-    public static readonly Argument<string?> PathArgument = new(
+    private static readonly Argument<string?> PathArgument = new(
         name: "path",
         description: "Path to a .sln file or directory containing one. Defaults to current directory.",
         getDefaultValue: () => null);
 
-    public static readonly Option<string?> OutputOption = new(
+    private static readonly Option<string?> OutputOption = new(
         name: "--output",
         description:
         "Path to the SQLite database file. Defaults to .sharpitect/graph.db in the solution directory.");
