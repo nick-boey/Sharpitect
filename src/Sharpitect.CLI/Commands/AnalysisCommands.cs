@@ -9,40 +9,36 @@ namespace Sharpitect.CLI.Commands;
 /// </summary>
 public static class AnalysisCommands
 {
+    public static readonly Argument<string?> PathArgument = new(
+        name: "path",
+        description: "Path to a .sln file or directory containing one. Defaults to current directory.",
+        getDefaultValue: () => null);
+
+    public static readonly Option<string?> OutputOption = new(
+        name: "--output",
+        description:
+        "Path to the SQLite database file. Defaults to .sharpitect/graph.db in the solution directory.");
+
     public static Command CreateAnalyzeCommand()
     {
-        var pathArgument = new Argument<string?>(
-            name: "path",
-            description: "Path to a .sln file or directory containing one. Defaults to current directory.",
-            getDefaultValue: () => null);
-
-        var outputOption = new Option<string?>(
-            name: "--output",
-            description: "Path to the SQLite database file. Defaults to .sharpitect/graph.db in the solution directory.");
-
         var command = new Command("analyze", "Analyze a .NET solution and build the declaration graph.")
         {
-            pathArgument,
-            outputOption
+            PathArgument,
+            OutputOption
         };
 
-        command.SetHandler(HandleAnalyzeCommand, pathArgument, outputOption);
+        command.SetHandler(HandleAnalyzeCommand, PathArgument, OutputOption);
         return command;
     }
 
     public static Command CreateInitCommand()
     {
-        var pathArgument = new Argument<string?>(
-            name: "path",
-            description: "Path to a directory containing a .sln or .slnx file. Defaults to current directory.",
-            getDefaultValue: () => null);
-
         var command = new Command("init", "Initialize a new .sln.yml configuration file for a solution.")
         {
-            pathArgument
+            PathArgument
         };
 
-        command.SetHandler(HandleInitCommand, pathArgument);
+        command.SetHandler(HandleInitCommand, PathArgument);
         return command;
     }
 
@@ -89,6 +85,7 @@ public static class AnalysisCommands
             {
                 await Console.Error.WriteLineAsync($"  Inner: {ex.InnerException.Message}");
             }
+
             Environment.ExitCode = 1;
         }
     }
@@ -177,6 +174,7 @@ public static class AnalysisCommands
             {
                 Console.Error.WriteLine($"  - {Path.GetFileName(sln)}");
             }
+
             Console.Error.WriteLine("Please specify which solution to initialize.");
             Environment.ExitCode = 1;
             return;
@@ -195,35 +193,35 @@ public static class AnalysisCommands
         }
 
         var yamlContent = $"""
-            # Sharpitect C4 Configuration for {solutionName}
-            # See documentation for full configuration options.
+                           # Sharpitect C4 Configuration for {solutionName}
+                           # See documentation for full configuration options.
 
-            system:
-              name: "{solutionName}"
-              description: "Description of the {solutionName} system."
+                           system:
+                             name: "{solutionName}"
+                             description: "Description of the {solutionName} system."
 
-            # Define people/actors who interact with the system
-            people:
-              - name: "User"
-                description: "A user of the system."
+                           # Define people/actors who interact with the system
+                           people:
+                             - name: "User"
+                               description: "A user of the system."
 
-            # Define external systems that this system interacts with
-            externalSystems: []
-            #  - name: "External Service"
-            #    description: "An external service the system depends on."
+                           # Define external systems that this system interacts with
+                           externalSystems: []
+                           #  - name: "External Service"
+                           #    description: "An external service the system depends on."
 
-            # Define external containers (databases, message queues, etc.)
-            externalContainers: []
-            #  - name: "Database"
-            #    description: "The database used by the system."
-            #    technology: "PostgreSQL"
+                           # Define external containers (databases, message queues, etc.)
+                           externalContainers: []
+                           #  - name: "Database"
+                           #    description: "The database used by the system."
+                           #    technology: "PostgreSQL"
 
-            # Define relationships between elements
-            relationships: []
-            #  - from: "User"
-            #    to: "{solutionName}"
-            #    description: "Uses"
-            """;
+                           # Define relationships between elements
+                           relationships: []
+                           #  - from: "User"
+                           #    to: "{solutionName}"
+                           #    description: "Uses"
+                           """;
 
         File.WriteAllText(configFilePath, yamlContent);
         Console.WriteLine($"Created: {configFileName}");
