@@ -50,6 +50,13 @@ public static class NavigationCommands
         name: "name",
         description: "Fully qualified name of the declaration (e.g., Namespace.Class.Method).");
 
+    private static readonly Argument<string?> OptionalIdArgument = new(
+        name: "name",
+        description: "Fully qualified name of the declaration (e.g., Namespace.Class.Method)." +
+                     "Defaults to the solution root if no ID is provided.",
+        getDefaultValue: () => null);
+
+
     private static readonly Argument<string> ParentIdArgument = new(
         name: "parent-name",
         description: "Fully qualified name of the parent declaration (e.g., Namespace.Class).");
@@ -511,7 +518,7 @@ public static class NavigationCommands
     {
         var command = new Command("tree", "Display the containment tree starting from a node or solution root.")
         {
-            IdArgument,
+            OptionalIdArgument,
             DatabaseOption,
             DeclarationKindOption,
             DepthOption
