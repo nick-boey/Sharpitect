@@ -1004,7 +1004,6 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
             var treeNode = new TreeNode(
                 node.Id,
                 node.Name,
-                node.FullyQualifiedName,
                 node.Kind.ToString(),
                 children);
             return (treeNode, totalCount);

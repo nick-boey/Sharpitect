@@ -25,9 +25,8 @@ public class JsonOutputFormatterTests
     public void Format_NodeSummary_ReturnsValidJson()
     {
         var node = new NodeSummary(
-            "id123",
-            "TestClass",
             "Namespace.TestClass",
+            "TestClass",
             "Class",
             "Code",
             "src/Test.cs",
@@ -37,7 +36,7 @@ public class JsonOutputFormatterTests
         var result = _formatter.Format(node);
 
         Assert.That(() => JsonDocument.Parse(result), Throws.Nothing);
-        Assert.That(result, Does.Contain("\"id\":\"id123\""));
+        Assert.That(result, Does.Contain("\"id\":\"Namespace.TestClass\""));
         Assert.That(result, Does.Contain("\"name\":\"TestClass\""));
     }
 
@@ -47,8 +46,8 @@ public class JsonOutputFormatterTests
         var searchResults = new SearchResults(
             new List<NodeSummary>
             {
-                new("id1", "Class1", "Namespace.Class1", "Class", "Code", "test.cs", 10, 50),
-                new("id2", "Class2", "Namespace.Class2", "Class", "Code", "test2.cs", 20, 60)
+                new("id1", "Class1", "Class", "Code", "test.cs", 10, 50),
+                new("id2", "Class2", "Class", "Code", "test2.cs", 20, 60)
             },
             TotalCount: 2,
             Truncated: false);
@@ -75,7 +74,7 @@ public class JsonOutputFormatterTests
     [Test]
     public void Format_UsesSnakeCaseNaming()
     {
-        var node = new NodeSummary("id", "Test", "Namespace.Test", "Class", "Code", "test.cs", 1, 10);
+        var node = new NodeSummary("id", "Test", "Class", "Code", "test.cs", 1, 10);
 
         var result = _formatter.Format(node);
 
@@ -88,7 +87,7 @@ public class JsonOutputFormatterTests
     [Test]
     public void Format_OmitsNullValues()
     {
-        var node = new NodeSummary("id", "Test", "Namespace.Test", "Class", null, null, null, null);
+        var node = new NodeSummary("id", "Test", "Class", null, null, null, null);
 
         var result = _formatter.Format(node);
 

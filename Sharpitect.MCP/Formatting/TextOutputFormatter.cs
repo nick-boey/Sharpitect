@@ -83,7 +83,7 @@ public sealed class TextOutputFormatter : IOutputFormatter
     {
         var sb = new StringBuilder();
         sb.AppendLine($"[{node.Kind}] {node.Name}");
-        sb.AppendLine($"  Full name: {node.FullyQualifiedName}");
+        sb.AppendLine($"  Full name: {node.Id}");
 
         if (node.FilePath != null)
         {
@@ -114,7 +114,7 @@ public sealed class TextOutputFormatter : IOutputFormatter
     private static void AppendNodeSummaryLine(StringBuilder sb, NodeSummary node)
     {
         sb.AppendLine($"[{node.Kind}] {node.Name}");
-        sb.AppendLine($"  Full name: {node.FullyQualifiedName}");
+        sb.AppendLine($"  Full name: {node.Id}");
 
         if (node.FilePath != null)
         {
@@ -495,7 +495,7 @@ public sealed class TextOutputFormatter : IOutputFormatter
 
         // Format the node summary
         sb.AppendLine($"[{result.Node.Kind}] {result.Node.Name}");
-        sb.AppendLine($"  Full name: {result.Node.FullyQualifiedName}");
+        sb.AppendLine($"  Full name: {result.Node.Id}");
 
         if (result.Node.FilePath != null)
         {

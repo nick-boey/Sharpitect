@@ -216,7 +216,7 @@ public class SqliteGraphRepositoryTests
         // Since Id = FullyQualifiedName, we use the FQN as the Id
         var node = new DeclarationNode
         {
-            Id = "MyNamespace.MyClass",  // Id is now the fully qualified name
+            Id = "MyNamespace.MyClass", // Id is now the fully qualified name
             Name = "MyClass",
             Kind = DeclarationKind.Class,
             FilePath = "test.cs",
@@ -233,7 +233,6 @@ public class SqliteGraphRepositoryTests
         Assert.Multiple(() =>
         {
             Assert.That(retrieved!.Id, Is.EqualTo("MyNamespace.MyClass"));
-            Assert.That(retrieved.FullyQualifiedName, Is.EqualTo("MyNamespace.MyClass"));
             Assert.That(retrieved.Name, Is.EqualTo("MyClass"));
         });
     }
