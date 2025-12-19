@@ -549,7 +549,7 @@ public sealed class TextOutputFormatter : IOutputFormatter
     private static void FormatTreeNode(StringBuilder sb, TreeNode node, int depth)
     {
         var indent = new string(' ', depth * 2);
-        sb.AppendLine($"{indent}[{node.Kind}] {node.Name}");
+        sb.AppendLine($"{indent}[{node.Kind}] {node.Id}");
 
         foreach (var child in node.Children)
         {
