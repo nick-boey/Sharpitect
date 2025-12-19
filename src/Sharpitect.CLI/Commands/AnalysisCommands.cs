@@ -19,15 +19,22 @@ public static class AnalysisCommands
         description:
         "Path to the SQLite database file. Defaults to .sharpitect/graph.db in the solution directory.");
 
+    private static readonly Option<bool> CleanOption = new(
+        name: "--clean",
+        description:
+        "Deletes the graph database and rebuilds. Defaults to false.",
+        getDefaultValue: () => false);
+
     public static Command CreateAnalyzeCommand()
     {
         var command = new Command("analyze", "Analyze a .NET solution and build the declaration graph.")
         {
             PathArgument,
-            OutputOption
+            OutputOption,
+            CleanOption
         };
 
-        command.SetHandler(HandleAnalyzeCommand, PathArgument, OutputOption);
+        command.SetHandler(HandleAnalyzeCommand, PathArgument, OutputOption, CleanOption);
         return command;
     }
 
@@ -42,7 +49,7 @@ public static class AnalysisCommands
         return command;
     }
 
-    private static async Task HandleAnalyzeCommand(string? path, string? outputPath)
+    private static async Task HandleAnalyzeCommand(string? path, string? outputPath, bool cleanOption)
     {
         var solutionPath = ResolveSolutionPath(path);
         if (solutionPath == null)
@@ -66,13 +73,19 @@ public static class AnalysisCommands
 
         try
         {
+            if (File.Exists(dbPath) && cleanOption)
+            {
+                File.Delete(dbPath);
+                Console.WriteLine("Deleted existing database");
+            }
+
             await using var repository = new SqliteGraphRepository(dbPath);
             var analyzer = new GraphSolutionAnalyzer(repository);
 
             var graph = await analyzer.AnalyzeAsync(solutionPath);
 
             Console.WriteLine();
-            Console.WriteLine($"Analysis complete:");
+            Console.WriteLine("Analysis complete:");
             Console.WriteLine($"  Nodes: {graph.NodeCount}");
             Console.WriteLine($"  Edges: {graph.EdgeCount}");
             Console.WriteLine();
