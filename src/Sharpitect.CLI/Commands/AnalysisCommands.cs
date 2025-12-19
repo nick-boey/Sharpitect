@@ -84,10 +84,10 @@ public static class AnalysisCommands
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"Error analyzing solution: {ex.Message}");
+            await Console.Error.WriteLineAsync($"Error analyzing solution: {ex.Message}");
             if (ex.InnerException != null)
             {
-                Console.Error.WriteLine($"  Inner: {ex.InnerException.Message}");
+                await Console.Error.WriteLineAsync($"  Inner: {ex.InnerException.Message}");
             }
             Environment.ExitCode = 1;
         }

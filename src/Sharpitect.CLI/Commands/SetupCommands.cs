@@ -71,7 +71,7 @@ public static class SetupCommands
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"Error: {ex.Message}");
+            await Console.Error.WriteLineAsync($"Error: {ex.Message}");
             Environment.ExitCode = 1;
         }
     }
@@ -217,7 +217,7 @@ public static class SetupCommands
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"Error: {ex.Message}");
+            await Console.Error.WriteLineAsync($"Error: {ex.Message}");
             Environment.ExitCode = 1;
         }
     }

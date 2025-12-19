@@ -27,8 +27,8 @@ public static class ServerCommands
     {
         if (!File.Exists(databasePath))
         {
-            Console.Error.WriteLine($"Error: Database file not found: {databasePath}");
-            Console.Error.WriteLine("Run 'sharpitect analyze' first to create the database.");
+            await Console.Error.WriteLineAsync($"Error: Database file not found: {databasePath}");
+            await Console.Error.WriteLineAsync("Run 'sharpitect analyze' first to create the database.");
             Environment.ExitCode = 1;
             return;
         }
@@ -39,7 +39,7 @@ public static class ServerCommands
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"Error running MCP server: {ex.Message}");
+            await Console.Error.WriteLineAsync($"Error running MCP server: {ex.Message}");
             Environment.ExitCode = 1;
         }
     }

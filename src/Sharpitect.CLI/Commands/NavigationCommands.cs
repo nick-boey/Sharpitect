@@ -86,7 +86,7 @@ public static class NavigationCommands
                 var result = await service.GetNodeAsync(id);
                 if (result == null)
                 {
-                    Console.Error.WriteLine($"Error: Node not found: {id}");
+                    await Console.Error.WriteLineAsync($"Error: Node not found: {id}");
                     Environment.ExitCode = 1;
                     return;
                 }
@@ -122,7 +122,7 @@ public static class NavigationCommands
                 var result = await service.GetChildrenAsync(parentId, kind, limit);
                 if (result == null)
                 {
-                    Console.Error.WriteLine($"Error: Node not found: {parentId}");
+                    await Console.Error.WriteLineAsync($"Error: Node not found: {parentId}");
                     Environment.ExitCode = 1;
                     return;
                 }
@@ -152,7 +152,7 @@ public static class NavigationCommands
                 var result = await service.GetAncestorsAsync(nodeId);
                 if (result == null)
                 {
-                    Console.Error.WriteLine($"Error: Node not found: {nodeId}");
+                    await Console.Error.WriteLineAsync($"Error: Node not found: {nodeId}");
                     Environment.ExitCode = 1;
                     return;
                 }
@@ -194,7 +194,7 @@ public static class NavigationCommands
                 var result = await service.GetRelationshipsAsync(nodeId, direction, kind, limit);
                 if (result == null)
                 {
-                    Console.Error.WriteLine($"Error: Node not found: {nodeId}");
+                    await Console.Error.WriteLineAsync($"Error: Node not found: {nodeId}");
                     Environment.ExitCode = 1;
                     return;
                 }
@@ -231,7 +231,7 @@ public static class NavigationCommands
                 var result = await service.GetCallersAsync(nodeId, depth, limit);
                 if (result == null)
                 {
-                    Console.Error.WriteLine($"Error: Node not found: {nodeId}");
+                    await Console.Error.WriteLineAsync($"Error: Node not found: {nodeId}");
                     Environment.ExitCode = 1;
                     return;
                 }
@@ -268,7 +268,7 @@ public static class NavigationCommands
                 var result = await service.GetCalleesAsync(nodeId, depth, limit);
                 if (result == null)
                 {
-                    Console.Error.WriteLine($"Error: Node not found: {nodeId}");
+                    await Console.Error.WriteLineAsync($"Error: Node not found: {nodeId}");
                     Environment.ExitCode = 1;
                     return;
                 }
@@ -310,7 +310,7 @@ public static class NavigationCommands
                 var result = await service.GetInheritanceAsync(nodeId, direction, depth);
                 if (result == null)
                 {
-                    Console.Error.WriteLine($"Error: Node not found: {nodeId}");
+                    await Console.Error.WriteLineAsync($"Error: Node not found: {nodeId}");
                     Environment.ExitCode = 1;
                     return;
                 }
@@ -376,7 +376,7 @@ public static class NavigationCommands
                 var result = await service.GetDependenciesAsync(projectId, transitive);
                 if (result == null)
                 {
-                    Console.Error.WriteLine($"Error: Project not found: {projectId}");
+                    await Console.Error.WriteLineAsync($"Error: Project not found: {projectId}");
                     Environment.ExitCode = 1;
                     return;
                 }
@@ -412,7 +412,7 @@ public static class NavigationCommands
                 var result = await service.GetDependentsAsync(projectId, transitive);
                 if (result == null)
                 {
-                    Console.Error.WriteLine($"Error: Project not found: {projectId}");
+                    await Console.Error.WriteLineAsync($"Error: Project not found: {projectId}");
                     Environment.ExitCode = 1;
                     return;
                 }
@@ -442,7 +442,7 @@ public static class NavigationCommands
                 var result = await service.GetFileDeclarationsAsync(filePath);
                 if (result == null)
                 {
-                    Console.Error.WriteLine($"Error: No declarations found for file: {filePath}");
+                    await Console.Error.WriteLineAsync($"Error: No declarations found for file: {filePath}");
                     Environment.ExitCode = 1;
                     return;
                 }
@@ -478,7 +478,7 @@ public static class NavigationCommands
                 var result = await service.GetUsagesAsync(nodeId, usageKind, limit);
                 if (result == null)
                 {
-                    Console.Error.WriteLine($"Error: Node not found: {nodeId}");
+                    await Console.Error.WriteLineAsync($"Error: Node not found: {nodeId}");
                     Environment.ExitCode = 1;
                     return;
                 }
@@ -508,7 +508,7 @@ public static class NavigationCommands
                 var result = await service.GetSignatureAsync(nodeId);
                 if (result == null)
                 {
-                    Console.Error.WriteLine($"Error: Node not found: {nodeId}");
+                    await Console.Error.WriteLineAsync($"Error: Node not found: {nodeId}");
                     Environment.ExitCode = 1;
                     return;
                 }
@@ -538,7 +538,7 @@ public static class NavigationCommands
                 var result = await service.GetCodeAsync(nodeId);
                 if (result == null)
                 {
-                    Console.Error.WriteLine($"Error: Node not found: {nodeId}");
+                    await Console.Error.WriteLineAsync($"Error: Node not found: {nodeId}");
                     Environment.ExitCode = 1;
                     return;
                 }
@@ -580,7 +580,7 @@ public static class NavigationCommands
                 var result = await service.GetTreeAsync(nodeName, kind, depth);
                 if (result.Roots.Count == 0 && nodeName != null)
                 {
-                    Console.Error.WriteLine($"Error: Node not found: {nodeName}");
+                    await Console.Error.WriteLineAsync($"Error: Node not found: {nodeName}");
                     Environment.ExitCode = 1;
                     return;
                 }
@@ -612,7 +612,7 @@ public static class NavigationCommands
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"Error: {ex.Message}");
+            await Console.Error.WriteLineAsync($"Error: {ex.Message}");
             Environment.ExitCode = 1;
         }
     }
