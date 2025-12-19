@@ -13,7 +13,7 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
     private readonly IGraphRepository _repository = repository ?? throw new ArgumentNullException(nameof(repository));
 
     /// <summary>
-    /// Resolves a node by identifier, trying fully qualified name first, then falling back to ID.
+    /// Resolves a node by identifier, trying the fully qualified name first, then falling back to ID.
     /// </summary>
     private async Task<DeclarationNode?> ResolveNodeAsync(string identifier, CancellationToken cancellationToken)
     {
@@ -60,9 +60,9 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
             truncated);
     }
 
-    public async Task<NodeDetail?> GetNodeAsync(string id, CancellationToken cancellationToken = default)
+    public async Task<NodeDetail?> GetNodeAsync(string name, CancellationToken cancellationToken = default)
     {
-        var node = await ResolveNodeAsync(id, cancellationToken).ConfigureAwait(false);
+        var node = await ResolveNodeAsync(name, cancellationToken).ConfigureAwait(false);
         return node == null ? null : NodeDetail.FromDeclarationNode(node);
     }
 

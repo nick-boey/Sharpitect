@@ -21,9 +21,9 @@ public interface IGraphNavigationService
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets detailed information about a node by ID.
+    /// Gets detailed information about a node by it's fully qualified name.
     /// </summary>
-    Task<NodeDetail?> GetNodeAsync(string id, CancellationToken cancellationToken = default);
+    Task<NodeDetail?> GetNodeAsync(string name, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the children (contained declarations) of a node.

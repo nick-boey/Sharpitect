@@ -27,16 +27,17 @@ public class GraphNavigationToolsTests
     public async Task SearchDeclarations_ReturnsJsonByDefault()
     {
         var searchResults = new SearchResults(
-            new List<NodeSummary> { new("id1", "TestClass", "Namespace.TestClass", "Class", "Code", "test.cs", 10, 50) },
+            new List<NodeSummary>
+                { new("id1", "TestClass", "Namespace.TestClass", "Class", "Code", "test.cs", 10, 50) },
             TotalCount: 1,
             Truncated: false);
         _navigationService.SearchAsync(
-            Arg.Any<string>(),
-            Arg.Any<SearchMatchMode>(),
-            Arg.Any<IReadOnlyCollection<DeclarationKind>?>(),
-            Arg.Any<bool>(),
-            Arg.Any<int>(),
-            Arg.Any<CancellationToken>())
+                Arg.Any<string>(),
+                Arg.Any<SearchMatchMode>(),
+                Arg.Any<IReadOnlyCollection<DeclarationKind>?>(),
+                Arg.Any<bool>(),
+                Arg.Any<int>(),
+                Arg.Any<CancellationToken>())
             .Returns(searchResults);
 
         var result = await GraphNavigationTools.SearchDeclarations(
@@ -52,16 +53,17 @@ public class GraphNavigationToolsTests
     public async Task SearchDeclarations_ReturnsTextWhenRequested()
     {
         var searchResults = new SearchResults(
-            new List<NodeSummary> { new("id1", "TestClass", "Namespace.TestClass", "Class", "Code", "test.cs", 10, 50) },
+            new List<NodeSummary>
+                { new("id1", "TestClass", "Namespace.TestClass", "Class", "Code", "test.cs", 10, 50) },
             TotalCount: 1,
             Truncated: false);
         _navigationService.SearchAsync(
-            Arg.Any<string>(),
-            Arg.Any<SearchMatchMode>(),
-            Arg.Any<IReadOnlyCollection<DeclarationKind>?>(),
-            Arg.Any<bool>(),
-            Arg.Any<int>(),
-            Arg.Any<CancellationToken>())
+                Arg.Any<string>(),
+                Arg.Any<SearchMatchMode>(),
+                Arg.Any<IReadOnlyCollection<DeclarationKind>?>(),
+                Arg.Any<bool>(),
+                Arg.Any<int>(),
+                Arg.Any<CancellationToken>())
             .Returns(searchResults);
 
         var result = await GraphNavigationTools.SearchDeclarations(
@@ -79,12 +81,12 @@ public class GraphNavigationToolsTests
     {
         var searchResults = new SearchResults([], TotalCount: 0, Truncated: false);
         _navigationService.SearchAsync(
-            Arg.Any<string>(),
-            Arg.Any<SearchMatchMode>(),
-            Arg.Any<IReadOnlyCollection<DeclarationKind>?>(),
-            Arg.Any<bool>(),
-            Arg.Any<int>(),
-            Arg.Any<CancellationToken>())
+                Arg.Any<string>(),
+                Arg.Any<SearchMatchMode>(),
+                Arg.Any<IReadOnlyCollection<DeclarationKind>?>(),
+                Arg.Any<bool>(),
+                Arg.Any<int>(),
+                Arg.Any<CancellationToken>())
             .Returns(searchResults);
 
         await GraphNavigationTools.SearchDeclarations(
@@ -107,12 +109,12 @@ public class GraphNavigationToolsTests
     {
         var searchResults = new SearchResults([], TotalCount: 0, Truncated: false);
         _navigationService.SearchAsync(
-            Arg.Any<string>(),
-            Arg.Any<SearchMatchMode>(),
-            Arg.Any<IReadOnlyCollection<DeclarationKind>?>(),
-            Arg.Any<bool>(),
-            Arg.Any<int>(),
-            Arg.Any<CancellationToken>())
+                Arg.Any<string>(),
+                Arg.Any<SearchMatchMode>(),
+                Arg.Any<IReadOnlyCollection<DeclarationKind>?>(),
+                Arg.Any<bool>(),
+                Arg.Any<int>(),
+                Arg.Any<CancellationToken>())
             .Returns(searchResults);
 
         await GraphNavigationTools.SearchDeclarations(
@@ -152,6 +154,23 @@ public class GraphNavigationToolsTests
     }
 
     [Test]
+    public async Task GetNode_SearchByFullyQualifiedName_WhenFound()
+    {
+        var nodeDetail = new NodeDetail(
+            "id1", "TestClass", "Namespace.TestClass", "Class", "Code", "test.cs", 10, 50, null);
+        _navigationService.GetNodeAsync("Namespace.TestClass", Arg.Any<CancellationToken>())
+            .Returns(nodeDetail);
+
+        var result = await GraphNavigationTools.GetNode(
+            _navigationService,
+            _formatterFactory,
+            "Namespace.TestClass");
+
+        Assert.That(result, Does.Contain("\"id\":\"id1\""));
+        Assert.That(result, Does.Contain("TestClass"));
+    }
+
+    [Test]
     public async Task GetNode_ReturnsError_WhenNotFound()
     {
         _navigationService.GetNodeAsync("missing", Arg.Any<CancellationToken>())
@@ -175,10 +194,12 @@ public class GraphNavigationToolsTests
     {
         var childrenResult = new ChildrenResult(
             "parent-id",
-            new List<NodeSummary> { new("child-id", "ChildMethod", "Namespace.Class.ChildMethod", "Method", "Code", "test.cs", 20, 30) },
+            new List<NodeSummary>
+                { new("child-id", "ChildMethod", "Namespace.Class.ChildMethod", "Method", "Code", "test.cs", 20, 30) },
             TotalCount: 1,
             Truncated: false);
-        _navigationService.GetChildrenAsync("parent-id", Arg.Any<DeclarationKind?>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+        _navigationService.GetChildrenAsync("parent-id", Arg.Any<DeclarationKind?>(), Arg.Any<int>(),
+                Arg.Any<CancellationToken>())
             .Returns(childrenResult);
 
         var result = await GraphNavigationTools.GetChildren(
@@ -202,11 +223,11 @@ public class GraphNavigationToolsTests
             new List<RelationshipInfo> { new("Implements", "interface-id", "IService", "Interface") },
             new List<IncomingRelationshipInfo> { new("References", "test-id", "TestClass", "Class") });
         _navigationService.GetRelationshipsAsync(
-            "class-id",
-            Arg.Any<RelationshipDirection>(),
-            Arg.Any<RelationshipKind?>(),
-            Arg.Any<int>(),
-            Arg.Any<CancellationToken>())
+                "class-id",
+                Arg.Any<RelationshipDirection>(),
+                Arg.Any<RelationshipKind?>(),
+                Arg.Any<int>(),
+                Arg.Any<CancellationToken>())
             .Returns(relationshipsResult);
 
         var result = await GraphNavigationTools.GetRelationships(
@@ -227,11 +248,11 @@ public class GraphNavigationToolsTests
             new List<RelationshipInfo>(),
             new List<IncomingRelationshipInfo>());
         _navigationService.GetRelationshipsAsync(
-            Arg.Any<string>(),
-            Arg.Any<RelationshipDirection>(),
-            Arg.Any<RelationshipKind?>(),
-            Arg.Any<int>(),
-            Arg.Any<CancellationToken>())
+                Arg.Any<string>(),
+                Arg.Any<RelationshipDirection>(),
+                Arg.Any<RelationshipKind?>(),
+                Arg.Any<int>(),
+                Arg.Any<CancellationToken>())
             .Returns(relationshipsResult);
 
         await GraphNavigationTools.GetRelationships(
@@ -258,14 +279,15 @@ public class GraphNavigationToolsTests
         var listResult = new ListByKindResult(
             "Class",
             null,
-            new List<NodeSummary> { new("id1", "TestClass", "Namespace.TestClass", "Class", "Code", "test.cs", 10, 50) },
+            new List<NodeSummary>
+                { new("id1", "TestClass", "Namespace.TestClass", "Class", "Code", "test.cs", 10, 50) },
             TotalCount: 1,
             Truncated: false);
         _navigationService.ListByKindAsync(
-            Arg.Any<DeclarationKind>(),
-            Arg.Any<string?>(),
-            Arg.Any<int>(),
-            Arg.Any<CancellationToken>())
+                Arg.Any<DeclarationKind>(),
+                Arg.Any<string?>(),
+                Arg.Any<int>(),
+                Arg.Any<CancellationToken>())
             .Returns(listResult);
 
         var result = await GraphNavigationTools.ListByKind(

@@ -488,8 +488,6 @@ public sealed class DeclarationVisitor : CSharpSyntaxWalker
     /// <returns>A Base64-encoded SHA256 hash of the symbol's display string.</returns>
     public static string GenerateNodeId(ISymbol symbol)
     {
-        var displayString = symbol.ToDisplayString();
-        var hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(displayString));
-        return Convert.ToBase64String(hashBytes);
+        return symbol.ToDisplayString();
     }
 }

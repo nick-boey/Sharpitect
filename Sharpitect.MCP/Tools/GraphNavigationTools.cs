@@ -17,16 +17,23 @@ public static class GraphNavigationTools
     /// <summary>
     /// Searches for declarations by name with optional filters.
     /// </summary>
-    [McpServerTool, Description("Search for declarations (classes, methods, properties) by name with optional filters.")]
+    [McpServerTool,
+     Description("Search for declarations (classes, methods, properties) by name with optional filters.")]
     public static async Task<string> SearchDeclarations(
         IGraphNavigationService navigationService,
         IOutputFormatterFactory formatterFactory,
-        [Description("Search text to match against declaration names")] string query,
-        [Description("Match mode: contains, starts_with, ends_with, or exact. Defaults to contains.")] string? matchMode = null,
-        [Description("Filter by kind: class, interface, method, property, namespace, project, etc.")] string? kind = null,
-        [Description("Case-sensitive search. Defaults to false.")] bool caseSensitive = false,
-        [Description("Maximum number of results. Defaults to 50.")] int limit = 50,
-        [Description("Output format: json or text. Defaults to json.")] string? format = null)
+        [Description("Search text to match against declaration names")]
+        string query,
+        [Description("Match mode: contains, starts_with, ends_with, or exact. Defaults to contains.")]
+        string? matchMode = null,
+        [Description("Filter by kind: class, interface, method, property, namespace, project, etc.")]
+        string? kind = null,
+        [Description("Case-sensitive search. Defaults to false.")]
+        bool caseSensitive = false,
+        [Description("Maximum number of results. Defaults to 50.")]
+        int limit = 50,
+        [Description("Output format: json or text. Defaults to json.")]
+        string? format = null)
     {
         var formatter = formatterFactory.GetFormatter(format);
 
@@ -46,19 +53,21 @@ public static class GraphNavigationTools
     /// <summary>
     /// Gets detailed information about a specific declaration node.
     /// </summary>
-    [McpServerTool, Description("Get detailed information about a specific declaration node by ID.")]
+    [McpServerTool, Description("Get detailed information about a specific declaration node by name.")]
     public static async Task<string> GetNode(
         IGraphNavigationService navigationService,
         IOutputFormatterFactory formatterFactory,
-        [Description("Full node ID (e.g., Namespace.ClassName.MethodName)")] string id,
-        [Description("Output format: json or text. Defaults to json.")] string? format = null)
+        [Description("Fully qualified node name (e.g., Namespace.ClassName.MethodName)")]
+        string name,
+        [Description("Output format: json or text. Defaults to json.")]
+        string? format = null)
     {
         var formatter = formatterFactory.GetFormatter(format);
 
-        var result = await navigationService.GetNodeAsync(id);
+        var result = await navigationService.GetNodeAsync(name);
         if (result == null)
         {
-            return formatter.Format(ErrorResponse.NotFound($"Node with ID '{id}' was not found in the graph."));
+            return formatter.Format(ErrorResponse.NotFound($"Node with name '{name}' was not found in the graph."));
         }
 
         return formatter.Format(result);
@@ -72,9 +81,12 @@ public static class GraphNavigationTools
         IGraphNavigationService navigationService,
         IOutputFormatterFactory formatterFactory,
         [Description("Parent node ID")] string id,
-        [Description("Filter children by kind")] string? kind = null,
-        [Description("Maximum number of results. Defaults to 100.")] int limit = 100,
-        [Description("Output format: json or text. Defaults to json.")] string? format = null)
+        [Description("Filter children by kind")]
+        string? kind = null,
+        [Description("Maximum number of results. Defaults to 100.")]
+        int limit = 100,
+        [Description("Output format: json or text. Defaults to json.")]
+        string? format = null)
     {
         var formatter = formatterFactory.GetFormatter(format);
         var kindFilter = kind != null ? ParseDeclarationKind(kind) : null;
@@ -96,7 +108,8 @@ public static class GraphNavigationTools
         IGraphNavigationService navigationService,
         IOutputFormatterFactory formatterFactory,
         [Description("Node ID")] string id,
-        [Description("Output format: json or text. Defaults to json.")] string? format = null)
+        [Description("Output format: json or text. Defaults to json.")]
+        string? format = null)
     {
         var formatter = formatterFactory.GetFormatter(format);
 
@@ -117,10 +130,14 @@ public static class GraphNavigationTools
         IGraphNavigationService navigationService,
         IOutputFormatterFactory formatterFactory,
         [Description("Node ID")] string id,
-        [Description("Direction: outgoing, incoming, or both. Defaults to both.")] string? direction = null,
-        [Description("Filter by relationship kind: calls, inherits, implements, references, uses")] string? relationshipKind = null,
-        [Description("Maximum results per direction. Defaults to 50.")] int limit = 50,
-        [Description("Output format: json or text. Defaults to json.")] string? format = null)
+        [Description("Direction: outgoing, incoming, or both. Defaults to both.")]
+        string? direction = null,
+        [Description("Filter by relationship kind: calls, inherits, implements, references, uses")]
+        string? relationshipKind = null,
+        [Description("Maximum results per direction. Defaults to 50.")]
+        int limit = 50,
+        [Description("Output format: json or text. Defaults to json.")]
+        string? format = null)
     {
         var formatter = formatterFactory.GetFormatter(format);
         var directionEnum = ParseRelationshipDirection(direction);
@@ -143,9 +160,12 @@ public static class GraphNavigationTools
         IGraphNavigationService navigationService,
         IOutputFormatterFactory formatterFactory,
         [Description("Method or property ID")] string id,
-        [Description("Traversal depth. Defaults to 1, max 5.")] int depth = 1,
-        [Description("Maximum results. Defaults to 50.")] int limit = 50,
-        [Description("Output format: json or text. Defaults to json.")] string? format = null)
+        [Description("Traversal depth. Defaults to 1, max 5.")]
+        int depth = 1,
+        [Description("Maximum results. Defaults to 50.")]
+        int limit = 50,
+        [Description("Output format: json or text. Defaults to json.")]
+        string? format = null)
     {
         var formatter = formatterFactory.GetFormatter(format);
 
@@ -166,9 +186,12 @@ public static class GraphNavigationTools
         IGraphNavigationService navigationService,
         IOutputFormatterFactory formatterFactory,
         [Description("Method or property ID")] string id,
-        [Description("Traversal depth. Defaults to 1, max 5.")] int depth = 1,
-        [Description("Maximum results. Defaults to 50.")] int limit = 50,
-        [Description("Output format: json or text. Defaults to json.")] string? format = null)
+        [Description("Traversal depth. Defaults to 1, max 5.")]
+        int depth = 1,
+        [Description("Maximum results. Defaults to 50.")]
+        int limit = 50,
+        [Description("Output format: json or text. Defaults to json.")]
+        string? format = null)
     {
         var formatter = formatterFactory.GetFormatter(format);
 
@@ -189,9 +212,12 @@ public static class GraphNavigationTools
         IGraphNavigationService navigationService,
         IOutputFormatterFactory formatterFactory,
         [Description("Class or interface ID")] string id,
-        [Description("Direction: ancestors (base types), descendants (derived types), or both. Defaults to both.")] string? direction = null,
-        [Description("Traversal depth. Defaults to 10.")] int depth = 10,
-        [Description("Output format: json or text. Defaults to json.")] string? format = null)
+        [Description("Direction: ancestors (base types), descendants (derived types), or both. Defaults to both.")]
+        string? direction = null,
+        [Description("Traversal depth. Defaults to 10.")]
+        int depth = 10,
+        [Description("Output format: json or text. Defaults to json.")]
+        string? format = null)
     {
         var formatter = formatterFactory.GetFormatter(format);
         var directionEnum = ParseInheritanceDirection(direction);
@@ -212,10 +238,14 @@ public static class GraphNavigationTools
     public static async Task<string> ListByKind(
         IGraphNavigationService navigationService,
         IOutputFormatterFactory formatterFactory,
-        [Description("Declaration kind: class, interface, enum, struct, method, property, namespace, project")] string kind,
-        [Description("Limit to scope (project or namespace ID). If omitted, searches entire solution.")] string? scope = null,
-        [Description("Maximum results. Defaults to 100.")] int limit = 100,
-        [Description("Output format: json or text. Defaults to json.")] string? format = null)
+        [Description("Declaration kind: class, interface, enum, struct, method, property, namespace, project")]
+        string kind,
+        [Description("Limit to scope (project or namespace ID). If omitted, searches entire solution.")]
+        string? scope = null,
+        [Description("Maximum results. Defaults to 100.")]
+        int limit = 100,
+        [Description("Output format: json or text. Defaults to json.")]
+        string? format = null)
     {
         var formatter = formatterFactory.GetFormatter(format);
         var kindEnum = ParseDeclarationKind(kind);
@@ -237,8 +267,10 @@ public static class GraphNavigationTools
         IGraphNavigationService navigationService,
         IOutputFormatterFactory formatterFactory,
         [Description("Project ID")] string id,
-        [Description("Include transitive dependencies. Defaults to false.")] bool includeTransitive = false,
-        [Description("Output format: json or text. Defaults to json.")] string? format = null)
+        [Description("Include transitive dependencies. Defaults to false.")]
+        bool includeTransitive = false,
+        [Description("Output format: json or text. Defaults to json.")]
+        string? format = null)
     {
         var formatter = formatterFactory.GetFormatter(format);
 
@@ -259,8 +291,10 @@ public static class GraphNavigationTools
         IGraphNavigationService navigationService,
         IOutputFormatterFactory formatterFactory,
         [Description("Project ID")] string id,
-        [Description("Include transitive dependents. Defaults to false.")] bool includeTransitive = false,
-        [Description("Output format: json or text. Defaults to json.")] string? format = null)
+        [Description("Include transitive dependents. Defaults to false.")]
+        bool includeTransitive = false,
+        [Description("Output format: json or text. Defaults to json.")]
+        string? format = null)
     {
         var formatter = formatterFactory.GetFormatter(format);
 
@@ -280,8 +314,10 @@ public static class GraphNavigationTools
     public static async Task<string> GetFileDeclarations(
         IGraphNavigationService navigationService,
         IOutputFormatterFactory formatterFactory,
-        [Description("Source file path (relative or absolute)")] string filePath,
-        [Description("Output format: json or text. Defaults to json.")] string? format = null)
+        [Description("Source file path (relative or absolute)")]
+        string filePath,
+        [Description("Output format: json or text. Defaults to json.")]
+        string? format = null)
     {
         var formatter = formatterFactory.GetFormatter(format);
 
@@ -302,9 +338,12 @@ public static class GraphNavigationTools
         IGraphNavigationService navigationService,
         IOutputFormatterFactory formatterFactory,
         [Description("Declaration ID")] string id,
-        [Description("Filter by usage kind: all, call, type_reference, inheritance, instantiation. Defaults to all.")] string? usageKind = null,
-        [Description("Maximum results. Defaults to 100.")] int limit = 100,
-        [Description("Output format: json or text. Defaults to json.")] string? format = null)
+        [Description("Filter by usage kind: all, call, type_reference, inheritance, instantiation. Defaults to all.")]
+        string? usageKind = null,
+        [Description("Maximum results. Defaults to 100.")]
+        int limit = 100,
+        [Description("Output format: json or text. Defaults to json.")]
+        string? format = null)
     {
         var formatter = formatterFactory.GetFormatter(format);
         var usageKindFilter = ParseUsageKind(usageKind);
@@ -326,7 +365,8 @@ public static class GraphNavigationTools
         IGraphNavigationService navigationService,
         IOutputFormatterFactory formatterFactory,
         [Description("Declaration ID")] string id,
-        [Description("Output format: json or text. Defaults to json.")] string? format = null)
+        [Description("Output format: json or text. Defaults to json.")]
+        string? format = null)
     {
         var formatter = formatterFactory.GetFormatter(format);
 
@@ -342,14 +382,21 @@ public static class GraphNavigationTools
     /// <summary>
     /// Gets the containment tree starting from a node or from solution roots.
     /// </summary>
-    [McpServerTool, Description("Get the containment tree showing nested structure. If no root ID provided, shows from solution level.")]
+    [McpServerTool,
+     Description(
+         "Get the containment tree showing nested structure. If no root ID provided, shows from solution level.")]
     public static async Task<string> GetTree(
         IGraphNavigationService navigationService,
         IOutputFormatterFactory formatterFactory,
-        [Description("Root node ID to start from. If omitted, starts from solution roots.")] string? rootId = null,
-        [Description("Filter to only show nodes of this kind: class, interface, method, property, namespace, project, etc.")] string? kind = null,
-        [Description("Maximum depth levels to display. Defaults to 2.")] int maxDepth = 2,
-        [Description("Output format: json or text. Defaults to json.")] string? format = null)
+        [Description("Root node ID to start from. If omitted, starts from solution roots.")]
+        string? rootId = null,
+        [Description(
+            "Filter to only show nodes of this kind: class, interface, method, property, namespace, project, etc.")]
+        string? kind = null,
+        [Description("Maximum depth levels to display. Defaults to 2.")]
+        int maxDepth = 2,
+        [Description("Output format: json or text. Defaults to json.")]
+        string? format = null)
     {
         var formatter = formatterFactory.GetFormatter(format);
         var kindFilter = kind != null ? ParseDeclarationKind(kind) : null;
