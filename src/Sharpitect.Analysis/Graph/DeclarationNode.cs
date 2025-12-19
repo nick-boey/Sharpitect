@@ -59,10 +59,4 @@ public sealed record DeclarationNode
     /// Optional additional metadata as JSON.
     /// </summary>
     public string? Metadata { get; init; }
-
-    /// <summary>
-    /// The fully qualified name of the declaration.
-    /// This is an alias for <see cref="Id"/> for backward compatibility.
-    /// </summary>
-    public string FullyQualifiedName => Id;
 }

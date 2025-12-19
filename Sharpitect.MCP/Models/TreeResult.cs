@@ -6,7 +6,6 @@ namespace Sharpitect.MCP.Models;
 public sealed record TreeNode(
     string Id,
     string Name,
-    string FullyQualifiedName,
     string Kind,
     IReadOnlyList<TreeNode> Children);
 

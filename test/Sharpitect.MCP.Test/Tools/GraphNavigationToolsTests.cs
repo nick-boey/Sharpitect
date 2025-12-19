@@ -28,7 +28,7 @@ public class GraphNavigationToolsTests
     {
         var searchResults = new SearchResults(
             new List<NodeSummary>
-                { new("id1", "TestClass", "Namespace.TestClass", "Class", "Code", "test.cs", 10, 50) },
+                { new("Namespace.TestClass", "TestClass", "Class", "Code", "test.cs", 10, 50) },
             TotalCount: 1,
             Truncated: false);
         _navigationService.SearchAsync(
@@ -54,7 +54,7 @@ public class GraphNavigationToolsTests
     {
         var searchResults = new SearchResults(
             new List<NodeSummary>
-                { new("id1", "TestClass", "Namespace.TestClass", "Class", "Code", "test.cs", 10, 50) },
+                { new("Namespace.TestClass", "TestClass", "Class", "Code", "test.cs", 10, 50) },
             TotalCount: 1,
             Truncated: false);
         _navigationService.SearchAsync(
@@ -140,24 +140,7 @@ public class GraphNavigationToolsTests
     public async Task GetNode_ReturnsNodeDetail_WhenFound()
     {
         var nodeDetail = new NodeDetail(
-            "id1", "TestClass", "Namespace.TestClass", "Class", "Code", "test.cs", 10, 50, null);
-        _navigationService.GetNodeAsync("id1", Arg.Any<CancellationToken>())
-            .Returns(nodeDetail);
-
-        var result = await GraphNavigationTools.GetNode(
-            _navigationService,
-            _formatterFactory,
-            "id1");
-
-        Assert.That(result, Does.Contain("\"id\":\"id1\""));
-        Assert.That(result, Does.Contain("TestClass"));
-    }
-
-    [Test]
-    public async Task GetNode_SearchByFullyQualifiedName_WhenFound()
-    {
-        var nodeDetail = new NodeDetail(
-            "id1", "TestClass", "Namespace.TestClass", "Class", "Code", "test.cs", 10, 50, null);
+            "Namespace.TestClass", "TestClass", "Class", "Code", "test.cs", 10, 50, null);
         _navigationService.GetNodeAsync("Namespace.TestClass", Arg.Any<CancellationToken>())
             .Returns(nodeDetail);
 
@@ -166,7 +149,24 @@ public class GraphNavigationToolsTests
             _formatterFactory,
             "Namespace.TestClass");
 
-        Assert.That(result, Does.Contain("\"id\":\"id1\""));
+        Assert.That(result, Does.Contain("\"id\":\"Namespace.TestClass\""));
+        Assert.That(result, Does.Contain("TestClass"));
+    }
+
+    [Test]
+    public async Task GetNode_SearchByFullyQualifiedName_WhenFound()
+    {
+        var nodeDetail = new NodeDetail(
+            "Namespace.TestClass", "TestClass", "Class", "Code", "test.cs", 10, 50, null);
+        _navigationService.GetNodeAsync("Namespace.TestClass", Arg.Any<CancellationToken>())
+            .Returns(nodeDetail);
+
+        var result = await GraphNavigationTools.GetNode(
+            _navigationService,
+            _formatterFactory,
+            "Namespace.TestClass");
+
+        Assert.That(result, Does.Contain("\"id\":\"Namespace.TestClass\""));
         Assert.That(result, Does.Contain("TestClass"));
     }
 
@@ -195,7 +195,7 @@ public class GraphNavigationToolsTests
         var childrenResult = new ChildrenResult(
             "parent-id",
             new List<NodeSummary>
-                { new("child-id", "ChildMethod", "Namespace.Class.ChildMethod", "Method", "Code", "test.cs", 20, 30) },
+                { new("Namespace.Class.ChildMethod", "ChildMethod", "Method", "Code", "test.cs", 20, 30) },
             TotalCount: 1,
             Truncated: false);
         _navigationService.GetChildrenAsync("parent-id", Arg.Any<DeclarationKind?>(), Arg.Any<int>(),
@@ -280,7 +280,7 @@ public class GraphNavigationToolsTests
             "Class",
             null,
             new List<NodeSummary>
-                { new("id1", "TestClass", "Namespace.TestClass", "Class", "Code", "test.cs", 10, 50) },
+                { new("Namespace.TestClass", "TestClass", "Class", "Code", "test.cs", 10, 50) },
             TotalCount: 1,
             Truncated: false);
         _navigationService.ListByKindAsync(
@@ -321,8 +321,8 @@ public class GraphNavigationToolsTests
             "method-id",
             new List<NodeSummary>
             {
-                new("sln-id", "MySolution", "MySolution", "Solution", "System", null, null, null),
-                new("proj-id", "MyProject", "MySolution.MyProject", "Project", "Container", null, null, null)
+                new("MySolution", "MySolution", "Solution", "System", null, null, null),
+                new("MySolution.MyProject", "MyProject", "Project", "Container", null, null, null)
             });
         _navigationService.GetAncestorsAsync("method-id", Arg.Any<CancellationToken>())
             .Returns(ancestorsResult);

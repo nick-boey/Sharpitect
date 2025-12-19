@@ -1,5 +1,3 @@
-using System.Security.Cryptography;
-using System.Text;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
@@ -56,14 +54,14 @@ public sealed class GraphSolutionAnalyzer
         var solution = await workspace.OpenSolutionAsync(solutionPath, cancellationToken: cancellationToken);
 
         // Create solution node
-        var solutionNode = CreateSolutionNode(solutionPath);
+        var solutionNode = DeclarationNodeFactory.CreateSolutionNode(solutionPath);
         graph.AddNode(solutionNode);
 
         // Create project nodes and track them
         var projectNodes = new Dictionary<ProjectId, DeclarationNode>();
         foreach (var project in solution.Projects)
         {
-            var projectNode = CreateProjectNode(project);
+            var projectNode = DeclarationNodeFactory.CreateProjectNode(project);
             graph.AddNode(projectNode);
             projectNodes[project.Id] = projectNode;
 
@@ -156,43 +154,9 @@ public sealed class GraphSolutionAnalyzer
         await _repository.SaveNodesAsync(graph.Nodes.Values, cancellationToken);
         await _repository.SaveEdgesAsync(graph.Edges, cancellationToken);
 
+        // TODO: Start watching for changes in the MSBuild workspace here and update the graph as required
+
         return graph;
-    }
-
-    private static DeclarationNode CreateSolutionNode(string solutionPath)
-    {
-        var solutionName = Path.GetFileNameWithoutExtension(solutionPath);
-
-        return new DeclarationNode
-        {
-            Id = solutionPath,
-            Name = solutionName,
-            Kind = DeclarationKind.Solution,
-            FilePath = solutionPath,
-            StartLine = 1,
-            StartColumn = 1,
-            EndLine = 1,
-            EndColumn = 1,
-            C4Level = C4Level.System
-        };
-    }
-
-    private static DeclarationNode CreateProjectNode(Project project)
-    {
-        var projectPath = project.FilePath ?? project.Name;
-
-        return new DeclarationNode
-        {
-            Id = projectPath,
-            Name = project.Name,
-            Kind = DeclarationKind.Project,
-            FilePath = projectPath,
-            StartLine = 1,
-            StartColumn = 1,
-            EndLine = 1,
-            EndColumn = 1,
-            C4Level = C4Level.Container
-        };
     }
 
     private static string GetTopLevelNamespace(string fullyQualifiedName)

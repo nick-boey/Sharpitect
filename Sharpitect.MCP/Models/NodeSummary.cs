@@ -8,7 +8,6 @@ namespace Sharpitect.MCP.Models;
 public sealed record NodeSummary(
     string Id,
     string Name,
-    string FullyQualifiedName,
     string Kind,
     string? C4Level,
     string? FilePath,
@@ -19,7 +18,6 @@ public sealed record NodeSummary(
         new(
             node.Id,
             node.Name,
-            node.FullyQualifiedName,
             node.Kind.ToString(),
             node.C4Level == Analysis.Graph.C4Level.None ? null : node.C4Level.ToString(),
             node.FilePath,
