@@ -1,0 +1,31 @@
+{
+    "name": "Sharpitect",
+    "image": "mcr.microsoft.com/devcontainers/dotnet:1-10.0-bookworm",
+    "features": {
+        "ghcr.io/devcontainers/features/common-utils:2": {},
+        "ghcr.io/devcontainers/features/git:1": {},
+        "ghcr.io/devcontainers/features/sshd:1": {},
+        "ghcr.io/devcontainers/features/node:1": {
+            "version": "lts"
+        }
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-dotnettools.csharp",
+                "ms-dotnettools.csdevkit"
+            ],
+            "settings": {
+                "dotnetAcquisitionExtension.existingDotnetPath": [
+                    {
+                        "extensionId": "ms-dotnettools.csharp",
+                        "path": "/usr/share/dotnet/dotnet"
+                    }
+                ]
+            }
+        }
+    },
+    "postCreateCommand": "dotnet restore Sharpitect.sln && npm install -g @anthropic-ai/claude-code",
+    "remoteUser": "vscode",
+    "forwardPorts": [2222]
+}
