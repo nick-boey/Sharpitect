@@ -24,33 +24,82 @@ public static class NavigationCommands
         getDefaultValue: () => 50,
         description: "Maximum number of results to return.");
 
+    private static readonly Argument<string> QueryArgument = new(
+        name: "query",
+        description: "Search text to match against declaration names.");
+
+    private static readonly Option<SearchMatchMode> MatchModeOption = new(
+        aliases: ["--match", "-m"],
+        getDefaultValue: () => SearchMatchMode.Contains,
+        description: "Match mode: Contains, StartsWith, EndsWith, or Exact.");
+
+    private static readonly Option<DeclarationKind?> DeclarationKindOption = new(
+        aliases: ["--kind", "-k"],
+        description: "Filter by declaration kind (e.g., Class, Method, Property).");
+
+    private static readonly Option<RelationshipKind?> RelationshipKindOption = new(
+        aliases: ["--kind", "-k"],
+        description: "Filter by relationship kind (e.g., Calls, Inherits, Implements).");
+
+    private static readonly Option<bool> CaseSensitiveOption = new(
+        aliases: ["--case-sensitive", "-c"],
+        getDefaultValue: () => false,
+        description: "Enable case-sensitive matching.");
+
+    private static readonly Argument<string> IdArgument = new(
+        name: "name",
+        description: "Fully qualified name of the declaration (e.g., Namespace.Class.Method).");
+
+    private static readonly Argument<string> ParentIdArgument = new(
+        name: "parent-name",
+        description: "Fully qualified name of the parent declaration (e.g., Namespace.Class).");
+
+
+    private static readonly Argument<string> NodeIdArgument = new(
+        name: "name",
+        description: "Fully qualified name of the declaration (e.g., Namespace.Class.Method).");
+
+    private static readonly Option<RelationshipDirection> RelationshipDirectionOption = new(
+        aliases: ["--direction"],
+        getDefaultValue: () => RelationshipDirection.Both,
+        description: "Filter by direction: Outgoing, Incoming, or Both.");
+
+    private static readonly Option<InheritanceDirection> InheritanceDirectionOption = new(
+        aliases: ["--direction"],
+        getDefaultValue: () => InheritanceDirection.Both,
+        description: "Filter by direction: Ancestors, Descendants, or Both.");
+
+    private static readonly Option<int> DepthOption = new(
+        aliases: ["--depth"],
+        getDefaultValue: () => 1,
+        description: "Maximum depth for transitive callers.");
+
+    private static readonly Argument<string> ProjectIdArgument = new(
+        name: "project-name",
+        description: "Name or fully qualified name of the project.");
+
+    private static readonly Option<bool> TransitiveOption = new(
+        aliases: ["--transitive", "-t"],
+        getDefaultValue: () => false,
+        description: "Include transitive dependencies.");
+
+    private static readonly Option<UsageKind?> UsageKindOption = new(
+        aliases: ["--kind", "-k"],
+        description: "Filter by usage kind: Call, TypeReference, Inheritance, Instantiation.");
+
+    private static readonly Argument<string> FilePathArgument = new(
+        name: "file-path",
+        description: "Path to the source file.");
+
     public static Command CreateSearchCommand()
     {
-        var queryArgument = new Argument<string>(
-            name: "query",
-            description: "Search text to match against declaration names.");
-
-        var matchModeOption = new Option<SearchMatchMode>(
-            aliases: ["--match", "-m"],
-            getDefaultValue: () => SearchMatchMode.Contains,
-            description: "Match mode: Contains, StartsWith, EndsWith, or Exact.");
-
-        var kindOption = new Option<DeclarationKind?>(
-            aliases: ["--kind", "-k"],
-            description: "Filter by declaration kind (e.g., Class, Method, Property).");
-
-        var caseSensitiveOption = new Option<bool>(
-            aliases: ["--case-sensitive", "-c"],
-            getDefaultValue: () => false,
-            description: "Enable case-sensitive matching.");
-
         var command = new Command("search", "Search for declarations by name.")
         {
-            queryArgument,
+            QueryArgument,
             DatabaseOption,
-            matchModeOption,
-            kindOption,
-            caseSensitiveOption,
+            MatchModeOption,
+            DeclarationKindOption,
+            CaseSensitiveOption,
             LimitOption
         };
 
@@ -62,20 +111,16 @@ public static class NavigationCommands
                 var result = await service.SearchAsync(query, matchMode, kindFilter, caseSensitive, limit);
                 Console.WriteLine(formatter.Format(result));
             });
-        }, queryArgument, DatabaseOption, matchModeOption, kindOption, caseSensitiveOption, LimitOption);
+        }, QueryArgument, DatabaseOption, MatchModeOption, DeclarationKindOption, CaseSensitiveOption, LimitOption);
 
         return command;
     }
 
     public static Command CreateNodeCommand()
     {
-        var idArgument = new Argument<string>(
-            name: "name",
-            description: "Fully qualified name of the declaration (e.g., Namespace.Class.Method).");
-
         var command = new Command("node", "Get detailed information about a declaration node.")
         {
-            idArgument,
+            IdArgument,
             DatabaseOption
         };
 
@@ -90,28 +135,21 @@ public static class NavigationCommands
                     Environment.ExitCode = 1;
                     return;
                 }
+
                 Console.WriteLine(formatter.Format(result));
             });
-        }, idArgument, DatabaseOption);
+        }, IdArgument, DatabaseOption);
 
         return command;
     }
 
     public static Command CreateChildrenCommand()
     {
-        var parentIdArgument = new Argument<string>(
-            name: "parent-name",
-            description: "Fully qualified name of the parent declaration (e.g., Namespace.Class).");
-
-        var kindOption = new Option<DeclarationKind?>(
-            aliases: ["--kind", "-k"],
-            description: "Filter children by declaration kind.");
-
         var command = new Command("children", "Get children (contained declarations) of a node.")
         {
-            parentIdArgument,
+            ParentIdArgument,
             DatabaseOption,
-            kindOption,
+            DeclarationKindOption,
             LimitOption
         };
 
@@ -126,22 +164,19 @@ public static class NavigationCommands
                     Environment.ExitCode = 1;
                     return;
                 }
+
                 Console.WriteLine(formatter.Format(result));
             });
-        }, parentIdArgument, DatabaseOption, kindOption, LimitOption);
+        }, ParentIdArgument, DatabaseOption, DeclarationKindOption, LimitOption);
 
         return command;
     }
 
     public static Command CreateAncestorsCommand()
     {
-        var nodeIdArgument = new Argument<string>(
-            name: "name",
-            description: "Fully qualified name of the declaration (e.g., Namespace.Class.Method).");
-
         var command = new Command("ancestors", "Get containment hierarchy path from root to a node.")
         {
-            nodeIdArgument,
+            NodeIdArgument,
             DatabaseOption
         };
 
@@ -156,34 +191,22 @@ public static class NavigationCommands
                     Environment.ExitCode = 1;
                     return;
                 }
+
                 Console.WriteLine(formatter.Format(result));
             });
-        }, nodeIdArgument, DatabaseOption);
+        }, NodeIdArgument, DatabaseOption);
 
         return command;
     }
 
     public static Command CreateRelationshipsCommand()
     {
-        var nodeIdArgument = new Argument<string>(
-            name: "name",
-            description: "Fully qualified name of the declaration (e.g., Namespace.Class).");
-
-        var directionOption = new Option<RelationshipDirection>(
-            aliases: ["--direction"],
-            getDefaultValue: () => RelationshipDirection.Both,
-            description: "Filter by direction: Outgoing, Incoming, or Both.");
-
-        var kindOption = new Option<RelationshipKind?>(
-            aliases: ["--kind", "-k"],
-            description: "Filter by relationship kind (e.g., Calls, Inherits, Implements).");
-
         var command = new Command("relationships", "Get relationships (calls, inherits, references, etc.) for a node.")
         {
-            nodeIdArgument,
+            NodeIdArgument,
             DatabaseOption,
-            directionOption,
-            kindOption,
+            RelationshipDirectionOption,
+            RelationshipKindOption,
             LimitOption
         };
 
@@ -198,29 +221,21 @@ public static class NavigationCommands
                     Environment.ExitCode = 1;
                     return;
                 }
+
                 Console.WriteLine(formatter.Format(result));
             });
-        }, nodeIdArgument, DatabaseOption, directionOption, kindOption, LimitOption);
+        }, NodeIdArgument, DatabaseOption, RelationshipDirectionOption, RelationshipKindOption, LimitOption);
 
         return command;
     }
 
     public static Command CreateCallersCommand()
     {
-        var nodeIdArgument = new Argument<string>(
-            name: "name",
-            description: "Fully qualified name of the method or property (e.g., Namespace.Class.Method).");
-
-        var depthOption = new Option<int>(
-            aliases: ["--depth"],
-            getDefaultValue: () => 1,
-            description: "Maximum depth for transitive callers.");
-
         var command = new Command("callers", "Find methods/properties that call a specific method.")
         {
-            nodeIdArgument,
+            NodeIdArgument,
             DatabaseOption,
-            depthOption,
+            DepthOption,
             LimitOption
         };
 
@@ -235,29 +250,21 @@ public static class NavigationCommands
                     Environment.ExitCode = 1;
                     return;
                 }
+
                 Console.WriteLine(formatter.Format(result));
             });
-        }, nodeIdArgument, DatabaseOption, depthOption, LimitOption);
+        }, NodeIdArgument, DatabaseOption, DepthOption, LimitOption);
 
         return command;
     }
 
     public static Command CreateCalleesCommand()
     {
-        var nodeIdArgument = new Argument<string>(
-            name: "name",
-            description: "Fully qualified name of the method or property (e.g., Namespace.Class.Method).");
-
-        var depthOption = new Option<int>(
-            aliases: ["--depth"],
-            getDefaultValue: () => 1,
-            description: "Maximum depth for transitive callees.");
-
         var command = new Command("callees", "Find methods/properties called by a specific method.")
         {
-            nodeIdArgument,
+            NodeIdArgument,
             DatabaseOption,
-            depthOption,
+            DepthOption,
             LimitOption
         };
 
@@ -272,35 +279,22 @@ public static class NavigationCommands
                     Environment.ExitCode = 1;
                     return;
                 }
+
                 Console.WriteLine(formatter.Format(result));
             });
-        }, nodeIdArgument, DatabaseOption, depthOption, LimitOption);
+        }, NodeIdArgument, DatabaseOption, DepthOption, LimitOption);
 
         return command;
     }
 
     public static Command CreateInheritanceCommand()
     {
-        var nodeIdArgument = new Argument<string>(
-            name: "name",
-            description: "Fully qualified name of the class or interface (e.g., Namespace.MyClass).");
-
-        var directionOption = new Option<InheritanceDirection>(
-            aliases: ["--direction"],
-            getDefaultValue: () => InheritanceDirection.Both,
-            description: "Filter by direction: Ancestors, Descendants, or Both.");
-
-        var depthOption = new Option<int>(
-            aliases: ["--depth"],
-            getDefaultValue: () => 10,
-            description: "Maximum depth for inheritance traversal.");
-
         var command = new Command("inheritance", "Get inheritance hierarchy (base types and derived types).")
         {
-            nodeIdArgument,
+            NodeIdArgument,
             DatabaseOption,
-            directionOption,
-            depthOption
+            InheritanceDirectionOption,
+            DepthOption
         };
 
         command.SetHandler(async (nodeId, database, direction, depth) =>
@@ -314,9 +308,10 @@ public static class NavigationCommands
                     Environment.ExitCode = 1;
                     return;
                 }
+
                 Console.WriteLine(formatter.Format(result));
             });
-        }, nodeIdArgument, DatabaseOption, directionOption, depthOption);
+        }, NodeIdArgument, DatabaseOption, InheritanceDirectionOption, DepthOption);
 
         return command;
     }
@@ -353,20 +348,11 @@ public static class NavigationCommands
 
     public static Command CreateDependenciesCommand()
     {
-        var projectIdArgument = new Argument<string>(
-            name: "project-name",
-            description: "Name or fully qualified name of the project.");
-
-        var transitiveOption = new Option<bool>(
-            aliases: ["--transitive", "-t"],
-            getDefaultValue: () => false,
-            description: "Include transitive dependencies.");
-
         var command = new Command("dependencies", "Get project-level dependencies.")
         {
-            projectIdArgument,
+            ProjectIdArgument,
             DatabaseOption,
-            transitiveOption
+            TransitiveOption
         };
 
         command.SetHandler(async (projectId, database, transitive) =>
@@ -380,29 +366,21 @@ public static class NavigationCommands
                     Environment.ExitCode = 1;
                     return;
                 }
+
                 Console.WriteLine(formatter.Format(result));
             });
-        }, projectIdArgument, DatabaseOption, transitiveOption);
+        }, ProjectIdArgument, DatabaseOption, TransitiveOption);
 
         return command;
     }
 
     public static Command CreateDependentsCommand()
     {
-        var projectIdArgument = new Argument<string>(
-            name: "project-name",
-            description: "Name or fully qualified name of the project.");
-
-        var transitiveOption = new Option<bool>(
-            aliases: ["--transitive", "-t"],
-            getDefaultValue: () => false,
-            description: "Include transitive dependents.");
-
         var command = new Command("dependents", "Get projects that depend on a given project.")
         {
-            projectIdArgument,
+            ProjectIdArgument,
             DatabaseOption,
-            transitiveOption
+            TransitiveOption
         };
 
         command.SetHandler(async (projectId, database, transitive) =>
@@ -416,22 +394,19 @@ public static class NavigationCommands
                     Environment.ExitCode = 1;
                     return;
                 }
+
                 Console.WriteLine(formatter.Format(result));
             });
-        }, projectIdArgument, DatabaseOption, transitiveOption);
+        }, ProjectIdArgument, DatabaseOption, TransitiveOption);
 
         return command;
     }
 
     public static Command CreateFileCommand()
     {
-        var filePathArgument = new Argument<string>(
-            name: "file-path",
-            description: "Path to the source file.");
-
         var command = new Command("file", "Get all declarations in a specific source file.")
         {
-            filePathArgument,
+            FilePathArgument,
             DatabaseOption
         };
 
@@ -446,28 +421,21 @@ public static class NavigationCommands
                     Environment.ExitCode = 1;
                     return;
                 }
+
                 Console.WriteLine(formatter.Format(result));
             });
-        }, filePathArgument, DatabaseOption);
+        }, FilePathArgument, DatabaseOption);
 
         return command;
     }
 
     public static Command CreateUsagesCommand()
     {
-        var nodeIdArgument = new Argument<string>(
-            name: "name",
-            description: "Fully qualified name of the type, method, or property (e.g., Namespace.Class).");
-
-        var usageKindOption = new Option<UsageKind?>(
-            aliases: ["--kind", "-k"],
-            description: "Filter by usage kind: Call, TypeReference, Inheritance, Instantiation.");
-
         var command = new Command("usages", "Find all usages of a type, method, or property.")
         {
-            nodeIdArgument,
+            NodeIdArgument,
             DatabaseOption,
-            usageKindOption,
+            UsageKindOption,
             LimitOption
         };
 
@@ -482,22 +450,19 @@ public static class NavigationCommands
                     Environment.ExitCode = 1;
                     return;
                 }
+
                 Console.WriteLine(formatter.Format(result));
             });
-        }, nodeIdArgument, DatabaseOption, usageKindOption, LimitOption);
+        }, NodeIdArgument, DatabaseOption, UsageKindOption, LimitOption);
 
         return command;
     }
 
     public static Command CreateSignatureCommand()
     {
-        var nodeIdArgument = new Argument<string>(
-            name: "name",
-            description: "Fully qualified name of the method, property, or type (e.g., Namespace.Class.Method).");
-
         var command = new Command("signature", "Get full signature and type information.")
         {
-            nodeIdArgument,
+            NodeIdArgument,
             DatabaseOption
         };
 
@@ -512,22 +477,19 @@ public static class NavigationCommands
                     Environment.ExitCode = 1;
                     return;
                 }
+
                 Console.WriteLine(formatter.Format(result));
             });
-        }, nodeIdArgument, DatabaseOption);
+        }, NodeIdArgument, DatabaseOption);
 
         return command;
     }
 
     public static Command CreateCodeCommand()
     {
-        var nodeIdArgument = new Argument<string>(
-            name: "name",
-            description: "Fully qualified name of the declaration (e.g., Namespace.Class.Method).");
-
         var command = new Command("code", "Display declaration summary and source code.")
         {
-            nodeIdArgument,
+            NodeIdArgument,
             DatabaseOption
         };
 
@@ -542,35 +504,22 @@ public static class NavigationCommands
                     Environment.ExitCode = 1;
                     return;
                 }
+
                 Console.WriteLine(formatter.Format(result));
             });
-        }, nodeIdArgument, DatabaseOption);
+        }, NodeIdArgument, DatabaseOption);
 
         return command;
     }
 
     public static Command CreateTreeCommand()
     {
-        var nodeNameArgument = new Argument<string?>(
-            name: "name",
-            getDefaultValue: () => null,
-            description: "Fully qualified name of the root node. If omitted, starts from solution root.");
-
-        var kindOption = new Option<DeclarationKind?>(
-            aliases: ["--kind", "-k"],
-            description: "Filter tree to only show nodes of this kind (e.g., Class, Method).");
-
-        var depthOption = new Option<int>(
-            aliases: ["--depth"],
-            getDefaultValue: () => 2,
-            description: "Maximum depth levels to display.");
-
         var command = new Command("tree", "Display the containment tree starting from a node or solution root.")
         {
-            nodeNameArgument,
+            NodeIdArgument,
             DatabaseOption,
-            kindOption,
-            depthOption
+            DeclarationKindOption,
+            DepthOption
         };
 
         command.SetHandler(async (nodeName, database, kind, depth) =>
@@ -578,20 +527,22 @@ public static class NavigationCommands
             await ExecuteWithServiceAsync(database, async (service, formatter) =>
             {
                 var result = await service.GetTreeAsync(nodeName, kind, depth);
-                if (result.Roots.Count == 0 && nodeName != null)
+                if (result.Roots.Count == 0)
                 {
                     await Console.Error.WriteLineAsync($"Error: Node not found: {nodeName}");
                     Environment.ExitCode = 1;
                     return;
                 }
+
                 Console.WriteLine(formatter.Format(result));
             });
-        }, nodeNameArgument, DatabaseOption, kindOption, depthOption);
+        }, NodeIdArgument, DatabaseOption, DeclarationKindOption, DepthOption);
 
         return command;
     }
 
-    private static async Task ExecuteWithServiceAsync(string? databasePath, Func<IGraphNavigationService, IOutputFormatter, Task> action)
+    private static async Task ExecuteWithServiceAsync(string? databasePath,
+        Func<IGraphNavigationService, IOutputFormatter, Task> action)
     {
         var dbPath = ResolveDatabasePath(databasePath);
         if (dbPath == null)
@@ -627,6 +578,7 @@ public static class NavigationCommands
                 Console.Error.WriteLine("Run 'sharpitect analyze' first to create the database.");
                 return null;
             }
+
             return Path.GetFullPath(databasePath);
         }
 
@@ -637,7 +589,8 @@ public static class NavigationCommands
             return defaultPath;
         }
 
-        Console.Error.WriteLine("Error: No database found. Specify a database path with --database or run 'sharpitect analyze' first.");
+        Console.Error.WriteLine(
+            "Error: No database found. Specify a database path with --database or run 'sharpitect analyze' first.");
         return null;
     }
 }
