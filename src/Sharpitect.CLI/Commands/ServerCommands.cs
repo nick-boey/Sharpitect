@@ -8,18 +8,18 @@ namespace Sharpitect.CLI.Commands;
 /// </summary>
 public static class ServerCommands
 {
+    private static readonly Argument<string> DatabaseArgument = new(
+        name: "database",
+        description: "Path to the SQLite database file containing the analyzed graph.");
+
     public static Command CreateServeCommand()
     {
-        var databaseArgument = new Argument<string>(
-            name: "database",
-            description: "Path to the SQLite database file containing the analyzed graph.");
-
         var command = new Command("serve", "Start the MCP server for IDE integration.")
         {
-            databaseArgument
+            DatabaseArgument
         };
 
-        command.SetHandler(HandleServeCommand, databaseArgument);
+        command.SetHandler(HandleServeCommand, DatabaseArgument);
         return command;
     }
 

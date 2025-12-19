@@ -17,21 +17,18 @@ public static class SetupCommands
         WriteIndented = true
     };
 
+    private static readonly Option<string?> DatabaseOption = new(
+        aliases: ["--database", "-d"],
+        description: "Path to the SQLite database file. Defaults to .sharpitect/graph.db in current directory.");
+
     public static Command CreateInstallCommand()
     {
-        var databaseOption = new Option<string?>(
-            aliases: ["--database", "-d"],
-            description: "Path to the SQLite database file. Defaults to .sharpitect/graph.db in current directory.");
-
         var command = new Command("install", "Configure Sharpitect as an MCP server for Claude Code.")
         {
-            databaseOption
+            DatabaseOption
         };
 
-        command.SetHandler(async (database) =>
-        {
-            await InstallAsync(database);
-        }, databaseOption);
+        command.SetHandler(async (database) => { await InstallAsync(database); }, DatabaseOption);
 
         return command;
     }
@@ -40,10 +37,7 @@ public static class SetupCommands
     {
         var command = new Command("uninstall", "Remove Sharpitect MCP server configuration from Claude Code.");
 
-        command.SetHandler(async () =>
-        {
-            await UninstallAsync();
-        });
+        command.SetHandler(async () => { await UninstallAsync(); });
 
         return command;
     }
@@ -97,6 +91,7 @@ public static class SetupCommands
         {
             mcpJson["mcpServers"] = new JsonObject();
         }
+
         var mcpServers = mcpJson["mcpServers"]!.AsObject();
 
         // Build command args based on platform
@@ -157,7 +152,8 @@ public static class SetupCommands
 
         // Get or create enabledMcpjsonServers array
         JsonArray enabledServers;
-        if (settings.ContainsKey("enabledMcpjsonServers") && settings["enabledMcpjsonServers"] is JsonArray existingArray)
+        if (settings.ContainsKey("enabledMcpjsonServers") &&
+            settings["enabledMcpjsonServers"] is JsonArray existingArray)
         {
             enabledServers = existingArray;
         }
@@ -207,6 +203,7 @@ public static class SetupCommands
                 {
                     Console.WriteLine($"  - {file}");
                 }
+
                 Console.WriteLine();
                 Console.WriteLine("Restart Claude Code to apply changes.");
             }
@@ -280,7 +277,8 @@ public static class SetupCommands
         var modified = false;
 
         // Remove from enabledMcpjsonServers array
-        if (settings.ContainsKey("enabledMcpjsonServers") && settings["enabledMcpjsonServers"] is JsonArray enabledServers)
+        if (settings.ContainsKey("enabledMcpjsonServers") &&
+            settings["enabledMcpjsonServers"] is JsonArray enabledServers)
         {
             for (int i = enabledServers.Count - 1; i >= 0; i--)
             {
