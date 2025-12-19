@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourcePerFileMappings">
-    <file url="file://$PROJECT_DIR$/.idea/.idea.Sharpitect/.idea/queries/Query.sql" value="5abe5658-a24c-4c2e-a91b-eb2cf0cfd3d2" />
-    <file url="file://$PROJECT_DIR$/src/Sharpitect.Analysis/Persistence/SqliteGraphRepository.cs" value="5abe5658-a24c-4c2e-a91b-eb2cf0cfd3d2" />
+    <file url="file://$PROJECT_DIR$/.idea/.idea.Sharpitect/.idea/queries/Query_1.sql" value="c86ba6e8-3a60-4755-a903-eefc4dd2aaa1" />
+    <file url="file://$PROJECT_DIR$/src/Sharpitect.Analysis/Persistence/SqliteGraphRepository.cs" value="c86ba6e8-3a60-4755-a903-eefc4dd2aaa1" />
   </component>
 </project>

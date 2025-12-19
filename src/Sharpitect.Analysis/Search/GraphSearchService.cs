@@ -54,7 +54,7 @@ public sealed class GraphSearchService : IGraphSearchService
         StringComparison comparison)
     {
         return MatchesField(node.Name, searchText, matchMode, comparison) ||
-               MatchesField(node.FullyQualifiedName, searchText, matchMode, comparison);
+               MatchesField(node.Id, searchText, matchMode, comparison);
     }
 
     private static bool MatchesField(

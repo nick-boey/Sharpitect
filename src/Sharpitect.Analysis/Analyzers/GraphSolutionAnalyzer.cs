@@ -114,7 +114,7 @@ public sealed class GraphSolutionAnalyzer
             // Add project containment edges for namespaces (top-level namespaces in project)
             var topLevelNamespaces = result.Nodes
                 .Where(n => n.Kind == DeclarationKind.Namespace)
-                .GroupBy(n => GetTopLevelNamespace(n.FullyQualifiedName))
+                .GroupBy(n => GetTopLevelNamespace(n.Id))
                 .Select(g => g.First())
                 .ToList();
 
@@ -162,13 +162,11 @@ public sealed class GraphSolutionAnalyzer
     private static DeclarationNode CreateSolutionNode(string solutionPath)
     {
         var solutionName = Path.GetFileNameWithoutExtension(solutionPath);
-        var id = GenerateNodeId($"solution:{solutionPath}");
 
         return new DeclarationNode
         {
-            Id = id,
+            Id = solutionPath,
             Name = solutionName,
-            FullyQualifiedName = solutionPath,
             Kind = DeclarationKind.Solution,
             FilePath = solutionPath,
             StartLine = 1,
@@ -182,13 +180,11 @@ public sealed class GraphSolutionAnalyzer
     private static DeclarationNode CreateProjectNode(Project project)
     {
         var projectPath = project.FilePath ?? project.Name;
-        var id = GenerateNodeId($"project:{projectPath}");
 
         return new DeclarationNode
         {
-            Id = id,
+            Id = projectPath,
             Name = project.Name,
-            FullyQualifiedName = projectPath,
             Kind = DeclarationKind.Project,
             FilePath = projectPath,
             StartLine = 1,
@@ -197,12 +193,6 @@ public sealed class GraphSolutionAnalyzer
             EndColumn = 1,
             C4Level = C4Level.Container
         };
-    }
-
-    private static string GenerateNodeId(string identifier)
-    {
-        var hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(identifier));
-        return Convert.ToBase64String(hashBytes);
     }
 
     private static string GetTopLevelNamespace(string fullyQualifiedName)

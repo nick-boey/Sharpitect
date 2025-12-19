@@ -36,8 +36,8 @@ public sealed class SqliteGraphRepository : IGraphRepository
 
         const string sql = """
                            INSERT OR REPLACE INTO nodes
-                           (id, name, fully_qualified_name, kind, file_path, start_line, start_column, end_line, end_column, c4_level, c4_description, metadata)
-                           VALUES ($id, $name, $fqn, $kind, $file_path, $start_line, $start_column, $end_line, $end_column, $c4_level, $c4_description, $metadata)
+                           (id, name, kind, file_path, start_line, start_column, end_line, end_column, c4_level, c4_description, metadata)
+                           VALUES ($id, $name, $kind, $file_path, $start_line, $start_column, $end_line, $end_column, $c4_level, $c4_description, $metadata)
                            """;
 
         await using var command = _connection!.CreateCommand();
@@ -55,8 +55,8 @@ public sealed class SqliteGraphRepository : IGraphRepository
 
         const string sql = $"""
                             INSERT OR REPLACE INTO nodes
-                            (id, name, fully_qualified_name, kind, file_path, start_line, start_column, end_line, end_column, c4_level, c4_description, metadata)
-                            VALUES ($id, $name, $fqn, $kind, $file_path, $start_line, $start_column, $end_line, $end_column, $c4_level, $c4_description, $metadata)
+                            (id, name, kind, file_path, start_line, start_column, end_line, end_column, c4_level, c4_description, metadata)
+                            VALUES ($id, $name, $kind, $file_path, $start_line, $start_column, $end_line, $end_column, $c4_level, $c4_description, $metadata)
                             """;
 
         await using var command = _connection.CreateCommand();
@@ -138,23 +138,11 @@ public sealed class SqliteGraphRepository : IGraphRepository
     }
 
     /// <inheritdoc />
-    public async Task<DeclarationNode?> GetNodeByFullyQualifiedNameAsync(string fullyQualifiedName, CancellationToken cancellationToken = default)
+    public async Task<DeclarationNode?> GetNodeByFullyQualifiedNameAsync(string fullyQualifiedName,
+        CancellationToken cancellationToken = default)
     {
-        EnsureInitialized();
-
-        const string sql = "SELECT * FROM nodes WHERE fully_qualified_name = $fqn";
-
-        await using var command = _connection!.CreateCommand();
-        command.CommandText = sql;
-        command.Parameters.AddWithValue("$fqn", fullyQualifiedName);
-
-        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
-        if (await reader.ReadAsync(cancellationToken))
-        {
-            return ReadNode(reader);
-        }
-
-        return null;
+        // Since Id = FullyQualifiedName, we can just query by id
+        return await GetNodeAsync(fullyQualifiedName, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -322,7 +310,6 @@ public sealed class SqliteGraphRepository : IGraphRepository
     {
         command.Parameters.AddWithValue("$id", node.Id);
         command.Parameters.AddWithValue("$name", node.Name);
-        command.Parameters.AddWithValue("$fqn", node.FullyQualifiedName);
         command.Parameters.AddWithValue("$kind", (int)node.Kind);
         command.Parameters.AddWithValue("$file_path", node.FilePath);
         command.Parameters.AddWithValue("$start_line", node.StartLine);
@@ -364,7 +351,6 @@ public sealed class SqliteGraphRepository : IGraphRepository
         {
             Id = reader.GetString(reader.GetOrdinal("id")),
             Name = reader.GetString(reader.GetOrdinal("name")),
-            FullyQualifiedName = reader.GetString(reader.GetOrdinal("fully_qualified_name")),
             Kind = (DeclarationKind)reader.GetInt32(reader.GetOrdinal("kind")),
             FilePath = reader.GetString(reader.GetOrdinal("file_path")),
             StartLine = reader.GetInt32(reader.GetOrdinal("start_line")),
@@ -418,7 +404,6 @@ public sealed class SqliteGraphRepository : IGraphRepository
                                               CREATE TABLE IF NOT EXISTS nodes (
                                                   id TEXT PRIMARY KEY,
                                                   name TEXT NOT NULL,
-                                                  fully_qualified_name TEXT NOT NULL,
                                                   kind INTEGER NOT NULL,
                                                   file_path TEXT NOT NULL,
                                                   start_line INTEGER NOT NULL,
@@ -443,7 +428,6 @@ public sealed class SqliteGraphRepository : IGraphRepository
                                               );
 
                                               CREATE INDEX IF NOT EXISTS idx_nodes_kind ON nodes(kind);
-                                              CREATE INDEX IF NOT EXISTS idx_nodes_fqn ON nodes(fully_qualified_name);
                                               CREATE INDEX IF NOT EXISTS idx_nodes_file ON nodes(file_path);
                                               CREATE INDEX IF NOT EXISTS idx_nodes_name ON nodes(name);
 

@@ -190,7 +190,6 @@ public class SqliteGraphRepositoryTests
         {
             Id = "test-id",
             Name = "TestComponent",
-            FullyQualifiedName = "Test.TestComponent",
             Kind = DeclarationKind.Class,
             FilePath = "test.cs",
             StartLine = 1,
@@ -214,11 +213,11 @@ public class SqliteGraphRepositoryTests
     [Test]
     public async Task GetNodeByFullyQualifiedNameAsync_ShouldReturnMatchingNode()
     {
+        // Since Id = FullyQualifiedName, we use the FQN as the Id
         var node = new DeclarationNode
         {
-            Id = "hash-id",
+            Id = "MyNamespace.MyClass",  // Id is now the fully qualified name
             Name = "MyClass",
-            FullyQualifiedName = "MyNamespace.MyClass",
             Kind = DeclarationKind.Class,
             FilePath = "test.cs",
             StartLine = 1,
@@ -233,9 +232,9 @@ public class SqliteGraphRepositoryTests
         Assert.That(retrieved, Is.Not.Null);
         Assert.Multiple(() =>
         {
-            Assert.That(retrieved!.Id, Is.EqualTo("hash-id"));
-            Assert.That(retrieved.Name, Is.EqualTo("MyClass"));
+            Assert.That(retrieved!.Id, Is.EqualTo("MyNamespace.MyClass"));
             Assert.That(retrieved.FullyQualifiedName, Is.EqualTo("MyNamespace.MyClass"));
+            Assert.That(retrieved.Name, Is.EqualTo("MyClass"));
         });
     }
 
@@ -266,13 +265,13 @@ public class SqliteGraphRepositoryTests
         await _repository.SaveEdgesAsync(edges);
     }
 
-    private static DeclarationNode CreateTestNode(string id, string name, DeclarationKind kind, string filePath = "test.cs")
+    private static DeclarationNode CreateTestNode(string id, string name, DeclarationKind kind,
+        string filePath = "test.cs")
     {
         return new DeclarationNode
         {
             Id = id,
             Name = name,
-            FullyQualifiedName = $"Test.{name}",
             Kind = kind,
             FilePath = filePath,
             StartLine = 1,

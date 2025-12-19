@@ -13,7 +13,9 @@
       "Bash(dir \"C:\\\\Users\\\\nboey\\\\Documents\\\\src\\\\Sharpitect\" /s /b)",
       "Bash(dotnet pack:*)",
       "mcp__Sharpitect__get_inheritance",
-      "mcp__Sharpitect__search_declarations"
+      "mcp__Sharpitect__search_declarations",
+      "Bash(git show:*)",
+      "Bash(grep:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -161,9 +161,8 @@ public class RepositoryGraphSourceTests
     {
         return new DeclarationNode
         {
-            Id = id,
+            Id = id,  // Id is now the fully qualified name
             Name = name,
-            FullyQualifiedName = $"Test.{name}",
             Kind = kind,
             FilePath = "test.cs",
             StartLine = 1,

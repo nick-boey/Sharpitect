@@ -105,9 +105,8 @@ public class InMemoryGraphSourceTests
     {
         return new DeclarationNode
         {
-            Id = id,
+            Id = $"Test.{name}",
             Name = name,
-            FullyQualifiedName = $"Test.{name}",
             Kind = kind,
             FilePath = "test.cs",
             StartLine = 1,

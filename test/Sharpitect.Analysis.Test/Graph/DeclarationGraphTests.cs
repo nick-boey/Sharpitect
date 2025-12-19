@@ -9,14 +9,14 @@ public class DeclarationGraphTests
     public void AddNode_ShouldAddNodeToGraph()
     {
         var graph = new DeclarationGraph();
-        var node = CreateTestNode("test-id", "TestClass", DeclarationKind.Class);
+        var node = CreateTestNode("TestClass", DeclarationKind.Class);
 
         graph.AddNode(node);
 
         Assert.Multiple(() =>
         {
             Assert.That(graph.NodeCount, Is.EqualTo(1));
-            Assert.That(graph.GetNode("test-id"), Is.EqualTo(node));
+            Assert.That(graph.GetNode("TestClass"), Is.EqualTo(node));
         });
     }
 
@@ -24,8 +24,9 @@ public class DeclarationGraphTests
     public void AddNode_ShouldReplaceExistingNodeWithSameId()
     {
         var graph = new DeclarationGraph();
-        var node1 = CreateTestNode("test-id", "OldName", DeclarationKind.Class);
-        var node2 = CreateTestNode("test-id", "NewName", DeclarationKind.Class);
+        // Both nodes use the same Id (FQN) to test replacement
+        var node1 = CreateTestNodeWithId("MyNamespace.MyClass", "OldName", DeclarationKind.Class);
+        var node2 = CreateTestNodeWithId("MyNamespace.MyClass", "NewName", DeclarationKind.Class);
 
         graph.AddNode(node1);
         graph.AddNode(node2);
@@ -33,7 +34,7 @@ public class DeclarationGraphTests
         Assert.Multiple(() =>
         {
             Assert.That(graph.NodeCount, Is.EqualTo(1));
-            Assert.That(graph.GetNode("test-id")?.Name, Is.EqualTo("NewName"));
+            Assert.That(graph.GetNode("MyNamespace.MyClass")?.Name, Is.EqualTo("NewName"));
         });
     }
 
@@ -43,9 +44,9 @@ public class DeclarationGraphTests
         var graph = new DeclarationGraph();
         var nodes = new[]
         {
-            CreateTestNode("id1", "Class1", DeclarationKind.Class),
-            CreateTestNode("id2", "Class2", DeclarationKind.Class),
-            CreateTestNode("id3", "Method1", DeclarationKind.Method)
+            CreateTestNode("Class1", DeclarationKind.Class),
+            CreateTestNode("Class2", DeclarationKind.Class),
+            CreateTestNode("Method1", DeclarationKind.Method)
         };
 
         graph.AddNodes(nodes);
@@ -68,10 +69,10 @@ public class DeclarationGraphTests
     public void GetNodesByKind_ShouldReturnFilteredNodes()
     {
         var graph = new DeclarationGraph();
-        graph.AddNode(CreateTestNode("c1", "Class1", DeclarationKind.Class));
-        graph.AddNode(CreateTestNode("c2", "Class2", DeclarationKind.Class));
-        graph.AddNode(CreateTestNode("m1", "Method1", DeclarationKind.Method));
-        graph.AddNode(CreateTestNode("p1", "Prop1", DeclarationKind.Property));
+        graph.AddNode(CreateTestNode("Class1", DeclarationKind.Class));
+        graph.AddNode(CreateTestNode("Class2", DeclarationKind.Class));
+        graph.AddNode(CreateTestNode("Method1", DeclarationKind.Method));
+        graph.AddNode(CreateTestNode("Prop1", DeclarationKind.Property));
 
         var classes = graph.GetNodesByKind(DeclarationKind.Class).ToList();
 
@@ -125,11 +126,11 @@ public class DeclarationGraphTests
     public void ContainsNode_ShouldReturnTrueForExistingNode()
     {
         var graph = new DeclarationGraph();
-        graph.AddNode(CreateTestNode("test-id", "Test", DeclarationKind.Class));
+        graph.AddNode(CreateTestNode("Test", DeclarationKind.Class));
 
         Assert.Multiple(() =>
         {
-            Assert.That(graph.ContainsNode("test-id"), Is.True);
+            Assert.That(graph.ContainsNode("Test"), Is.True);
             Assert.That(graph.ContainsNode("non-existent"), Is.False);
         });
     }
@@ -138,7 +139,7 @@ public class DeclarationGraphTests
     public void Clear_ShouldRemoveAllNodesAndEdges()
     {
         var graph = new DeclarationGraph();
-        graph.AddNode(CreateTestNode("n1", "Test", DeclarationKind.Class));
+        graph.AddNode(CreateTestNode("Test", DeclarationKind.Class));
         graph.AddEdge(CreateTestEdge("e1", "a", "b", RelationshipKind.Calls));
 
         graph.Clear();
@@ -150,13 +151,27 @@ public class DeclarationGraphTests
         });
     }
 
-    private static DeclarationNode CreateTestNode(string id, string name, DeclarationKind kind)
+    private static DeclarationNode CreateTestNode(string name, DeclarationKind kind)
+    {
+        return new DeclarationNode
+        {
+            Id = name,  // Id is now the fully qualified name
+            Name = name,
+            Kind = kind,
+            FilePath = "test.cs",
+            StartLine = 1,
+            StartColumn = 1,
+            EndLine = 1,
+            EndColumn = 1
+        };
+    }
+
+    private static DeclarationNode CreateTestNodeWithId(string id, string name, DeclarationKind kind)
     {
         return new DeclarationNode
         {
             Id = id,
             Name = name,
-            FullyQualifiedName = $"Test.{name}",
             Kind = kind,
             FilePath = "test.cs",
             StartLine = 1,

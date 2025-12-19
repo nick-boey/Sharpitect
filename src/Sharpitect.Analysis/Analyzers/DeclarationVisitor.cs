@@ -375,7 +375,7 @@ public sealed class DeclarationVisitor : CSharpSyntaxWalker
     private DeclarationNode CreateNode(ISymbol symbol, SyntaxNode node, DeclarationKind kind)
     {
         var location = node.GetLocation().GetLineSpan();
-        var id = GenerateNodeId(symbol);
+        var id = symbol.ToDisplayString();
 
         SymbolToNodeId[symbol] = id;
 
@@ -383,7 +383,6 @@ public sealed class DeclarationVisitor : CSharpSyntaxWalker
         {
             Id = id,
             Name = symbol.Name,
-            FullyQualifiedName = symbol.ToDisplayString(),
             Kind = kind,
             FilePath = _filePath,
             StartLine = location.StartLinePosition.Line + 1,
@@ -396,7 +395,7 @@ public sealed class DeclarationVisitor : CSharpSyntaxWalker
     private DeclarationNode CreateNodeWithC4(INamedTypeSymbol symbol, SyntaxNode node, DeclarationKind kind)
     {
         var location = node.GetLocation().GetLineSpan();
-        var id = GenerateNodeId(symbol);
+        var id = symbol.ToDisplayString();
 
         SymbolToNodeId[symbol] = id;
 
@@ -407,7 +406,6 @@ public sealed class DeclarationVisitor : CSharpSyntaxWalker
         {
             Id = id,
             Name = symbol.Name,
-            FullyQualifiedName = symbol.ToDisplayString(),
             Kind = kind,
             FilePath = _filePath,
             StartLine = location.StartLinePosition.Line + 1,
@@ -422,7 +420,7 @@ public sealed class DeclarationVisitor : CSharpSyntaxWalker
     private DeclarationNode CreateTypeNode(INamedTypeSymbol symbol, TypeDeclarationSyntax node, DeclarationKind kind)
     {
         var location = node.GetLocation().GetLineSpan();
-        var id = GenerateNodeId(symbol);
+        var id = symbol.ToDisplayString();
 
         SymbolToNodeId[symbol] = id;
 
@@ -433,7 +431,6 @@ public sealed class DeclarationVisitor : CSharpSyntaxWalker
         {
             Id = id,
             Name = symbol.Name,
-            FullyQualifiedName = symbol.ToDisplayString(),
             Kind = kind,
             FilePath = _filePath,
             StartLine = location.StartLinePosition.Line + 1,
@@ -479,15 +476,5 @@ public sealed class DeclarationVisitor : CSharpSyntaxWalker
             Kind = RelationshipKind.Contains,
             SourceFilePath = _filePath
         });
-    }
-
-    /// <summary>
-    /// Generates a deterministic node ID from a symbol.
-    /// </summary>
-    /// <param name="symbol">The Roslyn symbol.</param>
-    /// <returns>A Base64-encoded SHA256 hash of the symbol's display string.</returns>
-    public static string GenerateNodeId(ISymbol symbol)
-    {
-        return symbol.ToDisplayString();
     }
 }

@@ -6,7 +6,7 @@ namespace Sharpitect.Analysis.Graph;
 public sealed record DeclarationNode
 {
     /// <summary>
-    /// Unique identifier for this node (SHA256 hash of fully qualified name).
+    /// The fully qualified name including namespace/type hierarchy.
     /// </summary>
     public required string Id { get; init; }
 
@@ -14,11 +14,6 @@ public sealed record DeclarationNode
     /// The simple name of the declaration (e.g., "OrderService", "CreateOrder").
     /// </summary>
     public required string Name { get; init; }
-
-    /// <summary>
-    /// The fully qualified name including namespace/type hierarchy.
-    /// </summary>
-    public required string FullyQualifiedName { get; init; }
 
     /// <summary>
     /// The kind of declaration.
@@ -64,4 +59,10 @@ public sealed record DeclarationNode
     /// Optional additional metadata as JSON.
     /// </summary>
     public string? Metadata { get; init; }
+
+    /// <summary>
+    /// The fully qualified name of the declaration.
+    /// This is an alias for <see cref="Id"/> for backward compatibility.
+    /// </summary>
+    public string FullyQualifiedName => Id;
 }

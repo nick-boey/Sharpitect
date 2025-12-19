@@ -42,13 +42,13 @@ public class GraphNavigationServiceTests
     [Test]
     public async Task GetNodeAsync_WithValidId_ReturnsNodeDetail()
     {
-        var node = CreateTestNode("test-id", "TestClass", DeclarationKind.Class, "Namespace.TestClass");
-        _repository.GetNodeAsync("test-id").Returns(node);
+        var node = CreateTestNode("TestClass", DeclarationKind.Class, "Namespace.TestClass");
+        _repository.GetNodeAsync("Namespace.TestClass").Returns(node);
 
-        var result = await _service.GetNodeAsync("test-id");
+        var result = await _service.GetNodeAsync("Namespace.TestClass");
 
         Assert.That(result, Is.Not.Null);
-        Assert.That(result!.Id, Is.EqualTo("test-id"));
+        Assert.That(result!.Id, Is.EqualTo("Namespace.TestClass"));
         Assert.That(result.Name, Is.EqualTo("TestClass"));
         Assert.That(result.Kind, Is.EqualTo("Class"));
     }
@@ -70,43 +70,43 @@ public class GraphNavigationServiceTests
     [Test]
     public async Task GetChildrenAsync_ReturnsContainedNodes()
     {
-        var parentNode = CreateTestNode("parent-id", "Parent", DeclarationKind.Class, "Parent");
-        var childNode1 = CreateTestNode("child-1", "Method1", DeclarationKind.Method, "Parent.Method1");
-        var childNode2 = CreateTestNode("child-2", "Method2", DeclarationKind.Method, "Parent.Method2");
+        var parentNode = CreateTestNode("Parent", DeclarationKind.Class, "Parent");
+        var childNode1 = CreateTestNode("Method1", DeclarationKind.Method, "Parent.Method1");
+        var childNode2 = CreateTestNode("Method2", DeclarationKind.Method, "Parent.Method2");
 
-        _repository.GetNodeAsync("parent-id").Returns(parentNode);
-        _repository.GetOutgoingEdgesAsync("parent-id").Returns(new List<RelationshipEdge>
+        _repository.GetNodeAsync("Parent").Returns(parentNode);
+        _repository.GetOutgoingEdgesAsync("Parent").Returns(new List<RelationshipEdge>
         {
-            CreateEdge("parent-id", "child-1", RelationshipKind.Contains),
-            CreateEdge("parent-id", "child-2", RelationshipKind.Contains)
+            CreateEdge("Parent", "Parent.Method1", RelationshipKind.Contains),
+            CreateEdge("Parent", "Parent.Method2", RelationshipKind.Contains)
         });
-        _repository.GetNodeAsync("child-1").Returns(childNode1);
-        _repository.GetNodeAsync("child-2").Returns(childNode2);
+        _repository.GetNodeAsync("Parent.Method1").Returns(childNode1);
+        _repository.GetNodeAsync("Parent.Method2").Returns(childNode2);
 
-        var result = await _service.GetChildrenAsync("parent-id");
+        var result = await _service.GetChildrenAsync("Parent");
 
         Assert.That(result, Is.Not.Null);
-        Assert.That(result!.ParentId, Is.EqualTo("parent-id"));
+        Assert.That(result!.ParentId, Is.EqualTo("Parent"));
         Assert.That(result.Children, Has.Count.EqualTo(2));
     }
 
     [Test]
     public async Task GetChildrenAsync_WithKindFilter_ReturnsOnlyMatchingKind()
     {
-        var parentNode = CreateTestNode("parent-id", "Parent", DeclarationKind.Class, "Parent");
-        var methodNode = CreateTestNode("method-id", "Method1", DeclarationKind.Method, "Parent.Method1");
-        var propertyNode = CreateTestNode("prop-id", "Prop1", DeclarationKind.Property, "Parent.Prop1");
+        var parentNode = CreateTestNode("Parent", DeclarationKind.Class, "Parent");
+        var methodNode = CreateTestNode("Method1", DeclarationKind.Method, "Parent.Method1");
+        var propertyNode = CreateTestNode("Prop1", DeclarationKind.Property, "Parent.Prop1");
 
-        _repository.GetNodeAsync("parent-id").Returns(parentNode);
-        _repository.GetOutgoingEdgesAsync("parent-id").Returns(new List<RelationshipEdge>
+        _repository.GetNodeAsync("Parent").Returns(parentNode);
+        _repository.GetOutgoingEdgesAsync("Parent").Returns(new List<RelationshipEdge>
         {
-            CreateEdge("parent-id", "method-id", RelationshipKind.Contains),
-            CreateEdge("parent-id", "prop-id", RelationshipKind.Contains)
+            CreateEdge("Parent", "Parent.Method1", RelationshipKind.Contains),
+            CreateEdge("Parent", "Parent.Prop1", RelationshipKind.Contains)
         });
-        _repository.GetNodeAsync("method-id").Returns(methodNode);
-        _repository.GetNodeAsync("prop-id").Returns(propertyNode);
+        _repository.GetNodeAsync("Parent.Method1").Returns(methodNode);
+        _repository.GetNodeAsync("Parent.Prop1").Returns(propertyNode);
 
-        var result = await _service.GetChildrenAsync("parent-id", kindFilter: DeclarationKind.Method);
+        var result = await _service.GetChildrenAsync("Parent", kindFilter: DeclarationKind.Method);
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result!.Children, Has.Count.EqualTo(1));
@@ -130,24 +130,24 @@ public class GraphNavigationServiceTests
     [Test]
     public async Task GetAncestorsAsync_ReturnsContainmentHierarchy()
     {
-        var methodNode = CreateTestNode("method-id", "Method", DeclarationKind.Method, "NS.Class.Method");
-        var classNode = CreateTestNode("class-id", "Class", DeclarationKind.Class, "NS.Class");
-        var nsNode = CreateTestNode("ns-id", "NS", DeclarationKind.Namespace, "NS");
+        var methodNode = CreateTestNode("Method", DeclarationKind.Method, "NS.Class.Method");
+        var classNode = CreateTestNode("Class", DeclarationKind.Class, "NS.Class");
+        var nsNode = CreateTestNode("NS", DeclarationKind.Namespace, "NS");
 
-        _repository.GetNodeAsync("method-id").Returns(methodNode);
-        _repository.GetIncomingEdgesAsync("method-id").Returns(new List<RelationshipEdge>
+        _repository.GetNodeAsync("NS.Class.Method").Returns(methodNode);
+        _repository.GetIncomingEdgesAsync("NS.Class.Method").Returns(new List<RelationshipEdge>
         {
-            CreateEdge("class-id", "method-id", RelationshipKind.Contains)
+            CreateEdge("NS.Class", "NS.Class.Method", RelationshipKind.Contains)
         });
-        _repository.GetNodeAsync("class-id").Returns(classNode);
-        _repository.GetIncomingEdgesAsync("class-id").Returns(new List<RelationshipEdge>
+        _repository.GetNodeAsync("NS.Class").Returns(classNode);
+        _repository.GetIncomingEdgesAsync("NS.Class").Returns(new List<RelationshipEdge>
         {
-            CreateEdge("ns-id", "class-id", RelationshipKind.Contains)
+            CreateEdge("NS", "NS.Class", RelationshipKind.Contains)
         });
-        _repository.GetNodeAsync("ns-id").Returns(nsNode);
-        _repository.GetIncomingEdgesAsync("ns-id").Returns(new List<RelationshipEdge>());
+        _repository.GetNodeAsync("NS").Returns(nsNode);
+        _repository.GetIncomingEdgesAsync("NS").Returns(new List<RelationshipEdge>());
 
-        var result = await _service.GetAncestorsAsync("method-id");
+        var result = await _service.GetAncestorsAsync("NS.Class.Method");
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result!.Ancestors, Has.Count.EqualTo(2));
@@ -162,23 +162,23 @@ public class GraphNavigationServiceTests
     [Test]
     public async Task GetRelationshipsAsync_ReturnsOutgoingAndIncoming()
     {
-        var classNode = CreateTestNode("class-id", "MyClass", DeclarationKind.Class, "MyClass");
-        var interfaceNode = CreateTestNode("interface-id", "IService", DeclarationKind.Interface, "IService");
-        var testNode = CreateTestNode("test-id", "MyClassTests", DeclarationKind.Class, "MyClassTests");
+        var classNode = CreateTestNode("MyClass", DeclarationKind.Class, "MyClass");
+        var interfaceNode = CreateTestNode("IService", DeclarationKind.Interface, "IService");
+        var testNode = CreateTestNode("MyClassTests", DeclarationKind.Class, "MyClassTests");
 
-        _repository.GetNodeAsync("class-id").Returns(classNode);
-        _repository.GetOutgoingEdgesAsync("class-id").Returns(new List<RelationshipEdge>
+        _repository.GetNodeAsync("MyClass").Returns(classNode);
+        _repository.GetOutgoingEdgesAsync("MyClass").Returns(new List<RelationshipEdge>
         {
-            CreateEdge("class-id", "interface-id", RelationshipKind.Implements)
+            CreateEdge("MyClass", "IService", RelationshipKind.Implements)
         });
-        _repository.GetIncomingEdgesAsync("class-id").Returns(new List<RelationshipEdge>
+        _repository.GetIncomingEdgesAsync("MyClass").Returns(new List<RelationshipEdge>
         {
-            CreateEdge("test-id", "class-id", RelationshipKind.References)
+            CreateEdge("MyClassTests", "MyClass", RelationshipKind.References)
         });
-        _repository.GetNodeAsync("interface-id").Returns(interfaceNode);
-        _repository.GetNodeAsync("test-id").Returns(testNode);
+        _repository.GetNodeAsync("IService").Returns(interfaceNode);
+        _repository.GetNodeAsync("MyClassTests").Returns(testNode);
 
-        var result = await _service.GetRelationshipsAsync("class-id");
+        var result = await _service.GetRelationshipsAsync("MyClass");
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result!.Outgoing, Has.Count.EqualTo(1));
@@ -190,17 +190,17 @@ public class GraphNavigationServiceTests
     [Test]
     public async Task GetRelationshipsAsync_WithOutgoingDirection_ReturnsOnlyOutgoing()
     {
-        var classNode = CreateTestNode("class-id", "MyClass", DeclarationKind.Class, "MyClass");
-        var interfaceNode = CreateTestNode("interface-id", "IService", DeclarationKind.Interface, "IService");
+        var classNode = CreateTestNode("MyClass", DeclarationKind.Class, "MyClass");
+        var interfaceNode = CreateTestNode("IService", DeclarationKind.Interface, "IService");
 
-        _repository.GetNodeAsync("class-id").Returns(classNode);
-        _repository.GetOutgoingEdgesAsync("class-id").Returns(new List<RelationshipEdge>
+        _repository.GetNodeAsync("MyClass").Returns(classNode);
+        _repository.GetOutgoingEdgesAsync("MyClass").Returns(new List<RelationshipEdge>
         {
-            CreateEdge("class-id", "interface-id", RelationshipKind.Implements)
+            CreateEdge("MyClass", "IService", RelationshipKind.Implements)
         });
-        _repository.GetNodeAsync("interface-id").Returns(interfaceNode);
+        _repository.GetNodeAsync("IService").Returns(interfaceNode);
 
-        var result = await _service.GetRelationshipsAsync("class-id", RelationshipDirection.Outgoing);
+        var result = await _service.GetRelationshipsAsync("MyClass", RelationshipDirection.Outgoing);
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result!.Outgoing, Has.Count.EqualTo(1));
@@ -212,18 +212,17 @@ public class GraphNavigationServiceTests
     #region Helper Methods
 
     private static DeclarationNode CreateTestNode(
-        string id,
         string name,
         DeclarationKind kind,
         string fullyQualifiedName,
         string? filePath = null,
         int startLine = 0)
     {
+        // Id is the fully qualified name
         return new DeclarationNode
         {
-            Id = id,
+            Id = fullyQualifiedName,
             Name = name,
-            FullyQualifiedName = fullyQualifiedName,
             Kind = kind,
             FilePath = filePath ?? "test.cs",
             StartLine = startLine,

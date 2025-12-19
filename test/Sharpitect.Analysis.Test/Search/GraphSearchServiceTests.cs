@@ -23,9 +23,9 @@ public class GraphSearchServiceTests
     [Test]
     public async Task SearchAsync_ContainsMode_MatchesPartialName()
     {
-        _graph.AddNode(CreateTestNode("1", "OrderService", DeclarationKind.Class));
-        _graph.AddNode(CreateTestNode("2", "CustomerService", DeclarationKind.Class));
-        _graph.AddNode(CreateTestNode("3", "Repository", DeclarationKind.Class));
+        _graph.AddNode(CreateTestNode("OrderService", DeclarationKind.Class));
+        _graph.AddNode(CreateTestNode("CustomerService", DeclarationKind.Class));
+        _graph.AddNode(CreateTestNode("Repository", DeclarationKind.Class));
 
         var query = new SearchQuery { SearchText = "Service" };
 
@@ -38,7 +38,7 @@ public class GraphSearchServiceTests
     [Test]
     public async Task SearchAsync_ContainsMode_MatchesFullyQualifiedName()
     {
-        _graph.AddNode(CreateTestNode("1", "MyClass", DeclarationKind.Class, "Acme.Orders.MyClass"));
+        _graph.AddNode(CreateTestNode("MyClass", DeclarationKind.Class, "Acme.Orders.MyClass"));
 
         var query = new SearchQuery { SearchText = "Orders" };
 
@@ -51,7 +51,7 @@ public class GraphSearchServiceTests
     [Test]
     public async Task SearchAsync_ContainsMode_NoMatchReturnsEmpty()
     {
-        _graph.AddNode(CreateTestNode("1", "OrderService", DeclarationKind.Class));
+        _graph.AddNode(CreateTestNode("OrderService", DeclarationKind.Class));
 
         var query = new SearchQuery { SearchText = "NotFound" };
 
@@ -67,8 +67,8 @@ public class GraphSearchServiceTests
     [Test]
     public async Task SearchAsync_StartsWithMode_MatchesNamePrefix()
     {
-        _graph.AddNode(CreateTestNode("1", "OrderService", DeclarationKind.Class));
-        _graph.AddNode(CreateTestNode("2", "ServiceBase", DeclarationKind.Class));
+        _graph.AddNode(CreateTestNode("OrderService", DeclarationKind.Class));
+        _graph.AddNode(CreateTestNode("ServiceBase", DeclarationKind.Class));
 
         var query = new SearchQuery
         {
@@ -85,7 +85,7 @@ public class GraphSearchServiceTests
     [Test]
     public async Task SearchAsync_StartsWithMode_MatchesFqnPrefix()
     {
-        _graph.AddNode(CreateTestNode("1", "MyClass", DeclarationKind.Class, "Acme.Orders.MyClass"));
+        _graph.AddNode(CreateTestNode("MyClass", DeclarationKind.Class, "Acme.Orders.MyClass"));
 
         var query = new SearchQuery
         {
@@ -101,7 +101,7 @@ public class GraphSearchServiceTests
     [Test]
     public async Task SearchAsync_StartsWithMode_NoMatchReturnsEmpty()
     {
-        _graph.AddNode(CreateTestNode("1", "OrderService", DeclarationKind.Class));
+        _graph.AddNode(CreateTestNode("OrderService", DeclarationKind.Class));
 
         var query = new SearchQuery
         {
@@ -121,8 +121,8 @@ public class GraphSearchServiceTests
     [Test]
     public async Task SearchAsync_EndsWithMode_MatchesNameSuffix()
     {
-        _graph.AddNode(CreateTestNode("1", "OrderService", DeclarationKind.Class));
-        _graph.AddNode(CreateTestNode("2", "OrderRepository", DeclarationKind.Class));
+        _graph.AddNode(CreateTestNode("OrderService", DeclarationKind.Class));
+        _graph.AddNode(CreateTestNode("OrderRepository", DeclarationKind.Class));
 
         var query = new SearchQuery
         {
@@ -139,7 +139,7 @@ public class GraphSearchServiceTests
     [Test]
     public async Task SearchAsync_EndsWithMode_MatchesFqnSuffix()
     {
-        _graph.AddNode(CreateTestNode("1", "MyClass", DeclarationKind.Class, "Acme.Orders.MyClass"));
+        _graph.AddNode(CreateTestNode("MyClass", DeclarationKind.Class, "Acme.Orders.MyClass"));
 
         var query = new SearchQuery
         {
@@ -155,7 +155,7 @@ public class GraphSearchServiceTests
     [Test]
     public async Task SearchAsync_EndsWithMode_NoMatchReturnsEmpty()
     {
-        _graph.AddNode(CreateTestNode("1", "OrderService", DeclarationKind.Class));
+        _graph.AddNode(CreateTestNode("OrderService", DeclarationKind.Class));
 
         var query = new SearchQuery
         {
@@ -175,8 +175,8 @@ public class GraphSearchServiceTests
     [Test]
     public async Task SearchAsync_ExactMode_MatchesExactName()
     {
-        _graph.AddNode(CreateTestNode("1", "Order", DeclarationKind.Class));
-        _graph.AddNode(CreateTestNode("2", "OrderService", DeclarationKind.Class));
+        _graph.AddNode(CreateTestNode("Order", DeclarationKind.Class));
+        _graph.AddNode(CreateTestNode("OrderService", DeclarationKind.Class));
 
         var query = new SearchQuery
         {
@@ -193,7 +193,7 @@ public class GraphSearchServiceTests
     [Test]
     public async Task SearchAsync_ExactMode_MatchesExactFqn()
     {
-        _graph.AddNode(CreateTestNode("1", "MyClass", DeclarationKind.Class, "Acme.MyClass"));
+        _graph.AddNode(CreateTestNode("MyClass", DeclarationKind.Class, "Acme.MyClass"));
 
         var query = new SearchQuery
         {
@@ -209,7 +209,7 @@ public class GraphSearchServiceTests
     [Test]
     public async Task SearchAsync_ExactMode_PartialMatchReturnsEmpty()
     {
-        _graph.AddNode(CreateTestNode("1", "OrderService", DeclarationKind.Class));
+        _graph.AddNode(CreateTestNode("OrderService", DeclarationKind.Class));
 
         var query = new SearchQuery
         {
@@ -229,9 +229,9 @@ public class GraphSearchServiceTests
     [Test]
     public async Task SearchAsync_WithKindFilter_ReturnsOnlyMatchingKinds()
     {
-        _graph.AddNode(CreateTestNode("1", "OrderService", DeclarationKind.Class));
-        _graph.AddNode(CreateTestNode("2", "GetOrder", DeclarationKind.Method));
-        _graph.AddNode(CreateTestNode("3", "IOrderService", DeclarationKind.Interface));
+        _graph.AddNode(CreateTestNode("OrderService", DeclarationKind.Class));
+        _graph.AddNode(CreateTestNode("GetOrder", DeclarationKind.Method));
+        _graph.AddNode(CreateTestNode("IOrderService", DeclarationKind.Interface));
 
         var query = new SearchQuery
         {
@@ -248,8 +248,8 @@ public class GraphSearchServiceTests
     [Test]
     public async Task SearchAsync_WithSingleKindFilter_ReturnsOnlySingleKind()
     {
-        _graph.AddNode(CreateTestNode("1", "OrderService", DeclarationKind.Class));
-        _graph.AddNode(CreateTestNode("2", "GetOrder", DeclarationKind.Method));
+        _graph.AddNode(CreateTestNode("OrderService", DeclarationKind.Class));
+        _graph.AddNode(CreateTestNode("GetOrder", DeclarationKind.Method));
 
         var query = new SearchQuery
         {
@@ -266,8 +266,8 @@ public class GraphSearchServiceTests
     [Test]
     public async Task SearchAsync_WithEmptyKindFilter_ReturnsAllKinds()
     {
-        _graph.AddNode(CreateTestNode("1", "OrderService", DeclarationKind.Class));
-        _graph.AddNode(CreateTestNode("2", "GetOrder", DeclarationKind.Method));
+        _graph.AddNode(CreateTestNode("OrderService", DeclarationKind.Class));
+        _graph.AddNode(CreateTestNode("GetOrder", DeclarationKind.Method));
 
         var query = new SearchQuery { SearchText = "Order" };
 
@@ -279,7 +279,7 @@ public class GraphSearchServiceTests
     [Test]
     public async Task SearchAsync_KindFilterNoMatch_ReturnsEmpty()
     {
-        _graph.AddNode(CreateTestNode("1", "OrderService", DeclarationKind.Class));
+        _graph.AddNode(CreateTestNode("OrderService", DeclarationKind.Class));
 
         var query = new SearchQuery
         {
@@ -299,7 +299,7 @@ public class GraphSearchServiceTests
     [Test]
     public async Task SearchAsync_CaseInsensitiveByDefault_MatchesAnyCase()
     {
-        _graph.AddNode(CreateTestNode("1", "OrderService", DeclarationKind.Class));
+        _graph.AddNode(CreateTestNode("OrderService", DeclarationKind.Class));
 
         var query = new SearchQuery { SearchText = "orderservice" };
 
@@ -311,7 +311,7 @@ public class GraphSearchServiceTests
     [Test]
     public async Task SearchAsync_CaseInsensitive_MatchesMixedCase()
     {
-        _graph.AddNode(CreateTestNode("1", "OrderService", DeclarationKind.Class));
+        _graph.AddNode(CreateTestNode("OrderService", DeclarationKind.Class));
 
         var query = new SearchQuery { SearchText = "ORDERSERVICE" };
 
@@ -323,7 +323,7 @@ public class GraphSearchServiceTests
     [Test]
     public async Task SearchAsync_CaseSensitive_OnlyMatchesExactCase()
     {
-        _graph.AddNode(CreateTestNode("1", "OrderService", DeclarationKind.Class));
+        _graph.AddNode(CreateTestNode("OrderService", DeclarationKind.Class));
 
         var query = new SearchQuery
         {
@@ -339,7 +339,7 @@ public class GraphSearchServiceTests
     [Test]
     public async Task SearchAsync_CaseSensitive_MatchesCorrectCase()
     {
-        _graph.AddNode(CreateTestNode("1", "OrderService", DeclarationKind.Class));
+        _graph.AddNode(CreateTestNode("OrderService", DeclarationKind.Class));
 
         var query = new SearchQuery
         {
@@ -359,7 +359,7 @@ public class GraphSearchServiceTests
     [Test]
     public async Task SearchAsync_EmptySearchText_ReturnsEmpty()
     {
-        _graph.AddNode(CreateTestNode("1", "OrderService", DeclarationKind.Class));
+        _graph.AddNode(CreateTestNode("OrderService", DeclarationKind.Class));
 
         var query = new SearchQuery { SearchText = "" };
 
@@ -371,7 +371,7 @@ public class GraphSearchServiceTests
     [Test]
     public async Task SearchAsync_WhitespaceSearchText_ReturnsEmpty()
     {
-        _graph.AddNode(CreateTestNode("1", "OrderService", DeclarationKind.Class));
+        _graph.AddNode(CreateTestNode("OrderService", DeclarationKind.Class));
 
         var query = new SearchQuery { SearchText = "   " };
 
@@ -414,10 +414,10 @@ public class GraphSearchServiceTests
     [Test]
     public async Task SearchAsync_CombinedFilters_AppliesAllFilters()
     {
-        _graph.AddNode(CreateTestNode("1", "OrderService", DeclarationKind.Class));
-        _graph.AddNode(CreateTestNode("2", "OrderRepository", DeclarationKind.Class));
-        _graph.AddNode(CreateTestNode("3", "CustomerService", DeclarationKind.Class));
-        _graph.AddNode(CreateTestNode("4", "GetOrder", DeclarationKind.Method));
+        _graph.AddNode(CreateTestNode("OrderService", DeclarationKind.Class));
+        _graph.AddNode(CreateTestNode("OrderRepository", DeclarationKind.Class));
+        _graph.AddNode(CreateTestNode("CustomerService", DeclarationKind.Class));
+        _graph.AddNode(CreateTestNode("GetOrder", DeclarationKind.Method));
 
         var query = new SearchQuery
         {
@@ -437,17 +437,14 @@ public class GraphSearchServiceTests
 
     #region Helper Methods
 
-    private static DeclarationNode CreateTestNode(
-        string id,
-        string name,
+    private static DeclarationNode CreateTestNode(string name,
         DeclarationKind kind,
         string? fullyQualifiedName = null)
     {
         return new DeclarationNode
         {
-            Id = id,
             Name = name,
-            FullyQualifiedName = fullyQualifiedName ?? $"Test.{name}",
+            Id = fullyQualifiedName ?? $"Test.{name}",
             Kind = kind,
             FilePath = "test.cs",
             StartLine = 1,

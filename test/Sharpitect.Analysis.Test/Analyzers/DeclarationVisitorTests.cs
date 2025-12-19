@@ -16,11 +16,11 @@ public class DeclarationVisitorTests
     public void Visit_SimpleClass_ExtractsClassNode()
     {
         const string code = """
-            namespace TestNamespace
-            {
-                public class MyClass { }
-            }
-            """;
+                            namespace TestNamespace
+                            {
+                                public class MyClass { }
+                            }
+                            """;
 
         var (nodes, _) = AnalyzeCode(code);
 
@@ -29,7 +29,7 @@ public class DeclarationVisitorTests
         Assert.Multiple(() =>
         {
             Assert.That(classNode!.Name, Is.EqualTo("MyClass"));
-            Assert.That(classNode.FullyQualifiedName, Is.EqualTo("TestNamespace.MyClass"));
+            Assert.That(classNode.Id, Is.EqualTo("TestNamespace.MyClass"));
         });
     }
 
@@ -37,14 +37,14 @@ public class DeclarationVisitorTests
     public void Visit_NestedClass_ExtractsNestedClassNode()
     {
         const string code = """
-            namespace TestNamespace
-            {
-                public class OuterClass
-                {
-                    public class InnerClass { }
-                }
-            }
-            """;
+                            namespace TestNamespace
+                            {
+                                public class OuterClass
+                                {
+                                    public class InnerClass { }
+                                }
+                            }
+                            """;
 
         var (nodes, edges) = AnalyzeCode(code);
 
@@ -54,7 +54,7 @@ public class DeclarationVisitorTests
         var outerClass = classes.Single(n => n.Name == "OuterClass");
         var innerClass = classes.Single(n => n.Name == "InnerClass");
 
-        Assert.That(innerClass.FullyQualifiedName, Is.EqualTo("TestNamespace.OuterClass.InnerClass"));
+        Assert.That(innerClass.Id, Is.EqualTo("TestNamespace.OuterClass.InnerClass"));
 
         // Verify containment relationship
         var containmentEdge = edges.SingleOrDefault(e =>
@@ -68,11 +68,11 @@ public class DeclarationVisitorTests
     public void Visit_GenericClass_ExtractsClassWithTypeParameter()
     {
         const string code = """
-            namespace TestNamespace
-            {
-                public class GenericClass<T> { }
-            }
-            """;
+                            namespace TestNamespace
+                            {
+                                public class GenericClass<T> { }
+                            }
+                            """;
 
         var (nodes, _) = AnalyzeCode(code);
 
@@ -81,7 +81,7 @@ public class DeclarationVisitorTests
         Assert.Multiple(() =>
         {
             Assert.That(classNode!.Name, Is.EqualTo("GenericClass"));
-            Assert.That(classNode.FullyQualifiedName, Is.EqualTo("TestNamespace.GenericClass<T>"));
+            Assert.That(classNode.Id, Is.EqualTo("TestNamespace.GenericClass<T>"));
         });
 
         var typeParam = nodes.SingleOrDefault(n => n.Kind == DeclarationKind.TypeParameter);
@@ -97,14 +97,14 @@ public class DeclarationVisitorTests
     public void Visit_Interface_ExtractsInterfaceNode()
     {
         const string code = """
-            namespace TestNamespace
-            {
-                public interface IMyInterface
-                {
-                    void DoSomething();
-                }
-            }
-            """;
+                            namespace TestNamespace
+                            {
+                                public interface IMyInterface
+                                {
+                                    void DoSomething();
+                                }
+                            }
+                            """;
 
         var (nodes, _) = AnalyzeCode(code);
 
@@ -113,7 +113,7 @@ public class DeclarationVisitorTests
         Assert.Multiple(() =>
         {
             Assert.That(interfaceNode!.Name, Is.EqualTo("IMyInterface"));
-            Assert.That(interfaceNode.FullyQualifiedName, Is.EqualTo("TestNamespace.IMyInterface"));
+            Assert.That(interfaceNode.Id, Is.EqualTo("TestNamespace.IMyInterface"));
         });
     }
 
@@ -125,14 +125,14 @@ public class DeclarationVisitorTests
     public void Visit_Struct_ExtractsStructNode()
     {
         const string code = """
-            namespace TestNamespace
-            {
-                public struct MyStruct
-                {
-                    public int Value;
-                }
-            }
-            """;
+                            namespace TestNamespace
+                            {
+                                public struct MyStruct
+                                {
+                                    public int Value;
+                                }
+                            }
+                            """;
 
         var (nodes, _) = AnalyzeCode(code);
 
@@ -141,7 +141,7 @@ public class DeclarationVisitorTests
         Assert.Multiple(() =>
         {
             Assert.That(structNode!.Name, Is.EqualTo("MyStruct"));
-            Assert.That(structNode.FullyQualifiedName, Is.EqualTo("TestNamespace.MyStruct"));
+            Assert.That(structNode.Id, Is.EqualTo("TestNamespace.MyStruct"));
         });
     }
 
@@ -153,11 +153,11 @@ public class DeclarationVisitorTests
     public void Visit_Record_ExtractsRecordNode()
     {
         const string code = """
-            namespace TestNamespace
-            {
-                public record MyRecord(string Name, int Age);
-            }
-            """;
+                            namespace TestNamespace
+                            {
+                                public record MyRecord(string Name, int Age);
+                            }
+                            """;
 
         var (nodes, _) = AnalyzeCode(code);
 
@@ -166,7 +166,7 @@ public class DeclarationVisitorTests
         Assert.Multiple(() =>
         {
             Assert.That(recordNode!.Name, Is.EqualTo("MyRecord"));
-            Assert.That(recordNode.FullyQualifiedName, Is.EqualTo("TestNamespace.MyRecord"));
+            Assert.That(recordNode.Id, Is.EqualTo("TestNamespace.MyRecord"));
         });
     }
 
@@ -174,11 +174,11 @@ public class DeclarationVisitorTests
     public void Visit_RecordStruct_ExtractsRecordNode()
     {
         const string code = """
-            namespace TestNamespace
-            {
-                public record struct MyRecordStruct(int X, int Y);
-            }
-            """;
+                            namespace TestNamespace
+                            {
+                                public record struct MyRecordStruct(int X, int Y);
+                            }
+                            """;
 
         var (nodes, _) = AnalyzeCode(code);
 
@@ -195,16 +195,16 @@ public class DeclarationVisitorTests
     public void Visit_Enum_ExtractsEnumNode()
     {
         const string code = """
-            namespace TestNamespace
-            {
-                public enum Status
-                {
-                    Active,
-                    Inactive,
-                    Pending
-                }
-            }
-            """;
+                            namespace TestNamespace
+                            {
+                                public enum Status
+                                {
+                                    Active,
+                                    Inactive,
+                                    Pending
+                                }
+                            }
+                            """;
 
         var (nodes, _) = AnalyzeCode(code);
 
@@ -213,7 +213,7 @@ public class DeclarationVisitorTests
         Assert.Multiple(() =>
         {
             Assert.That(enumNode!.Name, Is.EqualTo("Status"));
-            Assert.That(enumNode.FullyQualifiedName, Is.EqualTo("TestNamespace.Status"));
+            Assert.That(enumNode.Id, Is.EqualTo("TestNamespace.Status"));
         });
     }
 
@@ -221,16 +221,16 @@ public class DeclarationVisitorTests
     public void Visit_EnumMembers_ExtractsEnumMemberNodes()
     {
         const string code = """
-            namespace TestNamespace
-            {
-                public enum Status
-                {
-                    Active,
-                    Inactive,
-                    Pending
-                }
-            }
-            """;
+                            namespace TestNamespace
+                            {
+                                public enum Status
+                                {
+                                    Active,
+                                    Inactive,
+                                    Pending
+                                }
+                            }
+                            """;
 
         var (nodes, _) = AnalyzeCode(code);
 
@@ -247,11 +247,11 @@ public class DeclarationVisitorTests
     public void Visit_Delegate_ExtractsDelegateNode()
     {
         const string code = """
-            namespace TestNamespace
-            {
-                public delegate void MyDelegate(string message);
-            }
-            """;
+                            namespace TestNamespace
+                            {
+                                public delegate void MyDelegate(string message);
+                            }
+                            """;
 
         var (nodes, _) = AnalyzeCode(code);
 
@@ -260,7 +260,7 @@ public class DeclarationVisitorTests
         Assert.Multiple(() =>
         {
             Assert.That(delegateNode!.Name, Is.EqualTo("MyDelegate"));
-            Assert.That(delegateNode.FullyQualifiedName, Is.EqualTo("TestNamespace.MyDelegate"));
+            Assert.That(delegateNode.Id, Is.EqualTo("TestNamespace.MyDelegate"));
         });
     }
 
@@ -272,14 +272,14 @@ public class DeclarationVisitorTests
     public void Visit_Method_ExtractsMethodNode()
     {
         const string code = """
-            namespace TestNamespace
-            {
-                public class MyClass
-                {
-                    public void MyMethod() { }
-                }
-            }
-            """;
+                            namespace TestNamespace
+                            {
+                                public class MyClass
+                                {
+                                    public void MyMethod() { }
+                                }
+                            }
+                            """;
 
         var (nodes, _) = AnalyzeCode(code);
 
@@ -288,7 +288,7 @@ public class DeclarationVisitorTests
         Assert.Multiple(() =>
         {
             Assert.That(methodNode!.Name, Is.EqualTo("MyMethod"));
-            Assert.That(methodNode.FullyQualifiedName, Is.EqualTo("TestNamespace.MyClass.MyMethod()"));
+            Assert.That(methodNode.Id, Is.EqualTo("TestNamespace.MyClass.MyMethod()"));
         });
     }
 
@@ -296,14 +296,14 @@ public class DeclarationVisitorTests
     public void Visit_MethodWithParameters_ExtractsMethodAndParameters()
     {
         const string code = """
-            namespace TestNamespace
-            {
-                public class MyClass
-                {
-                    public int Add(int a, int b) => a + b;
-                }
-            }
-            """;
+                            namespace TestNamespace
+                            {
+                                public class MyClass
+                                {
+                                    public int Add(int a, int b) => a + b;
+                                }
+                            }
+                            """;
 
         var (nodes, _) = AnalyzeCode(code);
 
@@ -312,7 +312,7 @@ public class DeclarationVisitorTests
         Assert.Multiple(() =>
         {
             Assert.That(methodNode!.Name, Is.EqualTo("Add"));
-            Assert.That(methodNode.FullyQualifiedName, Is.EqualTo("TestNamespace.MyClass.Add(int, int)"));
+            Assert.That(methodNode.Id, Is.EqualTo("TestNamespace.MyClass.Add(int, int)"));
         });
 
         var parameters = nodes.Where(n => n.Kind == DeclarationKind.Parameter).ToList();
@@ -324,14 +324,14 @@ public class DeclarationVisitorTests
     public void Visit_GenericMethod_ExtractsMethodWithTypeParameter()
     {
         const string code = """
-            namespace TestNamespace
-            {
-                public class MyClass
-                {
-                    public T Identity<T>(T value) => value;
-                }
-            }
-            """;
+                            namespace TestNamespace
+                            {
+                                public class MyClass
+                                {
+                                    public T Identity<T>(T value) => value;
+                                }
+                            }
+                            """;
 
         var (nodes, _) = AnalyzeCode(code);
 
@@ -347,14 +347,14 @@ public class DeclarationVisitorTests
     public void Visit_StaticMethod_ExtractsMethodNode()
     {
         const string code = """
-            namespace TestNamespace
-            {
-                public static class Utilities
-                {
-                    public static int Square(int x) => x * x;
-                }
-            }
-            """;
+                            namespace TestNamespace
+                            {
+                                public static class Utilities
+                                {
+                                    public static int Square(int x) => x * x;
+                                }
+                            }
+                            """;
 
         var (nodes, _) = AnalyzeCode(code);
 
@@ -371,14 +371,14 @@ public class DeclarationVisitorTests
     public void Visit_Constructor_ExtractsConstructorNode()
     {
         const string code = """
-            namespace TestNamespace
-            {
-                public class MyClass
-                {
-                    public MyClass() { }
-                }
-            }
-            """;
+                            namespace TestNamespace
+                            {
+                                public class MyClass
+                                {
+                                    public MyClass() { }
+                                }
+                            }
+                            """;
 
         var (nodes, _) = AnalyzeCode(code);
 
@@ -391,14 +391,14 @@ public class DeclarationVisitorTests
     public void Visit_ConstructorWithParameters_ExtractsConstructorAndParameters()
     {
         const string code = """
-            namespace TestNamespace
-            {
-                public class Person
-                {
-                    public Person(string name, int age) { }
-                }
-            }
-            """;
+                            namespace TestNamespace
+                            {
+                                public class Person
+                                {
+                                    public Person(string name, int age) { }
+                                }
+                            }
+                            """;
 
         var (nodes, _) = AnalyzeCode(code);
 
@@ -418,14 +418,14 @@ public class DeclarationVisitorTests
     public void Visit_Property_ExtractsPropertyNode()
     {
         const string code = """
-            namespace TestNamespace
-            {
-                public class MyClass
-                {
-                    public string Name { get; set; }
-                }
-            }
-            """;
+                            namespace TestNamespace
+                            {
+                                public class MyClass
+                                {
+                                    public string Name { get; set; }
+                                }
+                            }
+                            """;
 
         var (nodes, _) = AnalyzeCode(code);
 
@@ -434,7 +434,7 @@ public class DeclarationVisitorTests
         Assert.Multiple(() =>
         {
             Assert.That(propNode!.Name, Is.EqualTo("Name"));
-            Assert.That(propNode.FullyQualifiedName, Is.EqualTo("TestNamespace.MyClass.Name"));
+            Assert.That(propNode.Id, Is.EqualTo("TestNamespace.MyClass.Name"));
         });
     }
 
@@ -442,14 +442,14 @@ public class DeclarationVisitorTests
     public void Visit_AutoProperty_ExtractsPropertyNode()
     {
         const string code = """
-            namespace TestNamespace
-            {
-                public class MyClass
-                {
-                    public int Count { get; }
-                }
-            }
-            """;
+                            namespace TestNamespace
+                            {
+                                public class MyClass
+                                {
+                                    public int Count { get; }
+                                }
+                            }
+                            """;
 
         var (nodes, _) = AnalyzeCode(code);
 
@@ -462,19 +462,19 @@ public class DeclarationVisitorTests
     public void Visit_PropertyWithBackingField_ExtractsBothPropertyAndField()
     {
         const string code = """
-            namespace TestNamespace
-            {
-                public class MyClass
-                {
-                    private string _name;
-                    public string Name
-                    {
-                        get => _name;
-                        set => _name = value;
-                    }
-                }
-            }
-            """;
+                            namespace TestNamespace
+                            {
+                                public class MyClass
+                                {
+                                    private string _name;
+                                    public string Name
+                                    {
+                                        get => _name;
+                                        set => _name = value;
+                                    }
+                                }
+                            }
+                            """;
 
         var (nodes, _) = AnalyzeCode(code);
 
@@ -495,14 +495,14 @@ public class DeclarationVisitorTests
     public void Visit_Field_ExtractsFieldNode()
     {
         const string code = """
-            namespace TestNamespace
-            {
-                public class MyClass
-                {
-                    private int _count;
-                }
-            }
-            """;
+                            namespace TestNamespace
+                            {
+                                public class MyClass
+                                {
+                                    private int _count;
+                                }
+                            }
+                            """;
 
         var (nodes, _) = AnalyzeCode(code);
 
@@ -511,7 +511,7 @@ public class DeclarationVisitorTests
         Assert.Multiple(() =>
         {
             Assert.That(fieldNode!.Name, Is.EqualTo("_count"));
-            Assert.That(fieldNode.FullyQualifiedName, Is.EqualTo("TestNamespace.MyClass._count"));
+            Assert.That(fieldNode.Id, Is.EqualTo("TestNamespace.MyClass._count"));
         });
     }
 
@@ -519,14 +519,14 @@ public class DeclarationVisitorTests
     public void Visit_MultipleFieldsInSingleDeclaration_ExtractsAllFields()
     {
         const string code = """
-            namespace TestNamespace
-            {
-                public class MyClass
-                {
-                    private int x, y, z;
-                }
-            }
-            """;
+                            namespace TestNamespace
+                            {
+                                public class MyClass
+                                {
+                                    private int x, y, z;
+                                }
+                            }
+                            """;
 
         var (nodes, _) = AnalyzeCode(code);
 
@@ -539,14 +539,14 @@ public class DeclarationVisitorTests
     public void Visit_ConstField_ExtractsFieldNode()
     {
         const string code = """
-            namespace TestNamespace
-            {
-                public class MyClass
-                {
-                    public const int MaxValue = 100;
-                }
-            }
-            """;
+                            namespace TestNamespace
+                            {
+                                public class MyClass
+                                {
+                                    public const int MaxValue = 100;
+                                }
+                            }
+                            """;
 
         var (nodes, _) = AnalyzeCode(code);
 
@@ -563,14 +563,14 @@ public class DeclarationVisitorTests
     public void Visit_EventField_ExtractsEventNode()
     {
         const string code = """
-            namespace TestNamespace
-            {
-                public class MyClass
-                {
-                    public event EventHandler MyEvent;
-                }
-            }
-            """;
+                            namespace TestNamespace
+                            {
+                                public class MyClass
+                                {
+                                    public event EventHandler MyEvent;
+                                }
+                            }
+                            """;
 
         var (nodes, _) = AnalyzeCode(code);
 
@@ -583,19 +583,19 @@ public class DeclarationVisitorTests
     public void Visit_EventWithAccessors_ExtractsEventNode()
     {
         const string code = """
-            namespace TestNamespace
-            {
-                public class MyClass
-                {
-                    private EventHandler _handler;
-                    public event EventHandler MyEvent
-                    {
-                        add { _handler += value; }
-                        remove { _handler -= value; }
-                    }
-                }
-            }
-            """;
+                            namespace TestNamespace
+                            {
+                                public class MyClass
+                                {
+                                    private EventHandler _handler;
+                                    public event EventHandler MyEvent
+                                    {
+                                        add { _handler += value; }
+                                        remove { _handler -= value; }
+                                    }
+                                }
+                            }
+                            """;
 
         var (nodes, _) = AnalyzeCode(code);
 
@@ -612,19 +612,19 @@ public class DeclarationVisitorTests
     public void Visit_Indexer_ExtractsIndexerNode()
     {
         const string code = """
-            namespace TestNamespace
-            {
-                public class MyCollection
-                {
-                    private int[] _items = new int[10];
-                    public int this[int index]
-                    {
-                        get => _items[index];
-                        set => _items[index] = value;
-                    }
-                }
-            }
-            """;
+                            namespace TestNamespace
+                            {
+                                public class MyCollection
+                                {
+                                    private int[] _items = new int[10];
+                                    public int this[int index]
+                                    {
+                                        get => _items[index];
+                                        set => _items[index] = value;
+                                    }
+                                }
+                            }
+                            """;
 
         var (nodes, _) = AnalyzeCode(code);
 
@@ -641,18 +641,18 @@ public class DeclarationVisitorTests
     public void Visit_LocalFunction_ExtractsLocalFunctionNode()
     {
         const string code = """
-            namespace TestNamespace
-            {
-                public class MyClass
-                {
-                    public int Calculate(int n)
-                    {
-                        int LocalAdd(int a, int b) => a + b;
-                        return LocalAdd(n, n);
-                    }
-                }
-            }
-            """;
+                            namespace TestNamespace
+                            {
+                                public class MyClass
+                                {
+                                    public int Calculate(int n)
+                                    {
+                                        int LocalAdd(int a, int b) => a + b;
+                                        return LocalAdd(n, n);
+                                    }
+                                }
+                            }
+                            """;
 
         var (nodes, _) = AnalyzeCode(code);
 
@@ -665,22 +665,22 @@ public class DeclarationVisitorTests
     public void Visit_NestedLocalFunctions_ExtractsAllLocalFunctions()
     {
         const string code = """
-            namespace TestNamespace
-            {
-                public class MyClass
-                {
-                    public void Process()
-                    {
-                        void Outer()
-                        {
-                            void Inner() { }
-                            Inner();
-                        }
-                        Outer();
-                    }
-                }
-            }
-            """;
+                            namespace TestNamespace
+                            {
+                                public class MyClass
+                                {
+                                    public void Process()
+                                    {
+                                        void Outer()
+                                        {
+                                            void Inner() { }
+                                            Inner();
+                                        }
+                                        Outer();
+                                    }
+                                }
+                            }
+                            """;
 
         var (nodes, _) = AnalyzeCode(code);
 
@@ -697,17 +697,17 @@ public class DeclarationVisitorTests
     public void Visit_LocalVariable_ExtractsLocalVariableNode()
     {
         const string code = """
-            namespace TestNamespace
-            {
-                public class MyClass
-                {
-                    public void Process()
-                    {
-                        int count = 0;
-                    }
-                }
-            }
-            """;
+                            namespace TestNamespace
+                            {
+                                public class MyClass
+                                {
+                                    public void Process()
+                                    {
+                                        int count = 0;
+                                    }
+                                }
+                            }
+                            """;
 
         var (nodes, _) = AnalyzeCode(code);
 
@@ -720,17 +720,17 @@ public class DeclarationVisitorTests
     public void Visit_MultipleLocalVariables_ExtractsAllVariables()
     {
         const string code = """
-            namespace TestNamespace
-            {
-                public class MyClass
-                {
-                    public void Process()
-                    {
-                        int a = 1, b = 2, c = 3;
-                    }
-                }
-            }
-            """;
+                            namespace TestNamespace
+                            {
+                                public class MyClass
+                                {
+                                    public void Process()
+                                    {
+                                        int a = 1, b = 2, c = 3;
+                                    }
+                                }
+                            }
+                            """;
 
         var (nodes, _) = AnalyzeCode(code);
 
@@ -747,11 +747,11 @@ public class DeclarationVisitorTests
     public void Visit_Namespace_ExtractsNamespaceNode()
     {
         const string code = """
-            namespace TestNamespace
-            {
-                public class MyClass { }
-            }
-            """;
+                            namespace TestNamespace
+                            {
+                                public class MyClass { }
+                            }
+                            """;
 
         var (nodes, _) = AnalyzeCode(code);
 
@@ -760,7 +760,7 @@ public class DeclarationVisitorTests
         Assert.Multiple(() =>
         {
             Assert.That(nsNode!.Name, Is.EqualTo("TestNamespace"));
-            Assert.That(nsNode.FullyQualifiedName, Is.EqualTo("TestNamespace"));
+            Assert.That(nsNode.Id, Is.EqualTo("TestNamespace"));
         });
     }
 
@@ -768,14 +768,14 @@ public class DeclarationVisitorTests
     public void Visit_NestedNamespaces_ExtractsAllNamespaces()
     {
         const string code = """
-            namespace Outer
-            {
-                namespace Inner
-                {
-                    public class MyClass { }
-                }
-            }
-            """;
+                            namespace Outer
+                            {
+                                namespace Inner
+                                {
+                                    public class MyClass { }
+                                }
+                            }
+                            """;
 
         var (nodes, _) = AnalyzeCode(code);
 
@@ -788,10 +788,10 @@ public class DeclarationVisitorTests
     public void Visit_FileScopedNamespace_ExtractsNamespaceNode()
     {
         const string code = """
-            namespace TestNamespace;
+                            namespace TestNamespace;
 
-            public class MyClass { }
-            """;
+                            public class MyClass { }
+                            """;
 
         var (nodes, _) = AnalyzeCode(code);
 
@@ -808,14 +808,14 @@ public class DeclarationVisitorTests
     public void Visit_ClassContainsMethod_CreatesContainmentEdge()
     {
         const string code = """
-            namespace TestNamespace
-            {
-                public class MyClass
-                {
-                    public void MyMethod() { }
-                }
-            }
-            """;
+                            namespace TestNamespace
+                            {
+                                public class MyClass
+                                {
+                                    public void MyMethod() { }
+                                }
+                            }
+                            """;
 
         var (nodes, edges) = AnalyzeCode(code);
 
@@ -834,11 +834,11 @@ public class DeclarationVisitorTests
     public void Visit_NamespaceContainsClass_CreatesContainmentEdge()
     {
         const string code = """
-            namespace TestNamespace
-            {
-                public class MyClass { }
-            }
-            """;
+                            namespace TestNamespace
+                            {
+                                public class MyClass { }
+                            }
+                            """;
 
         var (nodes, edges) = AnalyzeCode(code);
 
@@ -857,17 +857,17 @@ public class DeclarationVisitorTests
     public void Visit_MethodContainsLocalFunction_CreatesContainmentEdge()
     {
         const string code = """
-            namespace TestNamespace
-            {
-                public class MyClass
-                {
-                    public void MyMethod()
-                    {
-                        void LocalFunc() { }
-                    }
-                }
-            }
-            """;
+                            namespace TestNamespace
+                            {
+                                public class MyClass
+                                {
+                                    public void MyMethod()
+                                    {
+                                        void LocalFunc() { }
+                                    }
+                                }
+                            }
+                            """;
 
         var (nodes, edges) = AnalyzeCode(code);
 
@@ -890,14 +890,14 @@ public class DeclarationVisitorTests
     public void Visit_Declaration_CapturesCorrectLineNumbers()
     {
         const string code = """
-            namespace TestNamespace
-            {
-                public class MyClass
-                {
-                    public void MyMethod() { }
-                }
-            }
-            """;
+                            namespace TestNamespace
+                            {
+                                public class MyClass
+                                {
+                                    public void MyMethod() { }
+                                }
+                            }
+                            """;
 
         var (nodes, _) = AnalyzeCode(code);
 
@@ -912,11 +912,11 @@ public class DeclarationVisitorTests
     public void Visit_Declaration_CapturesFilePath()
     {
         const string code = """
-            namespace TestNamespace
-            {
-                public class MyClass { }
-            }
-            """;
+                            namespace TestNamespace
+                            {
+                                public class MyClass { }
+                            }
+                            """;
 
         var (nodes, _) = AnalyzeCode(code);
 
@@ -932,14 +932,14 @@ public class DeclarationVisitorTests
     public void Visit_Declaration_PopulatesSymbolToNodeIdMapping()
     {
         const string code = """
-            namespace TestNamespace
-            {
-                public class MyClass
-                {
-                    public void MyMethod() { }
-                }
-            }
-            """;
+                            namespace TestNamespace
+                            {
+                                public class MyClass
+                                {
+                                    public void MyMethod() { }
+                                }
+                            }
+                            """;
 
         var (tree, semanticModel) = CreateCompilation(code);
         var visitor = new DeclarationVisitor(semanticModel, TestFilePath);
@@ -957,29 +957,29 @@ public class DeclarationVisitorTests
     public void Visit_FullClassWithAllMemberTypes_ExtractsAllDeclarations()
     {
         const string code = """
-            namespace TestNamespace
-            {
-                public class CompleteClass
-                {
-                    private int _field;
-                    public const string Constant = "value";
+                            namespace TestNamespace
+                            {
+                                public class CompleteClass
+                                {
+                                    private int _field;
+                                    public const string Constant = "value";
 
-                    public event EventHandler Changed;
+                                    public event EventHandler Changed;
 
-                    public CompleteClass() { }
+                                    public CompleteClass() { }
 
-                    public string Name { get; set; }
+                                    public string Name { get; set; }
 
-                    public void DoWork(int param)
-                    {
-                        int localVar = 0;
-                        void LocalFunc() { }
-                    }
+                                    public void DoWork(int param)
+                                    {
+                                        int localVar = 0;
+                                        void LocalFunc() { }
+                                    }
 
-                    public int this[int index] => _field;
-                }
-            }
-            """;
+                                    public int this[int index] => _field;
+                                }
+                            }
+                            """;
 
         var (nodes, _) = AnalyzeCode(code);
 
@@ -1003,13 +1003,13 @@ public class DeclarationVisitorTests
     public void Visit_MultipleClassesInSameNamespace_ExtractsAllClasses()
     {
         const string code = """
-            namespace TestNamespace
-            {
-                public class ClassA { }
-                public class ClassB { }
-                public class ClassC { }
-            }
-            """;
+                            namespace TestNamespace
+                            {
+                                public class ClassA { }
+                                public class ClassB { }
+                                public class ClassC { }
+                            }
+                            """;
 
         var (nodes, _) = AnalyzeCode(code);
 

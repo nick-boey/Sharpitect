@@ -307,10 +307,10 @@ public sealed class ReferenceVisitor : CSharpSyntaxWalker
         // For named types, try to find by generated ID
         if (targetSymbol is INamedTypeSymbol namedType)
         {
-            var generatedId = DeclarationVisitor.GenerateNodeId(namedType);
-            if (_solutionNodeIds.Contains(generatedId))
+            var id = namedType.ToDisplayString();
+            if (_solutionNodeIds.Contains(id))
             {
-                AddEdge(sourceId, generatedId, kind, node);
+                AddEdge(sourceId, id, kind, node);
             }
         }
     }
@@ -330,6 +330,7 @@ public sealed class ReferenceVisitor : CSharpSyntaxWalker
             {
                 AddTypeReferenceEdge(sourceId, underlyingType, node);
             }
+
             return;
         }
 
