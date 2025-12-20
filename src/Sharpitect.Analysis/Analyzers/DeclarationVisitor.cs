@@ -10,9 +10,11 @@ namespace Sharpitect.Analysis.Analyzers;
 /// </summary>
 public sealed class DeclarationVisitor : CSharpSyntaxWalker
 {
+    private readonly bool _visitLocals;
     private readonly SemanticModel _semanticModel;
     private readonly string _filePath;
     private readonly Stack<string> _containerStack = new();
+
 
     /// <summary>
     /// Gets all discovered declaration nodes.
@@ -34,10 +36,12 @@ public sealed class DeclarationVisitor : CSharpSyntaxWalker
     /// </summary>
     /// <param name="semanticModel">The semantic model for symbol resolution.</param>
     /// <param name="filePath">The file path being analyzed.</param>
-    public DeclarationVisitor(SemanticModel semanticModel, string filePath)
+    /// <param name="visitLocals">True to visit all local declarations. Defaults as false to avoid duplicate id's.</param>
+    public DeclarationVisitor(SemanticModel semanticModel, string filePath, bool visitLocals = false)
     {
         _semanticModel = semanticModel;
         _filePath = filePath;
+        _visitLocals = visitLocals;
     }
 
     public override void VisitFileScopedNamespaceDeclaration(FileScopedNamespaceDeclarationSyntax node)
@@ -310,6 +314,8 @@ public sealed class DeclarationVisitor : CSharpSyntaxWalker
 
     public override void VisitParameter(ParameterSyntax node)
     {
+        if (!_visitLocals) return;
+
         var symbol = _semanticModel.GetDeclaredSymbol(node);
         if (symbol != null)
         {
@@ -323,6 +329,8 @@ public sealed class DeclarationVisitor : CSharpSyntaxWalker
 
     public override void VisitTypeParameter(TypeParameterSyntax node)
     {
+        if (!_visitLocals) return;
+
         var symbol = _semanticModel.GetDeclaredSymbol(node);
         if (symbol != null)
         {
@@ -336,6 +344,8 @@ public sealed class DeclarationVisitor : CSharpSyntaxWalker
 
     public override void VisitVariableDeclarator(VariableDeclaratorSyntax node)
     {
+        if (!_visitLocals) return;
+
         // Only track local variables (not field declarations, which are handled separately)
         if (node.Parent?.Parent is LocalDeclarationStatementSyntax)
         {
@@ -353,6 +363,8 @@ public sealed class DeclarationVisitor : CSharpSyntaxWalker
 
     public override void VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
     {
+        if (!_visitLocals) return;
+
         var symbol = _semanticModel.GetDeclaredSymbol(node);
         if (symbol != null)
         {
