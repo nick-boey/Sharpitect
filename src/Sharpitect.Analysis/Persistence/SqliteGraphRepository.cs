@@ -117,6 +117,26 @@ public sealed class SqliteGraphRepository : IGraphRepository
         await transaction.CommitAsync(cancellationToken);
     }
 
+    /// <inheritdoc /> 
+    public async Task<IEnumerable<DeclarationNode>> GetAllNodesAsync(CancellationToken cancellationToken = default)
+    {
+        EnsureInitialized();
+
+        const string sql = "SELECT * FROM nodes";
+
+        await using var command = _connection!.CreateCommand();
+        command.CommandText = sql;
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        var nodes = new List<DeclarationNode>();
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            nodes.Add(ReadNode(reader));
+        }
+
+        return nodes;
+    }
+
     /// <inheritdoc />
     public async Task<DeclarationNode?> GetNodeAsync(string id, CancellationToken cancellationToken = default)
     {

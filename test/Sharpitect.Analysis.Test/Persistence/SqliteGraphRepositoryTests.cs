@@ -245,6 +245,74 @@ public class SqliteGraphRepositoryTests
         Assert.That(retrieved, Is.Null);
     }
 
+    [Test]
+    public async Task GetAllNodesAsync_ShouldReturnEmptyWhenNoNodes()
+    {
+        var nodes = await _repository.GetAllNodesAsync();
+
+        Assert.That(nodes, Is.Empty);
+    }
+
+    [Test]
+    public async Task GetAllNodesAsync_ShouldReturnAllNodes()
+    {
+        var expectedNodes = new[]
+        {
+            CreateTestNode("id1", "Class1", DeclarationKind.Class),
+            CreateTestNode("id2", "Interface1", DeclarationKind.Interface),
+            CreateTestNode("id3", "Method1", DeclarationKind.Method)
+        };
+        await _repository.SaveNodesAsync(expectedNodes);
+
+        var nodes = (await _repository.GetAllNodesAsync()).ToList();
+
+        Assert.That(nodes, Has.Count.EqualTo(3));
+        Assert.Multiple(() =>
+        {
+            Assert.That(nodes.Select(n => n.Id), Is.EquivalentTo(new[] { "id1", "id2", "id3" }));
+            Assert.That(nodes.Select(n => n.Name), Is.EquivalentTo(new[] { "Class1", "Interface1", "Method1" }));
+        });
+    }
+
+    [Test]
+    public async Task GetAllNodesAsync_ShouldPreserveAllNodeProperties()
+    {
+        var node = new DeclarationNode
+        {
+            Id = "full-id",
+            Name = "FullNode",
+            Kind = DeclarationKind.Class,
+            FilePath = "path/to/file.cs",
+            StartLine = 10,
+            StartColumn = 5,
+            EndLine = 50,
+            EndColumn = 1,
+            C4Level = C4Level.Component,
+            C4Description = "Test description",
+            Metadata = "{\"key\": \"value\"}"
+        };
+        await _repository.SaveNodeAsync(node);
+
+        var nodes = (await _repository.GetAllNodesAsync()).ToList();
+
+        Assert.That(nodes, Has.Count.EqualTo(1));
+        var retrieved = nodes[0];
+        Assert.Multiple(() =>
+        {
+            Assert.That(retrieved.Id, Is.EqualTo("full-id"));
+            Assert.That(retrieved.Name, Is.EqualTo("FullNode"));
+            Assert.That(retrieved.Kind, Is.EqualTo(DeclarationKind.Class));
+            Assert.That(retrieved.FilePath, Is.EqualTo("path/to/file.cs"));
+            Assert.That(retrieved.StartLine, Is.EqualTo(10));
+            Assert.That(retrieved.StartColumn, Is.EqualTo(5));
+            Assert.That(retrieved.EndLine, Is.EqualTo(50));
+            Assert.That(retrieved.EndColumn, Is.EqualTo(1));
+            Assert.That(retrieved.C4Level, Is.EqualTo(C4Level.Component));
+            Assert.That(retrieved.C4Description, Is.EqualTo("Test description"));
+            Assert.That(retrieved.Metadata, Is.EqualTo("{\"key\": \"value\"}"));
+        });
+    }
+
     private async Task SetupNodesAndEdges()
     {
         var nodes = new[]

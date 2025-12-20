@@ -35,12 +35,14 @@ public sealed class SemanticProjectAnalyzer
     /// <param name="project">The Roslyn project to analyze.</param>
     /// <param name="existingSymbolMap">Existing symbol-to-node-ID mapping from previous projects.</param>
     /// <param name="existingNodeIds">Set of existing node IDs for filtering solution-internal references.</param>
+    /// <param name="visitLocals">True to include locals variables and parameteres in the tree.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Analysis results containing nodes and edges.</returns>
     public async Task<ProjectAnalysisResult> AnalyzeProjectAsync(
         Project project,
         Dictionary<ISymbol, string> existingSymbolMap,
         HashSet<string> existingNodeIds,
+        bool visitLocals = false,
         CancellationToken cancellationToken = default)
     {
         var allNodes = new List<DeclarationNode>();
@@ -66,7 +68,7 @@ public sealed class SemanticProjectAnalyzer
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken);
             var semanticModel = compilation.GetSemanticModel(syntaxTree!);
 
-            var declarationVisitor = new DeclarationVisitor(semanticModel, document.FilePath);
+            var declarationVisitor = new DeclarationVisitor(semanticModel, document.FilePath, visitLocals);
             declarationVisitor.Visit(await syntaxTree!.GetRootAsync(cancellationToken));
 
             allNodes.AddRange(declarationVisitor.Nodes);

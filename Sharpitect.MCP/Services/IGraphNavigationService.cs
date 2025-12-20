@@ -21,6 +21,11 @@ public interface IGraphNavigationService
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Gets all the nodes in the graph.
+    /// </summary>
+    Task<IEnumerable<NodeDetail?>> GetAllNodesAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets detailed information about a node by it's fully qualified name.
     /// </summary>
     Task<NodeDetail?> GetNodeAsync(string name, CancellationToken cancellationToken = default);

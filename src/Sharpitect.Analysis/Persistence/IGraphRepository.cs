@@ -42,6 +42,12 @@ public interface IGraphRepository : IAsyncDisposable
     Task SaveEdgesAsync(IEnumerable<RelationshipEdge> edges, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Gets all nodes in the graph. 
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task<IEnumerable<DeclarationNode>> GetAllNodesAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets a node by ID.
     /// </summary>
     /// <param name="id">The node ID.</param>
@@ -55,7 +61,8 @@ public interface IGraphRepository : IAsyncDisposable
     /// <param name="fullyQualifiedName">The fully qualified name of the node.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The node if found, otherwise null.</returns>
-    Task<DeclarationNode?> GetNodeByFullyQualifiedNameAsync(string fullyQualifiedName, CancellationToken cancellationToken = default);
+    Task<DeclarationNode?> GetNodeByFullyQualifiedNameAsync(string fullyQualifiedName,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets nodes by kind.
@@ -63,7 +70,8 @@ public interface IGraphRepository : IAsyncDisposable
     /// <param name="kind">The declaration kind to filter by.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>All nodes of the specified kind.</returns>
-    Task<IReadOnlyList<DeclarationNode>> GetNodesByKindAsync(DeclarationKind kind, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<DeclarationNode>> GetNodesByKindAsync(DeclarationKind kind,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets nodes by file path.
@@ -71,7 +79,8 @@ public interface IGraphRepository : IAsyncDisposable
     /// <param name="filePath">The file path to filter by.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>All nodes in the specified file.</returns>
-    Task<IReadOnlyList<DeclarationNode>> GetNodesByFileAsync(string filePath, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<DeclarationNode>> GetNodesByFileAsync(string filePath,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets all outgoing edges from a node.
@@ -79,7 +88,8 @@ public interface IGraphRepository : IAsyncDisposable
     /// <param name="nodeId">The source node ID.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>All edges originating from the node.</returns>
-    Task<IReadOnlyList<RelationshipEdge>> GetOutgoingEdgesAsync(string nodeId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<RelationshipEdge>> GetOutgoingEdgesAsync(string nodeId,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets all incoming edges to a node.
@@ -87,7 +97,8 @@ public interface IGraphRepository : IAsyncDisposable
     /// <param name="nodeId">The target node ID.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>All edges pointing to the node.</returns>
-    Task<IReadOnlyList<RelationshipEdge>> GetIncomingEdgesAsync(string nodeId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<RelationshipEdge>> GetIncomingEdgesAsync(string nodeId,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets edges by kind.
@@ -95,7 +106,8 @@ public interface IGraphRepository : IAsyncDisposable
     /// <param name="kind">The relationship kind to filter by.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>All edges of the specified kind.</returns>
-    Task<IReadOnlyList<RelationshipEdge>> GetEdgesByKindAsync(RelationshipKind kind, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<RelationshipEdge>> GetEdgesByKindAsync(RelationshipKind kind,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Clears all data from the repository.

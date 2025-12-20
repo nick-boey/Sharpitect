@@ -151,6 +151,55 @@ public class DeclarationGraphTests
         });
     }
 
+    [Test]
+    public void Nodes_ShouldReturnEmptyDictionaryWhenNoNodes()
+    {
+        var graph = new DeclarationGraph();
+
+        Assert.That(graph.Nodes, Is.Empty);
+    }
+
+    [Test]
+    public void Nodes_ShouldReturnAllAddedNodes()
+    {
+        var graph = new DeclarationGraph();
+        var node1 = CreateTestNode("Class1", DeclarationKind.Class);
+        var node2 = CreateTestNode("Interface1", DeclarationKind.Interface);
+        var node3 = CreateTestNode("Method1", DeclarationKind.Method);
+        graph.AddNode(node1);
+        graph.AddNode(node2);
+        graph.AddNode(node3);
+
+        var nodes = graph.Nodes;
+
+        Assert.That(nodes, Has.Count.EqualTo(3));
+        Assert.Multiple(() =>
+        {
+            Assert.That(nodes.ContainsKey("Class1"), Is.True);
+            Assert.That(nodes.ContainsKey("Interface1"), Is.True);
+            Assert.That(nodes.ContainsKey("Method1"), Is.True);
+            Assert.That(nodes["Class1"], Is.EqualTo(node1));
+            Assert.That(nodes["Interface1"], Is.EqualTo(node2));
+            Assert.That(nodes["Method1"], Is.EqualTo(node3));
+        });
+    }
+
+    [Test]
+    public void Nodes_ValuesContainsAllNodes()
+    {
+        var graph = new DeclarationGraph();
+        var node1 = CreateTestNode("Class1", DeclarationKind.Class);
+        var node2 = CreateTestNode("Class2", DeclarationKind.Class);
+        graph.AddNode(node1);
+        graph.AddNode(node2);
+
+        var allNodes = graph.Nodes.Values.ToList();
+
+        Assert.That(allNodes, Has.Count.EqualTo(2));
+        Assert.That(allNodes, Does.Contain(node1));
+        Assert.That(allNodes, Does.Contain(node2));
+    }
+
     private static DeclarationNode CreateTestNode(string name, DeclarationKind kind)
     {
         return new DeclarationNode

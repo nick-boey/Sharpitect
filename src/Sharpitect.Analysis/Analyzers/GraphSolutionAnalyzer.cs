@@ -31,9 +31,11 @@ public sealed class GraphSolutionAnalyzer
     /// Analyzes a solution and persists the declaration graph.
     /// </summary>
     /// <param name="solutionPath">Path to the .sln file.</param>
+    /// <param name="visitLocals">True to include local variables and parameters.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The declaration graph.</returns>
-    public async Task<DeclarationGraph> AnalyzeAsync(string solutionPath, CancellationToken cancellationToken = default)
+    public async Task<DeclarationGraph> AnalyzeAsync(string solutionPath, bool visitLocals = false,
+        CancellationToken cancellationToken = default)
     {
         EnsureMSBuildRegistered();
 
@@ -107,6 +109,7 @@ public sealed class GraphSolutionAnalyzer
                 project,
                 symbolToNodeId,
                 allNodeIds,
+                visitLocals,
                 cancellationToken);
 
             // Add project containment edges for namespaces (top-level namespaces in project)

@@ -30,7 +30,10 @@ var rootCommand = new RootCommand("Sharpitect - Analyze .NET codebases and build
     NavigationCommands.CreateUsagesCommand(),
     NavigationCommands.CreateSignatureCommand(),
     NavigationCommands.CreateCodeCommand(),
-    NavigationCommands.CreateTreeCommand()
+    NavigationCommands.CreateTreeCommand(),
+
+    // Debug commands
+    DebugCommands.CreateHealthCommand(),
 };
 
 return await rootCommand.InvokeAsync(args);
