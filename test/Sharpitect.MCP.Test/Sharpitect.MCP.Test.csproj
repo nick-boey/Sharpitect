@@ -22,7 +22,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\Sharpitect.MCP\Sharpitect.MCP.csproj" />
+        <ProjectReference Include="..\..\src\Sharpitect.MCP\Sharpitect.MCP.csproj" />
         <ProjectReference Include="..\..\src\Sharpitect.Analysis\Sharpitect.Analysis.csproj" />
     </ItemGroup>
 
