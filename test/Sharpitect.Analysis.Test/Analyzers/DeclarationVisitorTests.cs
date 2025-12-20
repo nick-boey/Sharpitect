@@ -924,6 +924,39 @@ public class DeclarationVisitorTests
         Assert.That(classNode.FilePath, Is.EqualTo(TestFilePath));
     }
 
+    [Test]
+    public void Visit_Declaration_IncludesXmlDocCommentsInLineSpan()
+    {
+        const string code = """
+                            namespace TestNamespace
+                            {
+                                /// <summary>
+                                /// This is a class with XML documentation.
+                                /// </summary>
+                                public class MyClass
+                                {
+                                    /// <summary>
+                                    /// This method does something.
+                                    /// </summary>
+                                    /// <param name="value">The value to process.</param>
+                                    public void MyMethod(int value) { }
+                                }
+                            }
+                            """;
+
+        var (nodes, _) = AnalyzeCode(code);
+
+        // Class starts at XML doc comment (line 3), not at 'public class' (line 6)
+        var classNode = nodes.Single(n => n.Kind == DeclarationKind.Class);
+        Assert.That(classNode.StartLine, Is.EqualTo(3), "Class should start at XML doc comment");
+        Assert.That(classNode.EndLine, Is.EqualTo(14), "Class should end at closing brace");
+
+        // Method starts at XML doc comment (line 8), not at 'public void' (line 12)
+        var methodNode = nodes.Single(n => n.Kind == DeclarationKind.Method);
+        Assert.That(methodNode.StartLine, Is.EqualTo(8), "Method should start at XML doc comment");
+        Assert.That(methodNode.EndLine, Is.EqualTo(13), "Method should end at closing brace");
+    }
+
     #endregion
 
     #region Symbol to Node ID Mapping

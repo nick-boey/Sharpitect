@@ -15,7 +15,8 @@
       "mcp__Sharpitect__get_inheritance",
       "mcp__Sharpitect__search_declarations",
       "Bash(git show:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(find:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
