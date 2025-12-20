@@ -1,0 +1,13 @@
+{
+  "name": "sharpitect",
+  "description": "Sharpitect MCP server with skills for intelligent C# codebase navigation. Automatically prefers semantic analysis over text-based searching.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Nick Boey"
+  },
+  "repository": "https://github.com/nick-boey/sharpitect",
+  "keywords": ["csharp", "dotnet", "architecture", "navigation", "code-analysis"],
+  "license": "MIT",
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json"
+}
