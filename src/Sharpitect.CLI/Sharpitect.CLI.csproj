@@ -30,7 +30,7 @@
     <ItemGroup>
         <ProjectReference Include="..\Sharpitect.Analysis\Sharpitect.Analysis.csproj"/>
         <ProjectReference Include="..\Sharpitect.Attributes\Sharpitect.Attributes.csproj"/>
-        <ProjectReference Include="..\..\Sharpitect.MCP\Sharpitect.MCP.csproj"/>
+        <ProjectReference Include="..\Sharpitect.MCP\Sharpitect.MCP.csproj"/>
     </ItemGroup>
 
     <ItemGroup>

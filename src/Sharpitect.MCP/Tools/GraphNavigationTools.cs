@@ -380,6 +380,28 @@ public static class GraphNavigationTools
     }
 
     /// <summary>
+    /// Gets the source code for a declaration.
+    /// </summary>
+    [McpServerTool, Description("Get the source code for a declaration by reading from the source file.")]
+    public static async Task<string> GetCode(
+        IGraphNavigationService navigationService,
+        IOutputFormatterFactory formatterFactory,
+        [Description("Declaration ID")] string id,
+        [Description("Output format: json or text. Defaults to json.")]
+        string? format = null)
+    {
+        var formatter = formatterFactory.GetFormatter(format);
+
+        var result = await navigationService.GetCodeAsync(id);
+        if (result == null)
+        {
+            return formatter.Format(ErrorResponse.NotFound($"Node with ID '{id}' was not found in the graph."));
+        }
+
+        return formatter.Format(result);
+    }
+
+    /// <summary>
     /// Gets the containment tree starting from a node or from solution roots.
     /// </summary>
     [McpServerTool,

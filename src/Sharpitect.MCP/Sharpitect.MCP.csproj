@@ -12,7 +12,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\src\Sharpitect.Analysis\Sharpitect.Analysis.csproj" />
+        <ProjectReference Include="..\..\src\Sharpitect.Analysis\Sharpitect.Analysis.csproj" />
     </ItemGroup>
 
 </Project>

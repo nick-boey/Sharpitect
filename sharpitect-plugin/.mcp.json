@@ -2,13 +2,14 @@
   "mcpServers": {
     "Sharpitect": {
       "type": "stdio",
-      "command": "sharpitect",
+      "command": "cmd",
       "args": [
+        "/c",
+        "sharpitect",
         "serve",
         ".sharpitect/graph.db"
       ],
-      "env": {},
-      "description": "Sharpitect MCP server for C# codebase navigation and analysis"
+      "env": {}
     }
   }
 }
