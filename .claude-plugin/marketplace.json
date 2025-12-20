@@ -1,0 +1,25 @@
+{
+  "name": "sharpitect-marketplace",
+  "owner": {
+    "name": "Nick Boey"
+  },
+  "metadata": {
+    "description": "Sharpitect plugins for intelligent C# codebase navigation in Claude Code",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "sharpitect",
+      "source": "./sharpitect-plugin",
+      "description": "Sharpitect MCP server with skills for intelligent C# codebase navigation. Automatically prefers semantic analysis over text-based searching.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Nick Boey"
+      },
+      "repository": "https://github.com/nick-boey/sharpitect",
+      "license": "MIT",
+      "keywords": ["csharp", "dotnet", "architecture", "navigation", "code-analysis"],
+      "category": "development"
+    }
+  ]
+}

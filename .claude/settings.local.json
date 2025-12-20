@@ -16,11 +16,16 @@
       "mcp__Sharpitect__search_declarations",
       "Bash(git show:*)",
       "Bash(grep:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(mkdir:*)",
+      "Bash(dir:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "Sharpitect"
-  ]
+  ],
+  "enabledPlugins": {
+    "sharpitect@sharpitect-marketplace": true
+  }
 }
