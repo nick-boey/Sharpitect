@@ -74,7 +74,7 @@ public class DeclarationVisitorTests
                             }
                             """;
 
-        var (nodes, _) = AnalyzeCode(code);
+        var (nodes, _) = AnalyzeCode(code, true);
 
         var classNode = nodes.SingleOrDefault(n => n.Kind == DeclarationKind.Class);
         Assert.That(classNode, Is.Not.Null);
@@ -305,7 +305,7 @@ public class DeclarationVisitorTests
                             }
                             """;
 
-        var (nodes, _) = AnalyzeCode(code);
+        var (nodes, _) = AnalyzeCode(code, true);
 
         var methodNode = nodes.SingleOrDefault(n => n.Kind == DeclarationKind.Method);
         Assert.That(methodNode, Is.Not.Null);
@@ -333,7 +333,7 @@ public class DeclarationVisitorTests
                             }
                             """;
 
-        var (nodes, _) = AnalyzeCode(code);
+        var (nodes, _) = AnalyzeCode(code, true);
 
         var methodNode = nodes.SingleOrDefault(n => n.Kind == DeclarationKind.Method);
         Assert.That(methodNode, Is.Not.Null);
@@ -400,7 +400,7 @@ public class DeclarationVisitorTests
                             }
                             """;
 
-        var (nodes, _) = AnalyzeCode(code);
+        var (nodes, _) = AnalyzeCode(code, true);
 
         var ctorNode = nodes.SingleOrDefault(n => n.Kind == DeclarationKind.Constructor);
         Assert.That(ctorNode, Is.Not.Null);
@@ -654,7 +654,7 @@ public class DeclarationVisitorTests
                             }
                             """;
 
-        var (nodes, _) = AnalyzeCode(code);
+        var (nodes, _) = AnalyzeCode(code, true);
 
         var localFuncNode = nodes.SingleOrDefault(n => n.Kind == DeclarationKind.LocalFunction);
         Assert.That(localFuncNode, Is.Not.Null);
@@ -682,7 +682,7 @@ public class DeclarationVisitorTests
                             }
                             """;
 
-        var (nodes, _) = AnalyzeCode(code);
+        var (nodes, _) = AnalyzeCode(code, true);
 
         var localFuncs = nodes.Where(n => n.Kind == DeclarationKind.LocalFunction).ToList();
         Assert.That(localFuncs, Has.Count.EqualTo(2));
@@ -709,7 +709,7 @@ public class DeclarationVisitorTests
                             }
                             """;
 
-        var (nodes, _) = AnalyzeCode(code);
+        var (nodes, _) = AnalyzeCode(code, true);
 
         var localVarNode = nodes.SingleOrDefault(n => n.Kind == DeclarationKind.LocalVariable);
         Assert.That(localVarNode, Is.Not.Null);
@@ -732,7 +732,7 @@ public class DeclarationVisitorTests
                             }
                             """;
 
-        var (nodes, _) = AnalyzeCode(code);
+        var (nodes, _) = AnalyzeCode(code, true);
 
         var localVars = nodes.Where(n => n.Kind == DeclarationKind.LocalVariable).ToList();
         Assert.That(localVars, Has.Count.EqualTo(3));
@@ -869,7 +869,7 @@ public class DeclarationVisitorTests
                             }
                             """;
 
-        var (nodes, edges) = AnalyzeCode(code);
+        var (nodes, edges) = AnalyzeCode(code, true);
 
         var methodNode = nodes.Single(n => n.Kind == DeclarationKind.Method);
         var localFuncNode = nodes.Single(n => n.Kind == DeclarationKind.LocalFunction);
@@ -981,7 +981,7 @@ public class DeclarationVisitorTests
                             }
                             """;
 
-        var (nodes, _) = AnalyzeCode(code);
+        var (nodes, _) = AnalyzeCode(code, true);
 
         Assert.Multiple(() =>
         {
@@ -1022,10 +1022,11 @@ public class DeclarationVisitorTests
 
     #region Helper Methods
 
-    private static (List<DeclarationNode> Nodes, List<RelationshipEdge> Edges) AnalyzeCode(string code)
+    private static (List<DeclarationNode> Nodes, List<RelationshipEdge> Edges) AnalyzeCode(string code,
+        bool visitLocals = false)
     {
         var (tree, semanticModel) = CreateCompilation(code);
-        var visitor = new DeclarationVisitor(semanticModel, TestFilePath);
+        var visitor = new DeclarationVisitor(semanticModel, TestFilePath, visitLocals);
         visitor.Visit(tree.GetRoot());
         return (visitor.Nodes, visitor.ContainmentEdges);
     }

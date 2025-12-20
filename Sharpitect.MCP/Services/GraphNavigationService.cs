@@ -18,7 +18,8 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
     private async Task<DeclarationNode?> ResolveNodeAsync(string identifier, CancellationToken cancellationToken)
     {
         // First try to find by fully qualified name
-        var node = await _repository.GetNodeByFullyQualifiedNameAsync(identifier, cancellationToken).ConfigureAwait(false);
+        var node = await _repository.GetNodeByFullyQualifiedNameAsync(identifier, cancellationToken)
+            .ConfigureAwait(false);
         if (node != null)
         {
             return node;
@@ -58,6 +59,12 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
             limitedNodes.Select(NodeSummary.FromDeclarationNode).ToList(),
             totalCount,
             truncated);
+    }
+
+    public async Task<IEnumerable<NodeDetail?>> GetAllNodesAsync(CancellationToken cancellationToken = default)
+    {
+        var nodes = await _repository.GetAllNodesAsync(cancellationToken);
+        return nodes.Select(NodeDetail.FromDeclarationNode);
     }
 
     public async Task<NodeDetail?> GetNodeAsync(string name, CancellationToken cancellationToken = default)
@@ -572,7 +579,8 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
         var dependents = new List<DependentEntry>();
         var visited = new HashSet<string> { projectNode.Id };
 
-        await GetProjectDependentsAsync(projectNode.Id, dependents, visited, includeTransitive, false).ConfigureAwait(false);
+        await GetProjectDependentsAsync(projectNode.Id, dependents, visited, includeTransitive, false)
+            .ConfigureAwait(false);
 
         return new DependentsResult(projectId, dependents);
     }
@@ -972,7 +980,8 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
         // Only fetch children if we're not at max depth
         if (currentDepth < maxDepth)
         {
-            var outgoingEdges = await _repository.GetOutgoingEdgesAsync(node.Id, cancellationToken).ConfigureAwait(false);
+            var outgoingEdges =
+                await _repository.GetOutgoingEdgesAsync(node.Id, cancellationToken).ConfigureAwait(false);
             var containsEdges = outgoingEdges.Where(e => e.Kind == RelationshipKind.Contains).ToList();
 
             foreach (var edge in containsEdges)
@@ -981,7 +990,7 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
                 if (childNode == null) continue;
 
                 var childResult = await BuildTreeNodeAsync(
-                    childNode, kindFilter, maxDepth, currentDepth + 1, cancellationToken)
+                        childNode, kindFilter, maxDepth, currentDepth + 1, cancellationToken)
                     .ConfigureAwait(false);
 
                 if (childResult.Node != null)
