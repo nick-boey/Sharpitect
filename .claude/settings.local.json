@@ -18,7 +18,9 @@
       "Bash(grep:*)",
       "Bash(find:*)",
       "Bash(mkdir:*)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "mcp__plugin_sharpitect_Sharpitect__search_declarations",
+      "mcp__plugin_sharpitect_Sharpitect__get_code"
     ]
   },
   "enableAllProjectMcpServers": true,
