@@ -384,7 +384,7 @@ public sealed class DeclarationVisitor : CSharpSyntaxWalker
 
     private DeclarationNode CreateNode(ISymbol symbol, SyntaxNode node, DeclarationKind kind)
     {
-        var location = node.GetLocation().GetLineSpan();
+        var fullLocation = node.SyntaxTree.GetLineSpan(node.FullSpan);
         var id = symbol.ToDisplayString();
 
         SymbolToNodeId[symbol] = id;
@@ -395,16 +395,16 @@ public sealed class DeclarationVisitor : CSharpSyntaxWalker
             Name = symbol.Name,
             Kind = kind,
             FilePath = _filePath,
-            StartLine = location.StartLinePosition.Line + 1,
-            StartColumn = location.StartLinePosition.Character + 1,
-            EndLine = location.EndLinePosition.Line + 1,
-            EndColumn = location.EndLinePosition.Character + 1
+            StartLine = fullLocation.StartLinePosition.Line + 1,
+            StartColumn = fullLocation.StartLinePosition.Character + 1,
+            EndLine = fullLocation.EndLinePosition.Line + 1,
+            EndColumn = fullLocation.EndLinePosition.Character + 1
         };
     }
 
     private DeclarationNode CreateNodeWithC4(INamedTypeSymbol symbol, SyntaxNode node, DeclarationKind kind)
     {
-        var location = node.GetLocation().GetLineSpan();
+        var fullLocation = node.SyntaxTree.GetLineSpan(node.FullSpan);
         var id = symbol.ToDisplayString();
 
         SymbolToNodeId[symbol] = id;
@@ -418,10 +418,10 @@ public sealed class DeclarationVisitor : CSharpSyntaxWalker
             Name = symbol.Name,
             Kind = kind,
             FilePath = _filePath,
-            StartLine = location.StartLinePosition.Line + 1,
-            StartColumn = location.StartLinePosition.Character + 1,
-            EndLine = location.EndLinePosition.Line + 1,
-            EndColumn = location.EndLinePosition.Character + 1,
+            StartLine = fullLocation.StartLinePosition.Line + 1,
+            StartColumn = fullLocation.StartLinePosition.Character + 1,
+            EndLine = fullLocation.EndLinePosition.Line + 1,
+            EndColumn = fullLocation.EndLinePosition.Character + 1,
             C4Level = c4Level,
             C4Description = c4Description
         };
@@ -429,7 +429,7 @@ public sealed class DeclarationVisitor : CSharpSyntaxWalker
 
     private DeclarationNode CreateTypeNode(INamedTypeSymbol symbol, TypeDeclarationSyntax node, DeclarationKind kind)
     {
-        var location = node.GetLocation().GetLineSpan();
+        var fullLocation = node.SyntaxTree.GetLineSpan(node.FullSpan);
         var id = symbol.ToDisplayString();
 
         SymbolToNodeId[symbol] = id;
@@ -443,10 +443,10 @@ public sealed class DeclarationVisitor : CSharpSyntaxWalker
             Name = symbol.Name,
             Kind = kind,
             FilePath = _filePath,
-            StartLine = location.StartLinePosition.Line + 1,
-            StartColumn = location.StartLinePosition.Character + 1,
-            EndLine = location.EndLinePosition.Line + 1,
-            EndColumn = location.EndLinePosition.Character + 1,
+            StartLine = fullLocation.StartLinePosition.Line + 1,
+            StartColumn = fullLocation.StartLinePosition.Character + 1,
+            EndLine = fullLocation.EndLinePosition.Line + 1,
+            EndColumn = fullLocation.EndLinePosition.Character + 1,
             C4Level = c4Level,
             C4Description = c4Description
         };
