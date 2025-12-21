@@ -110,6 +110,43 @@ public interface IGraphRepository : IAsyncDisposable
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Deletes a node by ID.
+    /// </summary>
+    /// <param name="id">The node ID to delete.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task DeleteNodeAsync(string id, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Deletes multiple nodes by ID.
+    /// </summary>
+    /// <param name="ids">The node IDs to delete.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task DeleteNodesAsync(IEnumerable<string> ids, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Deletes all nodes in a specific file.
+    /// </summary>
+    /// <param name="filePath">The file path.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task DeleteNodesByFileAsync(string filePath, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Deletes all edges originating from a specific file.
+    /// </summary>
+    /// <param name="filePath">The source file path.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task DeleteEdgesBySourceFileAsync(string filePath, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets all edges originating from a specific file.
+    /// </summary>
+    /// <param name="filePath">The source file path.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>All edges with the specified source file path.</returns>
+    Task<IReadOnlyList<RelationshipEdge>> GetEdgesBySourceFileAsync(string filePath,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Clears all data from the repository.
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
