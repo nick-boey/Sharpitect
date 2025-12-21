@@ -1,6 +1,6 @@
 {
     "name": "Sharpitect",
-    "image": "mcr.microsoft.com/devcontainers/dotnet:1-10.0-bookworm",
+    "image": "mcr.microsoft.com/devcontainers/dotnet",
     "features": {
         "ghcr.io/devcontainers/features/common-utils:2": {},
         "ghcr.io/devcontainers/features/git:1": {},
