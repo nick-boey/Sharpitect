@@ -112,4 +112,91 @@ public sealed class DeclarationGraph
         _nodes.Clear();
         _edges.Clear();
     }
+
+    /// <summary>
+    /// Removes a node by ID.
+    /// </summary>
+    /// <param name="id">The node ID to remove.</param>
+    /// <returns>True if the node was removed, false if it didn't exist.</returns>
+    public bool RemoveNode(string id) => _nodes.Remove(id);
+
+    /// <summary>
+    /// Removes multiple nodes by ID.
+    /// </summary>
+    /// <param name="ids">The node IDs to remove.</param>
+    public void RemoveNodes(IEnumerable<string> ids)
+    {
+        foreach (var id in ids)
+        {
+            _nodes.Remove(id);
+        }
+    }
+
+    /// <summary>
+    /// Removes all nodes in a specific file.
+    /// </summary>
+    /// <param name="filePath">The file path.</param>
+    public void RemoveNodesByFile(string filePath)
+    {
+        var nodesToRemove = _nodes.Values
+            .Where(n => n.FilePath == filePath)
+            .Select(n => n.Id)
+            .ToList();
+
+        foreach (var id in nodesToRemove)
+        {
+            _nodes.Remove(id);
+        }
+    }
+
+    /// <summary>
+    /// Removes an edge by ID.
+    /// </summary>
+    /// <param name="id">The edge ID to remove.</param>
+    /// <returns>True if the edge was removed, false if it didn't exist.</returns>
+    public bool RemoveEdge(string id)
+    {
+        var index = _edges.FindIndex(e => e.Id == id);
+        if (index < 0)
+        {
+            return false;
+        }
+
+        _edges.RemoveAt(index);
+        return true;
+    }
+
+    /// <summary>
+    /// Removes all edges originating from a specific file.
+    /// </summary>
+    /// <param name="filePath">The source file path.</param>
+    public void RemoveEdgesBySourceFile(string filePath)
+    {
+        _edges.RemoveAll(e => e.SourceFilePath == filePath);
+    }
+
+    /// <summary>
+    /// Removes all edges that reference a node (both incoming and outgoing).
+    /// </summary>
+    /// <param name="nodeId">The node ID.</param>
+    public void RemoveEdgesByNodeId(string nodeId)
+    {
+        _edges.RemoveAll(e => e.SourceId == nodeId || e.TargetId == nodeId);
+    }
+
+    /// <summary>
+    /// Gets all nodes in a specific file.
+    /// </summary>
+    /// <param name="filePath">The file path.</param>
+    /// <returns>All nodes in the file.</returns>
+    public IEnumerable<DeclarationNode> GetNodesByFile(string filePath) =>
+        _nodes.Values.Where(n => n.FilePath == filePath);
+
+    /// <summary>
+    /// Gets all edges originating from a specific file.
+    /// </summary>
+    /// <param name="filePath">The source file path.</param>
+    /// <returns>All edges with the specified source file path.</returns>
+    public IEnumerable<RelationshipEdge> GetEdgesBySourceFile(string filePath) =>
+        _edges.Where(e => e.SourceFilePath == filePath);
 }
