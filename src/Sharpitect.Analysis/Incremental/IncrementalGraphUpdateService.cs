@@ -18,6 +18,7 @@ public sealed class IncrementalGraphUpdateService : IIncrementalGraphUpdateServi
     private readonly IFileChangeWatcher? _fileWatcher;
     private readonly SemaphoreSlim _updateLock = new(1, 1);
     private readonly Dictionary<string, string> _symbolMappings = new();
+    private readonly string _solutionRootDirectory;
 
     private IncrementalUpdateState _state = IncrementalUpdateState.Stopped;
     private bool _visitLocals;
@@ -25,6 +26,14 @@ public sealed class IncrementalGraphUpdateService : IIncrementalGraphUpdateServi
     /// <summary>
     /// Creates a new incremental graph update service.
     /// </summary>
+    /// <param name="workspace">The Roslyn workspace.</param>
+    /// <param name="repository">The graph repository for persistence.</param>
+    /// <param name="graph">The in-memory declaration graph.</param>
+    /// <param name="dependencyTracker">The dependency tracker.</param>
+    /// <param name="fileAnalyzer">The file analyzer.</param>
+    /// <param name="fileWatcher">Optional file watcher for monitoring changes.</param>
+    /// <param name="visitLocals">Whether to include local variables.</param>
+    /// <param name="solutionRootDirectory">Optional solution root directory. If not provided, will be inferred from the workspace's solution path.</param>
     public IncrementalGraphUpdateService(
         Workspace workspace,
         IGraphRepository repository,
@@ -32,7 +41,8 @@ public sealed class IncrementalGraphUpdateService : IIncrementalGraphUpdateServi
         IDependencyTracker dependencyTracker,
         IIncrementalFileAnalyzer fileAnalyzer,
         IFileChangeWatcher? fileWatcher = null,
-        bool visitLocals = false)
+        bool visitLocals = false,
+        string? solutionRootDirectory = null)
     {
         _workspace = workspace;
         _repository = repository;
@@ -41,6 +51,9 @@ public sealed class IncrementalGraphUpdateService : IIncrementalGraphUpdateServi
         _fileAnalyzer = fileAnalyzer;
         _fileWatcher = fileWatcher;
         _visitLocals = visitLocals;
+        _solutionRootDirectory = solutionRootDirectory
+            ?? PathHelper.GetSolutionRootDirectory(
+                workspace.CurrentSolution.FilePath ?? throw new InvalidOperationException("Solution path is required"));
 
         if (_fileWatcher != null)
         {
@@ -132,8 +145,11 @@ public sealed class IncrementalGraphUpdateService : IIncrementalGraphUpdateServi
             var totalEdgesAdded = 0;
             var totalEdgesRemoved = 0;
 
-            // Queue of files to process (for cascade updates)
-            var filesToProcess = new Queue<FileChange>(changes);
+            // Convert incoming file paths to relative paths and queue for processing
+            var filesToProcess = new Queue<FileChange>(
+                changes.Select(c => new FileChange(
+                    PathHelper.ToRelativePath(c.FilePath, _solutionRootDirectory),
+                    c.Kind)));
             var filesProcessedThisRound = new HashSet<string>();
 
             while (filesToProcess.Count > 0)
@@ -285,12 +301,13 @@ public sealed class IncrementalGraphUpdateService : IIncrementalGraphUpdateServi
     }
 
     private async Task<(int nodesAdded, int edgesAdded)> AnalyzeFileAsync(
-        string filePath, CancellationToken cancellationToken)
+        string relativePath, CancellationToken cancellationToken)
     {
-        // Find the document in the workspace
+        // Find the document in the workspace by comparing relative paths
         var document = _workspace.CurrentSolution.Projects
             .SelectMany(p => p.Documents)
-            .FirstOrDefault(d => d.FilePath == filePath || d.Name == filePath);
+            .FirstOrDefault(d => d.FilePath != null &&
+                PathHelper.ToRelativePath(d.FilePath, _solutionRootDirectory) == relativePath);
 
         if (document == null)
         {
@@ -312,6 +329,7 @@ public sealed class IncrementalGraphUpdateService : IIncrementalGraphUpdateServi
             compilation,
             _symbolMappings,
             existingNodeIds,
+            _solutionRootDirectory,
             _visitLocals,
             cancellationToken);
 

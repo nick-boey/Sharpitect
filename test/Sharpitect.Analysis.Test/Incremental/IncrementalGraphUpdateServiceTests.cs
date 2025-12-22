@@ -45,7 +45,8 @@ public class IncrementalGraphUpdateServiceTests
             _repository,
             _graph,
             _dependencyTracker,
-            _fileAnalyzer);
+            _fileAnalyzer,
+            solutionRootDirectory: Environment.CurrentDirectory);
     }
 
     [TearDown]

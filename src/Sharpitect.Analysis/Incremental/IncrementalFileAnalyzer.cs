@@ -15,6 +15,7 @@ public sealed class IncrementalFileAnalyzer : IIncrementalFileAnalyzer
         Compilation compilation,
         IReadOnlyDictionary<string, string> existingSymbolMappings,
         HashSet<string> existingNodeIds,
+        string solutionRootDirectory,
         bool visitLocals = false,
         CancellationToken cancellationToken = default)
     {
@@ -39,11 +40,12 @@ public sealed class IncrementalFileAnalyzer : IIncrementalFileAnalyzer
             };
         }
 
+        var relativePath = PathHelper.ToRelativePath(document.FilePath, solutionRootDirectory);
         var semanticModel = compilation.GetSemanticModel(syntaxTree);
         var root = await syntaxTree.GetRootAsync(cancellationToken);
 
         // First pass: Extract declarations
-        var declarationVisitor = new DeclarationVisitor(semanticModel, document.FilePath, visitLocals);
+        var declarationVisitor = new DeclarationVisitor(semanticModel, relativePath, visitLocals);
         declarationVisitor.Visit(root);
 
         var nodes = declarationVisitor.Nodes;
@@ -70,7 +72,7 @@ public sealed class IncrementalFileAnalyzer : IIncrementalFileAnalyzer
         // Second pass: Extract references
         var referenceVisitor = new ReferenceVisitor(
             semanticModel,
-            document.FilePath,
+            relativePath,
             symbolToNodeId,
             allNodeIds);
         referenceVisitor.Visit(root);

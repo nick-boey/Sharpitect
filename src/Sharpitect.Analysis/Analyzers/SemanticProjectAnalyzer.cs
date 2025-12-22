@@ -35,6 +35,7 @@ public sealed class SemanticProjectAnalyzer
     /// <param name="project">The Roslyn project to analyze.</param>
     /// <param name="existingSymbolMap">Existing symbol-to-node-ID mapping from previous projects.</param>
     /// <param name="existingNodeIds">Set of existing node IDs for filtering solution-internal references.</param>
+    /// <param name="solutionRootDirectory">The solution root directory for creating relative paths.</param>
     /// <param name="visitLocals">True to include locals variables and parameteres in the tree.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Analysis results containing nodes and edges.</returns>
@@ -42,6 +43,7 @@ public sealed class SemanticProjectAnalyzer
         Project project,
         Dictionary<ISymbol, string> existingSymbolMap,
         HashSet<string> existingNodeIds,
+        string solutionRootDirectory,
         bool visitLocals = false,
         CancellationToken cancellationToken = default)
     {
@@ -65,10 +67,11 @@ public sealed class SemanticProjectAnalyzer
         {
             if (document.FilePath == null) continue;
 
+            var relativePath = PathHelper.ToRelativePath(document.FilePath, solutionRootDirectory);
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken);
             var semanticModel = compilation.GetSemanticModel(syntaxTree!);
 
-            var declarationVisitor = new DeclarationVisitor(semanticModel, document.FilePath, visitLocals);
+            var declarationVisitor = new DeclarationVisitor(semanticModel, relativePath, visitLocals);
             declarationVisitor.Visit(await syntaxTree!.GetRootAsync(cancellationToken));
 
             allNodes.AddRange(declarationVisitor.Nodes);
@@ -93,12 +96,13 @@ public sealed class SemanticProjectAnalyzer
         {
             if (document.FilePath == null) continue;
 
+            var relativePath = PathHelper.ToRelativePath(document.FilePath, solutionRootDirectory);
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken);
             var semanticModel = compilation.GetSemanticModel(syntaxTree!);
 
             var referenceVisitor = new ReferenceVisitor(
                 semanticModel,
-                document.FilePath,
+                relativePath,
                 symbolToNodeId,
                 allNodeIds);
 
