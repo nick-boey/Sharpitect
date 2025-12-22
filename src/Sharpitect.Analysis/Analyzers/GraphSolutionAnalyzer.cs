@@ -55,16 +55,17 @@ public sealed class GraphSolutionAnalyzer
         };
 
         var solution = await workspace.OpenSolutionAsync(solutionPath, cancellationToken: cancellationToken);
+        var solutionRootDirectory = PathHelper.GetSolutionRootDirectory(solutionPath);
 
         // Create solution node
-        var solutionNode = DeclarationNodeFactory.CreateSolutionNode(solutionPath);
+        var solutionNode = DeclarationNodeFactory.CreateSolutionNode(solutionPath, solutionRootDirectory);
         graph.AddNode(solutionNode);
 
         // Create project nodes and track them
         var projectNodes = new Dictionary<ProjectId, DeclarationNode>();
         foreach (var project in solution.Projects)
         {
-            var projectNode = DeclarationNodeFactory.CreateProjectNode(project);
+            var projectNode = DeclarationNodeFactory.CreateProjectNode(project, solutionRootDirectory);
             graph.AddNode(projectNode);
             projectNodes[project.Id] = projectNode;
 
@@ -110,6 +111,7 @@ public sealed class GraphSolutionAnalyzer
                 project,
                 symbolToNodeId,
                 allNodeIds,
+                solutionRootDirectory,
                 visitLocals,
                 cancellationToken);
 
@@ -190,16 +192,17 @@ public sealed class GraphSolutionAnalyzer
         };
 
         var solution = await workspace.OpenSolutionAsync(solutionPath, cancellationToken: cancellationToken);
+        var solutionRootDirectory = PathHelper.GetSolutionRootDirectory(solutionPath);
 
         // Create solution node
-        var solutionNode = DeclarationNodeFactory.CreateSolutionNode(solutionPath);
+        var solutionNode = DeclarationNodeFactory.CreateSolutionNode(solutionPath, solutionRootDirectory);
         graph.AddNode(solutionNode);
 
         // Create project nodes and track them
         var projectNodes = new Dictionary<ProjectId, DeclarationNode>();
         foreach (var project in solution.Projects)
         {
-            var projectNode = DeclarationNodeFactory.CreateProjectNode(project);
+            var projectNode = DeclarationNodeFactory.CreateProjectNode(project, solutionRootDirectory);
             graph.AddNode(projectNode);
             projectNodes[project.Id] = projectNode;
 
@@ -245,6 +248,7 @@ public sealed class GraphSolutionAnalyzer
                 project,
                 symbolToNodeId,
                 allNodeIds,
+                solutionRootDirectory,
                 visitLocals,
                 cancellationToken);
 

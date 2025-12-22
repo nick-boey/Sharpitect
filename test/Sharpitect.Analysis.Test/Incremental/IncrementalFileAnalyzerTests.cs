@@ -182,7 +182,8 @@ public class IncrementalFileAnalyzerTests
 
         var result = await AnalyzeCodeAsync(code, filePath: "/test/path/File.cs");
 
-        Assert.That(result.Nodes.All(n => n.FilePath == "/test/path/File.cs"), Is.True);
+        // File paths are now stored as relative paths to the solution root
+        Assert.That(result.Nodes.All(n => n.FilePath == "File.cs"), Is.True);
     }
 
     [Test]
@@ -200,7 +201,8 @@ public class IncrementalFileAnalyzerTests
 
         var result = await AnalyzeCodeAsync(code, filePath: "/test/path/File.cs");
 
-        Assert.That(result.Edges.All(e => e.SourceFilePath == "/test/path/File.cs"), Is.True);
+        // File paths are now stored as relative paths to the solution root
+        Assert.That(result.Edges.All(e => e.SourceFilePath == "File.cs"), Is.True);
     }
 
     [Test]
@@ -244,12 +246,14 @@ public class IncrementalFileAnalyzerTests
         string filePath = "test.cs")
     {
         var (document, compilation) = await CreateDocumentAndCompilationAsync(code, filePath);
+        var solutionRootDirectory = Path.GetDirectoryName(document.FilePath) ?? ".";
 
         return await _analyzer.AnalyzeFileAsync(
             document,
             compilation,
             existingMappings ?? new Dictionary<string, string>(),
             existingNodeIds ?? [],
+            solutionRootDirectory,
             visitLocals: false);
     }
 

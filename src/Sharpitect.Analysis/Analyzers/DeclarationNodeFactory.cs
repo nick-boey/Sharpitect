@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Sharpitect.Analysis.Graph;
 
 namespace Sharpitect.Analysis.Analyzers;
@@ -9,16 +9,17 @@ namespace Sharpitect.Analysis.Analyzers;
 /// </summary>
 public static class DeclarationNodeFactory
 {
-    public static DeclarationNode CreateSolutionNode(string solutionPath)
+    public static DeclarationNode CreateSolutionNode(string solutionPath, string solutionRootDirectory)
     {
         var solutionName = Path.GetFileNameWithoutExtension(solutionPath);
+        var relativePath = PathHelper.ToRelativePath(solutionPath, solutionRootDirectory);
 
         return new DeclarationNode
         {
             Id = solutionName,
             Name = solutionName,
             Kind = DeclarationKind.Solution,
-            FilePath = solutionPath,
+            FilePath = relativePath,
             StartLine = 1,
             StartColumn = 1,
             EndLine = 1,
@@ -27,16 +28,17 @@ public static class DeclarationNodeFactory
         };
     }
 
-    public static DeclarationNode CreateProjectNode(Project project)
+    public static DeclarationNode CreateProjectNode(Project project, string solutionRootDirectory)
     {
         var projectPath = project.FilePath ?? project.Name;
+        var relativePath = PathHelper.ToRelativePath(projectPath, solutionRootDirectory);
 
         return new DeclarationNode
         {
             Id = project.Name,
             Name = project.Name,
             Kind = DeclarationKind.Project,
-            FilePath = projectPath,
+            FilePath = relativePath,
             StartLine = 1,
             StartColumn = 1,
             EndLine = 1,

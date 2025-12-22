@@ -14,6 +14,7 @@ public interface IIncrementalFileAnalyzer
     /// <param name="compilation">The compilation containing the document.</param>
     /// <param name="existingSymbolMappings">Existing symbol display string to node ID mappings.</param>
     /// <param name="existingNodeIds">Set of existing node IDs in the graph.</param>
+    /// <param name="solutionRootDirectory">The solution root directory for creating relative paths.</param>
     /// <param name="visitLocals">Whether to include local variables and parameters.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The analysis result containing nodes, edges, and new symbol mappings.</returns>
@@ -22,6 +23,7 @@ public interface IIncrementalFileAnalyzer
         Compilation compilation,
         IReadOnlyDictionary<string, string> existingSymbolMappings,
         HashSet<string> existingNodeIds,
+        string solutionRootDirectory,
         bool visitLocals = false,
         CancellationToken cancellationToken = default);
 }
