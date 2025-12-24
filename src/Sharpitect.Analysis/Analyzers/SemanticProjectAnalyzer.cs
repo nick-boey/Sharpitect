@@ -110,6 +110,22 @@ public sealed class SemanticProjectAnalyzer
             allEdges.AddRange(referenceVisitor.Edges);
         }
 
+        // Third pass: extract TODO/FIXME/HACK/XXX comments
+        foreach (var document in project.Documents)
+        {
+            if (document.FilePath == null) continue;
+
+            var relativePath = PathHelper.ToRelativePath(document.FilePath, solutionRootDirectory);
+            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken);
+            var semanticModel = compilation.GetSemanticModel(syntaxTree!);
+
+            var todoVisitor = new TodoCommentVisitor(semanticModel, relativePath, symbolToNodeId);
+            todoVisitor.Visit(await syntaxTree!.GetRootAsync(cancellationToken));
+
+            allNodes.AddRange(todoVisitor.TodoNodes);
+            allEdges.AddRange(todoVisitor.ContainmentEdges);
+        }
+
         return new ProjectAnalysisResult
         {
             Nodes = allNodes,
