@@ -31,6 +31,18 @@ public interface IGraphNavigationService
     Task<NodeDetail?> GetNodeAsync(string name, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Resolves a node by identifier. If no exact match is found, returns similar nodes as suggestions.
+    /// </summary>
+    /// <param name="identifier">The node identifier to resolve.</param>
+    /// <param name="suggestionLimit">Maximum number of similar nodes to return if no exact match is found.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A resolution result indicating success with the node, or failure with similar suggestions.</returns>
+    Task<NodeResolutionResult> ResolveNodeAsync(
+        string identifier,
+        int suggestionLimit = 5,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets the children (contained declarations) of a node.
     /// </summary>
     Task<ChildrenResult?> GetChildrenAsync(

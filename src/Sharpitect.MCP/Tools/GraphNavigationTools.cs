@@ -60,14 +60,17 @@ public static class GraphNavigationTools
         [Description("Fully qualified node name (e.g., Namespace.ClassName.MethodName)")]
         string name,
         [Description("Output format: json or text. Defaults to json.")]
-        string? format = null)
+        string? format = null,
+        [Description("Maximum number of similar nodes to suggest if not found. Defaults to 5.")]
+        int suggestionLimit = 5)
     {
         var formatter = formatterFactory.GetFormatter(format);
 
         var result = await navigationService.GetNodeAsync(name);
         if (result == null)
         {
-            return formatter.Format(ErrorResponse.NotFound($"Node with name '{name}' was not found in the graph."));
+            return await FormatNotFoundWithSuggestionsAsync(
+                navigationService, formatter, name, "Node", suggestionLimit);
         }
 
         return formatter.Format(result);
@@ -432,6 +435,34 @@ public static class GraphNavigationTools
 
         return formatter.Format(result);
     }
+
+    #region Resolution Helpers
+
+    /// <summary>
+    /// Formats a not-found error with similar node suggestions.
+    /// </summary>
+    private static async Task<string> FormatNotFoundWithSuggestionsAsync(
+        IGraphNavigationService navigationService,
+        IOutputFormatter formatter,
+        string identifier,
+        string entityDescription,
+        int suggestionLimit = 5)
+    {
+        var resolution = await navigationService.ResolveNodeAsync(identifier, suggestionLimit);
+
+        if (resolution is NodeResolutionResult.NotResolved notResolved && notResolved.SimilarNodes.Count > 0)
+        {
+            return formatter.Format(new NodeNotFoundResponse(
+                $"{entityDescription} '{identifier}' was not found. Did you mean one of these?",
+                notResolved.SimilarNodes));
+        }
+
+        // No suggestions found, use simple error message
+        return formatter.Format(ErrorResponse.NotFound(
+            $"{entityDescription} '{identifier}' was not found in the graph."));
+    }
+
+    #endregion
 
     #region Parsing Helpers
 
