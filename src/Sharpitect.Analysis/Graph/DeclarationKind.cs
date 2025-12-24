@@ -31,5 +31,8 @@ public enum DeclarationKind
     Parameter,
     TypeParameter,
     LocalVariable,
-    LocalFunction
+    LocalFunction,
+
+    // Comment markers
+    TodoComment
 }
