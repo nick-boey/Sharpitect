@@ -32,6 +32,7 @@ public sealed class TextOutputFormatter : IOutputFormatter
             SignatureResult signature => FormatSignature(signature),
             CodeResult code => FormatCodeResult(code),
             TreeResult tree => FormatTree(tree),
+            NodeNotFoundResponse notFound => FormatNodeNotFound(notFound),
             _ => result.ToString() ?? string.Empty
         };
     }
@@ -39,6 +40,25 @@ public sealed class TextOutputFormatter : IOutputFormatter
     private static string FormatError(ErrorResponse error)
     {
         return $"ERROR [{error.ErrorCode}]: {error.Message}";
+    }
+
+    private static string FormatNodeNotFound(NodeNotFoundResponse notFound)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine($"ERROR [NOT_FOUND]: {notFound.Message}");
+
+        if (notFound.SimilarNodes.Count > 0)
+        {
+            sb.AppendLine();
+            sb.AppendLine("Similar nodes:");
+            foreach (var node in notFound.SimilarNodes)
+            {
+                sb.AppendLine($"  [{node.Kind}] {node.Name}");
+                sb.AppendLine($"    Full name: {node.Id}");
+            }
+        }
+
+        return sb.ToString().TrimEnd();
     }
 
     private static string FormatLocation(string? filePath, int? startLine, int? endLine)

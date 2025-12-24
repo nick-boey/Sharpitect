@@ -147,4 +147,39 @@ public class TextOutputFormatterTests
         Assert.That(formatted, Does.Contain("References"));
         Assert.That(formatted, Does.Contain("TestClass"));
     }
+
+    [Test]
+    public void Format_NodeNotFoundResponse_ShowsMessageAndSuggestions()
+    {
+        var response = new NodeNotFoundResponse(
+            "Node 'TestClass' was not found. Did you mean one of these?",
+            new List<NodeSummary>
+            {
+                new("Namespace.TestClass1", "TestClass1", "Class", "Code", "test1.cs", 10, 50),
+                new("Namespace.TestClass2", "TestClass2", "Class", "Code", "test2.cs", 20, 60)
+            });
+
+        var formatted = _formatter.Format(response);
+
+        Assert.That(formatted, Does.Contain("ERROR [NOT_FOUND]"));
+        Assert.That(formatted, Does.Contain("Node 'TestClass' was not found"));
+        Assert.That(formatted, Does.Contain("Similar nodes:"));
+        Assert.That(formatted, Does.Contain("[Class] TestClass1"));
+        Assert.That(formatted, Does.Contain("Namespace.TestClass1"));
+        Assert.That(formatted, Does.Contain("[Class] TestClass2"));
+    }
+
+    [Test]
+    public void Format_NodeNotFoundResponse_WithNoSuggestions_ShowsOnlyMessage()
+    {
+        var response = new NodeNotFoundResponse(
+            "Node 'xyz' was not found.",
+            new List<NodeSummary>());
+
+        var formatted = _formatter.Format(response);
+
+        Assert.That(formatted, Does.Contain("ERROR [NOT_FOUND]"));
+        Assert.That(formatted, Does.Contain("Node 'xyz' was not found"));
+        Assert.That(formatted, Does.Not.Contain("Similar nodes:"));
+    }
 }
