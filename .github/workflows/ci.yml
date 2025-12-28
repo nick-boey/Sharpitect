@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore Sharpitect.sln
+
+      - name: Build
+        run: dotnet build Sharpitect.sln --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test Sharpitect.sln --configuration Release --no-build --verbosity normal
+
+      - name: Pack (verify packaging works)
+        run: dotnet pack src/Sharpitect.CLI/Sharpitect.CLI.csproj --configuration Release --no-build --output ./nupkg
+
+      - name: Upload NuGet package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-package
+          path: ./nupkg/*.nupkg
+          retention-days: 7
