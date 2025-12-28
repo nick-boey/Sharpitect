@@ -1,0 +1,44 @@
+name: Publish to NuGet
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (leave empty to use version from csproj)'
+        required: false
+        type: string
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore Sharpitect.sln
+
+      - name: Build
+        run: dotnet build Sharpitect.sln --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test Sharpitect.sln --configuration Release --no-build --verbosity normal
+
+      - name: Pack
+        run: |
+          if [ -n "${{ inputs.version }}" ]; then
+            dotnet pack src/Sharpitect.CLI/Sharpitect.CLI.csproj --configuration Release --no-build -p:Version=${{ inputs.version }} --output ./nupkg
+          else
+            dotnet pack src/Sharpitect.CLI/Sharpitect.CLI.csproj --configuration Release --no-build --output ./nupkg
+          fi
+
+      - name: Push to NuGet
+        run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate

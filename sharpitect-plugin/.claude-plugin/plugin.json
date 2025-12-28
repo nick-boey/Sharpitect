@@ -9,5 +9,6 @@
   "keywords": ["csharp", "dotnet", "architecture", "navigation", "code-analysis"],
   "license": "MIT",
   "skills": "./skills/",
-  "mcpServers": "./.mcp.json"
+  "mcpServers": "./.mcp.json",
+  "install": "dotnet tool install -g sharpitect"
 }

@@ -20,11 +20,7 @@ This plugin provides intelligent C# codebase navigation through the Sharpitect M
 ## Prerequisites
 
 1. **Claude Code CLI** installed
-2. **Sharpitect tool** installed and available in PATH:
-   ```bash
-   dotnet tool install -g sharpitect
-   ```
-
+2. **.NET SDK** installed (the Sharpitect tool is automatically installed when you add the plugin)
 3. **Analyzed codebase**: Before using the plugin in a C# project, analyze it first:
    ```bash
    sharpitect analyze YourSolution.sln
