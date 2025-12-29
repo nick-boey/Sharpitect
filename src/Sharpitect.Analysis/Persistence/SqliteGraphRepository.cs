@@ -26,6 +26,9 @@ public sealed class SqliteGraphRepository : IGraphRepository
         _connection = new SqliteConnection(_connectionString);
         await _connection.OpenAsync(cancellationToken);
 
+        // Enable foreign key support (disabled by default in SQLite)
+        await ExecuteNonQueryAsync("PRAGMA foreign_keys = ON;", cancellationToken);
+
         await ExecuteNonQueryAsync(CreateTablesScript, cancellationToken);
     }
 
@@ -236,6 +239,89 @@ public sealed class SqliteGraphRepository : IGraphRepository
         await using var command = _connection!.CreateCommand();
         command.CommandText = sql;
         command.Parameters.AddWithValue("$kind", (int)kind);
+
+        return await ReadEdgesAsync(command, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task DeleteNodeAsync(string id, CancellationToken cancellationToken = default)
+    {
+        EnsureInitialized();
+
+        const string sql = "DELETE FROM nodes WHERE id = $id";
+
+        await using var command = _connection!.CreateCommand();
+        command.CommandText = sql;
+        command.Parameters.AddWithValue("$id", id);
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task DeleteNodesAsync(IEnumerable<string> ids, CancellationToken cancellationToken = default)
+    {
+        EnsureInitialized();
+
+        var idList = ids.ToList();
+        if (idList.Count == 0)
+        {
+            return;
+        }
+
+        await using var transaction = await _connection!.BeginTransactionAsync(cancellationToken);
+
+        const string sql = "DELETE FROM nodes WHERE id = $id";
+
+        await using var command = _connection.CreateCommand();
+        command.CommandText = sql;
+        command.Transaction = (SqliteTransaction)transaction;
+
+        foreach (var id in idList)
+        {
+            command.Parameters.Clear();
+            command.Parameters.AddWithValue("$id", id);
+            await command.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        await transaction.CommitAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task DeleteNodesByFileAsync(string filePath, CancellationToken cancellationToken = default)
+    {
+        EnsureInitialized();
+
+        const string sql = "DELETE FROM nodes WHERE file_path = $file_path";
+
+        await using var command = _connection!.CreateCommand();
+        command.CommandText = sql;
+        command.Parameters.AddWithValue("$file_path", filePath);
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task DeleteEdgesBySourceFileAsync(string filePath, CancellationToken cancellationToken = default)
+    {
+        EnsureInitialized();
+
+        const string sql = "DELETE FROM edges WHERE source_file_path = $source_file_path";
+
+        await using var command = _connection!.CreateCommand();
+        command.CommandText = sql;
+        command.Parameters.AddWithValue("$source_file_path", filePath);
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<RelationshipEdge>> GetEdgesBySourceFileAsync(string filePath,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureInitialized();
+
+        const string sql = "SELECT * FROM edges WHERE source_file_path = $source_file_path";
+
+        await using var command = _connection!.CreateCommand();
+        command.CommandText = sql;
+        command.Parameters.AddWithValue("$source_file_path", filePath);
 
         return await ReadEdgesAsync(command, cancellationToken);
     }
