@@ -2,10 +2,8 @@
   "mcpServers": {
     "Sharpitect": {
       "type": "stdio",
-      "command": "cmd",
+      "command": "sharpitect",
       "args": [
-        "/c",
-        "sharpitect",
         "serve",
         ".sharpitect/graph.db"
       ],
