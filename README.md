@@ -85,6 +85,32 @@ var results = await searchService.SearchAsync(query);
 - **Sharpitect.Attributes** - Attributes for annotating code (targets .NET Framework 4.8 for broad compatibility)
 - **Sharpitect.Analysis.Test** - Unit tests
 
+## Installation
+
+### Installing as a Global Tool
+
+```bash
+dotnet tool install -g Sharpitect.Tool
+```
+
+If the `sharpitect` command is not found after installation, you need to add the .NET tools directory to your PATH. Add the following line to your shell configuration file (`~/.bashrc`, `~/.bash_profile`, or `~/.zshrc`):
+
+```bash
+export PATH="$PATH:$HOME/.dotnet/tools"
+```
+
+Then reload your shell configuration:
+
+```bash
+source ~/.bashrc  # or ~/.bash_profile or ~/.zshrc
+```
+
+Alternatively, you can run this one-liner to add it permanently:
+
+```bash
+echo 'export PATH="$PATH:$HOME/.dotnet/tools"' >> ~/.bashrc && source ~/.bashrc
+```
+
 ## Building
 
 ```bash
