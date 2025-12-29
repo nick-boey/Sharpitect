@@ -409,6 +409,64 @@ public class GraphSearchServiceTests
 
     #endregion
 
+    #region TodoComment Search Tests
+
+    [Test]
+    public async Task SearchAsync_TodoComment_FindsTodoNodes()
+    {
+        _graph.AddNode(CreateTestNode("TODO: Implement caching", DeclarationKind.TodoComment, "MyClass$TODO#1"));
+        _graph.AddNode(CreateTestNode("FIXME: Fix null check", DeclarationKind.TodoComment, "MyClass$FIXME#1"));
+        _graph.AddNode(CreateTestNode("MyClass", DeclarationKind.Class));
+
+        var query = new SearchQuery
+        {
+            SearchText = "caching",
+            KindFilter = [DeclarationKind.TodoComment]
+        };
+
+        var results = await _service.SearchAsync(query);
+
+        Assert.That(results, Has.Count.EqualTo(1));
+        Assert.That(results[0].Kind, Is.EqualTo(DeclarationKind.TodoComment));
+        Assert.That(results[0].Name, Does.Contain("caching"));
+    }
+
+    [Test]
+    public async Task SearchAsync_TodoComment_FilterByKind_ReturnsOnlyTodoNodes()
+    {
+        _graph.AddNode(CreateTestNode("TODO: Implement caching", DeclarationKind.TodoComment, "MyClass$TODO#1"));
+        _graph.AddNode(CreateTestNode("FIXME: Fix null check", DeclarationKind.TodoComment, "MyClass$FIXME#1"));
+        _graph.AddNode(CreateTestNode("MyClass", DeclarationKind.Class));
+
+        var query = new SearchQuery
+        {
+            SearchText = "MyClass",
+            KindFilter = [DeclarationKind.TodoComment]
+        };
+
+        var results = await _service.SearchAsync(query);
+
+        // Both TODO nodes have MyClass in their ID, so both match
+        Assert.That(results, Has.Count.EqualTo(2));
+        Assert.That(results.All(n => n.Kind == DeclarationKind.TodoComment), Is.True);
+    }
+
+    [Test]
+    public async Task SearchAsync_TodoComment_SearchByContent()
+    {
+        _graph.AddNode(CreateTestNode("TODO: Implement caching", DeclarationKind.TodoComment, "MyClass$TODO#1"));
+        _graph.AddNode(CreateTestNode("FIXME: Fix null check", DeclarationKind.TodoComment, "MyClass$FIXME#1"));
+
+        var query = new SearchQuery { SearchText = "null check" };
+
+        var results = await _service.SearchAsync(query);
+
+        Assert.That(results, Has.Count.EqualTo(1));
+        Assert.That(results[0].Name, Does.Contain("null check"));
+    }
+
+    #endregion
+
     #region Combined Filters Tests
 
     [Test]
