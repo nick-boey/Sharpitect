@@ -20,7 +20,8 @@
       "Bash(mkdir:*)",
       "Bash(dir:*)",
       "mcp__plugin_sharpitect_Sharpitect__search_declarations",
-      "mcp__plugin_sharpitect_Sharpitect__get_code"
+      "mcp__plugin_sharpitect_Sharpitect__get_code",
+      "Bash(chmod:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
