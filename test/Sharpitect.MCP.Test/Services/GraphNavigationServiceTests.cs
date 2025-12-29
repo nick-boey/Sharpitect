@@ -209,6 +209,85 @@ public class GraphNavigationServiceTests
 
     #endregion
 
+    #region ResolveNode Tests
+
+    [Test]
+    public async Task ResolveNodeAsync_WithExactMatch_ReturnsResolved()
+    {
+        var node = CreateTestNode("TestClass", DeclarationKind.Class, "Namespace.TestClass");
+        _repository.GetNodeByFullyQualifiedNameAsync("Namespace.TestClass", Arg.Any<CancellationToken>())
+            .Returns(node);
+
+        var result = await _service.ResolveNodeAsync("Namespace.TestClass");
+
+        Assert.That(result, Is.InstanceOf<NodeResolutionResult.Resolved>());
+        var resolved = (NodeResolutionResult.Resolved)result;
+        Assert.That(resolved.Node.Id, Is.EqualTo("Namespace.TestClass"));
+        Assert.That(result.IsResolved, Is.True);
+    }
+
+    [Test]
+    public async Task ResolveNodeAsync_WithNoMatch_ReturnsNotResolvedWithSuggestions()
+    {
+        var graph = new DeclarationGraph();
+        var similarNode1 = CreateTestNode("TestClass1", DeclarationKind.Class, "Namespace.TestClass1");
+        var similarNode2 = CreateTestNode("TestClass2", DeclarationKind.Class, "Namespace.TestClass2");
+        graph.AddNode(similarNode1);
+        graph.AddNode(similarNode2);
+
+        _repository.GetNodeByFullyQualifiedNameAsync("TestClass", Arg.Any<CancellationToken>())
+            .Returns((DeclarationNode?)null);
+        _repository.GetNodeAsync("TestClass", Arg.Any<CancellationToken>())
+            .Returns((DeclarationNode?)null);
+        _repository.LoadGraphAsync(Arg.Any<CancellationToken>())
+            .Returns(graph);
+
+        var result = await _service.ResolveNodeAsync("TestClass");
+
+        Assert.That(result, Is.InstanceOf<NodeResolutionResult.NotResolved>());
+        var notResolved = (NodeResolutionResult.NotResolved)result;
+        Assert.That(notResolved.SimilarNodes, Has.Count.EqualTo(2));
+        Assert.That(result.IsResolved, Is.False);
+    }
+
+    [Test]
+    public async Task ResolveNodeAsync_WithNoMatchAndNoSuggestions_ReturnsEmptySuggestions()
+    {
+        var graph = new DeclarationGraph();
+
+        _repository.GetNodeByFullyQualifiedNameAsync("xyz", Arg.Any<CancellationToken>())
+            .Returns((DeclarationNode?)null);
+        _repository.GetNodeAsync("xyz", Arg.Any<CancellationToken>())
+            .Returns((DeclarationNode?)null);
+        _repository.LoadGraphAsync(Arg.Any<CancellationToken>())
+            .Returns(graph);
+
+        var result = await _service.ResolveNodeAsync("xyz");
+
+        Assert.That(result, Is.InstanceOf<NodeResolutionResult.NotResolved>());
+        var notResolved = (NodeResolutionResult.NotResolved)result;
+        Assert.That(notResolved.SimilarNodes, Is.Empty);
+    }
+
+    [Test]
+    public async Task ResolveNodeAsync_FallsBackToIdLookup_WhenFullyQualifiedNameNotFound()
+    {
+        var node = CreateTestNode("TestClass", DeclarationKind.Class, "Namespace.TestClass");
+
+        _repository.GetNodeByFullyQualifiedNameAsync("Namespace.TestClass", Arg.Any<CancellationToken>())
+            .Returns((DeclarationNode?)null);
+        _repository.GetNodeAsync("Namespace.TestClass", Arg.Any<CancellationToken>())
+            .Returns(node);
+
+        var result = await _service.ResolveNodeAsync("Namespace.TestClass");
+
+        Assert.That(result, Is.InstanceOf<NodeResolutionResult.Resolved>());
+        var resolved = (NodeResolutionResult.Resolved)result;
+        Assert.That(resolved.Node.Id, Is.EqualTo("Namespace.TestClass"));
+    }
+
+    #endregion
+
     #region Helper Methods
 
     private static DeclarationNode CreateTestNode(

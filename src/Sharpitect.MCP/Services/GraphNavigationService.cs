@@ -15,7 +15,7 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
     /// <summary>
     /// Resolves a node by identifier, trying the fully qualified name first, then falling back to ID.
     /// </summary>
-    private async Task<DeclarationNode?> ResolveNodeAsync(string identifier, CancellationToken cancellationToken)
+    private async Task<DeclarationNode?> ResolveNodeInternalAsync(string identifier, CancellationToken cancellationToken)
     {
         // First try to find by fully qualified name
         var node = await _repository.GetNodeByFullyQualifiedNameAsync(identifier, cancellationToken)
@@ -27,6 +27,31 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
 
         // Fall back to ID lookup for backward compatibility
         return await _repository.GetNodeAsync(identifier, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <inheritdoc />
+    public async Task<NodeResolutionResult> ResolveNodeAsync(
+        string identifier,
+        int suggestionLimit = 5,
+        CancellationToken cancellationToken = default)
+    {
+        // First try exact match
+        var node = await ResolveNodeInternalAsync(identifier, cancellationToken).ConfigureAwait(false);
+        if (node != null)
+        {
+            return new NodeResolutionResult.Resolved(node);
+        }
+
+        // No exact match - search for similar nodes
+        var searchResults = await SearchAsync(
+            identifier,
+            SearchMatchMode.Contains,
+            kindFilter: null,
+            caseSensitive: false,
+            limit: suggestionLimit,
+            cancellationToken).ConfigureAwait(false);
+
+        return new NodeResolutionResult.NotResolved(searchResults.Results);
     }
 
     public async Task<SearchResults> SearchAsync(
@@ -69,7 +94,7 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
 
     public async Task<NodeDetail?> GetNodeAsync(string name, CancellationToken cancellationToken = default)
     {
-        var node = await ResolveNodeAsync(name, cancellationToken).ConfigureAwait(false);
+        var node = await ResolveNodeInternalAsync(name, cancellationToken).ConfigureAwait(false);
         return node == null ? null : NodeDetail.FromDeclarationNode(node);
     }
 
@@ -79,7 +104,7 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
         int limit = 100,
         CancellationToken cancellationToken = default)
     {
-        var parentNode = await ResolveNodeAsync(parentId, cancellationToken).ConfigureAwait(false);
+        var parentNode = await ResolveNodeInternalAsync(parentId, cancellationToken).ConfigureAwait(false);
         if (parentNode == null)
         {
             return null;
@@ -108,7 +133,7 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
 
     public async Task<AncestorsResult?> GetAncestorsAsync(string nodeId, CancellationToken cancellationToken = default)
     {
-        var node = await ResolveNodeAsync(nodeId, cancellationToken).ConfigureAwait(false);
+        var node = await ResolveNodeInternalAsync(nodeId, cancellationToken).ConfigureAwait(false);
         if (node == null)
         {
             return null;
@@ -155,7 +180,7 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
         int limit = 50,
         CancellationToken cancellationToken = default)
     {
-        var node = await ResolveNodeAsync(nodeId, cancellationToken).ConfigureAwait(false);
+        var node = await ResolveNodeInternalAsync(nodeId, cancellationToken).ConfigureAwait(false);
         if (node == null)
         {
             return null;
@@ -221,7 +246,7 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
         int limit = 50,
         CancellationToken cancellationToken = default)
     {
-        var node = await ResolveNodeAsync(nodeId, cancellationToken).ConfigureAwait(false);
+        var node = await ResolveNodeInternalAsync(nodeId, cancellationToken).ConfigureAwait(false);
         if (node == null)
         {
             return null;
@@ -283,7 +308,7 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
         int limit = 50,
         CancellationToken cancellationToken = default)
     {
-        var node = await ResolveNodeAsync(nodeId, cancellationToken).ConfigureAwait(false);
+        var node = await ResolveNodeInternalAsync(nodeId, cancellationToken).ConfigureAwait(false);
         if (node == null)
         {
             return null;
@@ -345,7 +370,7 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
         int depth = 10,
         CancellationToken cancellationToken = default)
     {
-        var node = await ResolveNodeAsync(nodeId, cancellationToken).ConfigureAwait(false);
+        var node = await ResolveNodeInternalAsync(nodeId, cancellationToken).ConfigureAwait(false);
         if (node == null)
         {
             return null;
@@ -462,7 +487,7 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
 
         if (scopeId != null)
         {
-            var scopeNode = await ResolveNodeAsync(scopeId, cancellationToken).ConfigureAwait(false);
+            var scopeNode = await ResolveNodeInternalAsync(scopeId, cancellationToken).ConfigureAwait(false);
             if (scopeNode != null)
             {
                 var scopeDescendants = await GetAllDescendantsAsync(scopeNode.Id).ConfigureAwait(false);
@@ -513,7 +538,7 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
         bool includeTransitive = false,
         CancellationToken cancellationToken = default)
     {
-        var projectNode = await ResolveNodeAsync(projectId, cancellationToken).ConfigureAwait(false);
+        var projectNode = await ResolveNodeInternalAsync(projectId, cancellationToken).ConfigureAwait(false);
         if (projectNode == null || projectNode.Kind != DeclarationKind.Project)
         {
             return null;
@@ -570,7 +595,7 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
         bool includeTransitive = false,
         CancellationToken cancellationToken = default)
     {
-        var projectNode = await ResolveNodeAsync(projectId, cancellationToken).ConfigureAwait(false);
+        var projectNode = await ResolveNodeInternalAsync(projectId, cancellationToken).ConfigureAwait(false);
         if (projectNode is not { Kind: DeclarationKind.Project })
         {
             return null;
@@ -719,7 +744,7 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
         int limit = 100,
         CancellationToken cancellationToken = default)
     {
-        var node = await ResolveNodeAsync(nodeId, cancellationToken).ConfigureAwait(false);
+        var node = await ResolveNodeInternalAsync(nodeId, cancellationToken).ConfigureAwait(false);
         if (node == null)
         {
             return null;
@@ -777,7 +802,7 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
 
     public async Task<SignatureResult?> GetSignatureAsync(string nodeId, CancellationToken cancellationToken = default)
     {
-        var node = await ResolveNodeAsync(nodeId, cancellationToken).ConfigureAwait(false);
+        var node = await ResolveNodeInternalAsync(nodeId, cancellationToken).ConfigureAwait(false);
         if (node == null)
         {
             return null;
@@ -870,7 +895,7 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
 
     public async Task<CodeResult?> GetCodeAsync(string nodeId, CancellationToken cancellationToken = default)
     {
-        var node = await ResolveNodeAsync(nodeId, cancellationToken).ConfigureAwait(false);
+        var node = await ResolveNodeInternalAsync(nodeId, cancellationToken).ConfigureAwait(false);
         if (node == null)
         {
             return null;
@@ -925,7 +950,7 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
         if (rootId != null)
         {
             // Start from a specific node
-            var rootNode = await ResolveNodeAsync(rootId, cancellationToken).ConfigureAwait(false);
+            var rootNode = await ResolveNodeInternalAsync(rootId, cancellationToken).ConfigureAwait(false);
             if (rootNode != null)
             {
                 var tree = await BuildTreeNodeAsync(
