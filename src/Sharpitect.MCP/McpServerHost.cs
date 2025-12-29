@@ -30,6 +30,10 @@ public static class McpServerHost
                 // Register the output formatter factory
                 services.AddSingleton<IOutputFormatterFactory, OutputFormatterFactory>();
 
+                // Register the tool result builder for MCP responses
+                services.AddSingleton<TextOutputFormatter>();
+                services.AddSingleton<ToolResultBuilder>();
+
                 // Configure MCP server
                 services.AddMcpServer()
                     .WithStdioServerTransport()

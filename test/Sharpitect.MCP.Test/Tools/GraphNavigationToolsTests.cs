@@ -1,3 +1,4 @@
+using ModelContextProtocol.Protocol;
 using NSubstitute;
 using Sharpitect.Analysis.Graph;
 using Sharpitect.Analysis.Search;
@@ -12,19 +13,28 @@ namespace Sharpitect.MCP.Test.Tools;
 public class GraphNavigationToolsTests
 {
     private IGraphNavigationService _navigationService = null!;
-    private IOutputFormatterFactory _formatterFactory = null!;
+    private ToolResultBuilder _resultBuilder = null!;
 
     [SetUp]
     public void SetUp()
     {
         _navigationService = Substitute.For<IGraphNavigationService>();
-        _formatterFactory = new OutputFormatterFactory();
+        _resultBuilder = new ToolResultBuilder(new TextOutputFormatter());
+    }
+
+    /// <summary>
+    /// Gets the text content from a CallToolResult.
+    /// </summary>
+    private static string GetTextContent(CallToolResult result)
+    {
+        var textBlock = result.Content?.OfType<TextContentBlock>().FirstOrDefault();
+        return textBlock?.Text ?? string.Empty;
     }
 
     #region SearchDeclarations Tests
 
     [Test]
-    public async Task SearchDeclarations_ReturnsJsonByDefault()
+    public async Task SearchDeclarations_ReturnsCallToolResult_WithTextAndStructuredContent()
     {
         var searchResults = new SearchResults(
             new List<NodeSummary>
@@ -42,38 +52,16 @@ public class GraphNavigationToolsTests
 
         var result = await GraphNavigationTools.SearchDeclarations(
             _navigationService,
-            _formatterFactory,
+            _resultBuilder,
             "Test");
 
-        Assert.That(result, Does.StartWith("{"));
-        Assert.That(result, Does.Contain("\"results\""));
-    }
+        // Check text content is human-readable
+        var textContent = GetTextContent(result);
+        Assert.That(textContent, Does.Contain("[Class]"));
+        Assert.That(textContent, Does.Contain("TestClass"));
 
-    [Test]
-    public async Task SearchDeclarations_ReturnsTextWhenRequested()
-    {
-        var searchResults = new SearchResults(
-            new List<NodeSummary>
-                { new("Namespace.TestClass", "TestClass", "Class", "Code", "test.cs", 10, 50) },
-            TotalCount: 1,
-            Truncated: false);
-        _navigationService.SearchAsync(
-                Arg.Any<string>(),
-                Arg.Any<SearchMatchMode>(),
-                Arg.Any<IReadOnlyCollection<DeclarationKind>?>(),
-                Arg.Any<bool>(),
-                Arg.Any<int>(),
-                Arg.Any<CancellationToken>())
-            .Returns(searchResults);
-
-        var result = await GraphNavigationTools.SearchDeclarations(
-            _navigationService,
-            _formatterFactory,
-            "Test",
-            format: "text");
-
-        Assert.That(result, Does.Contain("[Class]"));
-        Assert.That(result, Does.Contain("TestClass"));
+        // Check structured content is present
+        Assert.That(result.StructuredContent, Is.Not.Null);
     }
 
     [Test]
@@ -91,7 +79,7 @@ public class GraphNavigationToolsTests
 
         await GraphNavigationTools.SearchDeclarations(
             _navigationService,
-            _formatterFactory,
+            _resultBuilder,
             "Test",
             matchMode: "starts_with");
 
@@ -119,7 +107,7 @@ public class GraphNavigationToolsTests
 
         await GraphNavigationTools.SearchDeclarations(
             _navigationService,
-            _formatterFactory,
+            _resultBuilder,
             "Test",
             kind: "class");
 
@@ -146,28 +134,13 @@ public class GraphNavigationToolsTests
 
         var result = await GraphNavigationTools.GetNode(
             _navigationService,
-            _formatterFactory,
+            _resultBuilder,
             "Namespace.TestClass");
 
-        Assert.That(result, Does.Contain("\"id\":\"Namespace.TestClass\""));
-        Assert.That(result, Does.Contain("TestClass"));
-    }
-
-    [Test]
-    public async Task GetNode_SearchByFullyQualifiedName_WhenFound()
-    {
-        var nodeDetail = new NodeDetail(
-            "Namespace.TestClass", "TestClass", "Class", "Code", "test.cs", 10, 50, null);
-        _navigationService.GetNodeAsync("Namespace.TestClass", Arg.Any<CancellationToken>())
-            .Returns(nodeDetail);
-
-        var result = await GraphNavigationTools.GetNode(
-            _navigationService,
-            _formatterFactory,
-            "Namespace.TestClass");
-
-        Assert.That(result, Does.Contain("\"id\":\"Namespace.TestClass\""));
-        Assert.That(result, Does.Contain("TestClass"));
+        var textContent = GetTextContent(result);
+        Assert.That(textContent, Does.Contain("[Class]"));
+        Assert.That(textContent, Does.Contain("TestClass"));
+        Assert.That(result.StructuredContent, Is.Not.Null);
     }
 
     [Test]
@@ -178,11 +151,12 @@ public class GraphNavigationToolsTests
 
         var result = await GraphNavigationTools.GetNode(
             _navigationService,
-            _formatterFactory,
+            _resultBuilder,
             "missing");
 
-        Assert.That(result, Does.Contain("\"error\":true"));
-        Assert.That(result, Does.Contain("NOT_FOUND"));
+        var textContent = GetTextContent(result);
+        Assert.That(textContent, Does.Contain("NOT_FOUND"));
+        Assert.That(result.IsError, Is.True);
     }
 
     #endregion
@@ -204,11 +178,13 @@ public class GraphNavigationToolsTests
 
         var result = await GraphNavigationTools.GetChildren(
             _navigationService,
-            _formatterFactory,
+            _resultBuilder,
             "parent-id");
 
-        Assert.That(result, Does.Contain("\"parent_id\":\"parent-id\""));
-        Assert.That(result, Does.Contain("ChildMethod"));
+        var textContent = GetTextContent(result);
+        Assert.That(textContent, Does.Contain("parent-id"));
+        Assert.That(textContent, Does.Contain("ChildMethod"));
+        Assert.That(result.StructuredContent, Is.Not.Null);
     }
 
     #endregion
@@ -232,12 +208,14 @@ public class GraphNavigationToolsTests
 
         var result = await GraphNavigationTools.GetRelationships(
             _navigationService,
-            _formatterFactory,
+            _resultBuilder,
             "class-id");
 
-        Assert.That(result, Does.Contain("\"outgoing\""));
-        Assert.That(result, Does.Contain("\"incoming\""));
-        Assert.That(result, Does.Contain("Implements"));
+        var textContent = GetTextContent(result);
+        Assert.That(textContent, Does.Contain("OUTGOING"));
+        Assert.That(textContent, Does.Contain("INCOMING"));
+        Assert.That(textContent, Does.Contain("Implements"));
+        Assert.That(result.StructuredContent, Is.Not.Null);
     }
 
     [Test]
@@ -257,7 +235,7 @@ public class GraphNavigationToolsTests
 
         await GraphNavigationTools.GetRelationships(
             _navigationService,
-            _formatterFactory,
+            _resultBuilder,
             "class-id",
             direction: "outgoing");
 
@@ -292,10 +270,12 @@ public class GraphNavigationToolsTests
 
         var result = await GraphNavigationTools.ListByKind(
             _navigationService,
-            _formatterFactory,
+            _resultBuilder,
             "class");
 
-        Assert.That(result, Does.Contain("TestClass"));
+        var textContent = GetTextContent(result);
+        Assert.That(textContent, Does.Contain("TestClass"));
+        Assert.That(result.StructuredContent, Is.Not.Null);
     }
 
     [Test]
@@ -303,11 +283,12 @@ public class GraphNavigationToolsTests
     {
         var result = await GraphNavigationTools.ListByKind(
             _navigationService,
-            _formatterFactory,
+            _resultBuilder,
             "invalid_kind");
 
-        Assert.That(result, Does.Contain("\"error\":true"));
-        Assert.That(result, Does.Contain("INVALID_PARAMETER"));
+        var textContent = GetTextContent(result);
+        Assert.That(textContent, Does.Contain("INVALID_PARAMETER"));
+        Assert.That(result.IsError, Is.True);
     }
 
     #endregion
@@ -315,7 +296,7 @@ public class GraphNavigationToolsTests
     #region Text Output Tests
 
     [Test]
-    public async Task GetAncestors_ReturnsTextOutput_WhenRequested()
+    public async Task GetAncestors_ReturnsTextContent()
     {
         var ancestorsResult = new AncestorsResult(
             "method-id",
@@ -329,12 +310,13 @@ public class GraphNavigationToolsTests
 
         var result = await GraphNavigationTools.GetAncestors(
             _navigationService,
-            _formatterFactory,
-            "method-id",
-            format: "text");
+            _resultBuilder,
+            "method-id");
 
-        Assert.That(result, Does.Contain("Solution: MySolution"));
-        Assert.That(result, Does.Contain("Project: MyProject"));
+        var textContent = GetTextContent(result);
+        Assert.That(textContent, Does.Contain("Solution: MySolution"));
+        Assert.That(textContent, Does.Contain("Project: MyProject"));
+        Assert.That(result.StructuredContent, Is.Not.Null);
     }
 
     #endregion
