@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
 using Sharpitect.Analysis.Graph;
 using Sharpitect.Analysis.Search;
@@ -19,9 +20,9 @@ public static class GraphNavigationTools
     /// </summary>
     [McpServerTool,
      Description("Search for declarations (classes, methods, properties) by name with optional filters.")]
-    public static async Task<string> SearchDeclarations(
+    public static async Task<CallToolResult> SearchDeclarations(
         IGraphNavigationService navigationService,
-        IOutputFormatterFactory formatterFactory,
+        ToolResultBuilder resultBuilder,
         [Description("Search text to match against declaration names")]
         string query,
         [Description("Match mode: contains, starts_with, ends_with, or exact. Defaults to contains.")]
@@ -31,12 +32,8 @@ public static class GraphNavigationTools
         [Description("Case-sensitive search. Defaults to false.")]
         bool caseSensitive = false,
         [Description("Maximum number of results. Defaults to 50.")]
-        int limit = 50,
-        [Description("Output format: json or text. Defaults to json.")]
-        string? format = null)
+        int limit = 50)
     {
-        var formatter = formatterFactory.GetFormatter(format);
-
         var matchModeEnum = ParseMatchMode(matchMode);
         var kindFilter = ParseKindFilter(kind);
 
@@ -47,361 +44,310 @@ public static class GraphNavigationTools
             caseSensitive,
             limit);
 
-        return formatter.Format(result);
+        return resultBuilder.Build(result);
     }
 
     /// <summary>
     /// Gets detailed information about a specific declaration node.
     /// </summary>
     [McpServerTool, Description("Get detailed information about a specific declaration node by name.")]
-    public static async Task<string> GetNode(
+    public static async Task<CallToolResult> GetNode(
         IGraphNavigationService navigationService,
-        IOutputFormatterFactory formatterFactory,
+        ToolResultBuilder resultBuilder,
         [Description("Fully qualified node name (e.g., Namespace.ClassName.MethodName)")]
         string name,
-        [Description("Output format: json or text. Defaults to json.")]
-        string? format = null,
         [Description("Maximum number of similar nodes to suggest if not found. Defaults to 5.")]
         int suggestionLimit = 5)
     {
-        var formatter = formatterFactory.GetFormatter(format);
-
         var result = await navigationService.GetNodeAsync(name);
         if (result == null)
         {
-            return await FormatNotFoundWithSuggestionsAsync(
-                navigationService, formatter, name, "Node", suggestionLimit);
+            return await BuildNotFoundWithSuggestionsAsync(
+                navigationService, resultBuilder, name, "Node", suggestionLimit);
         }
 
-        return formatter.Format(result);
+        return resultBuilder.Build(result);
     }
 
     /// <summary>
     /// Gets the children (contained declarations) of a node.
     /// </summary>
     [McpServerTool, Description("Get the immediate children (contents) of a declaration.")]
-    public static async Task<string> GetChildren(
+    public static async Task<CallToolResult> GetChildren(
         IGraphNavigationService navigationService,
-        IOutputFormatterFactory formatterFactory,
+        ToolResultBuilder resultBuilder,
         [Description("Parent node ID")] string id,
         [Description("Filter children by kind")]
         string? kind = null,
         [Description("Maximum number of results. Defaults to 100.")]
-        int limit = 100,
-        [Description("Output format: json or text. Defaults to json.")]
-        string? format = null)
+        int limit = 100)
     {
-        var formatter = formatterFactory.GetFormatter(format);
         var kindFilter = kind != null ? ParseDeclarationKind(kind) : null;
 
         var result = await navigationService.GetChildrenAsync(id, kindFilter, limit);
         if (result == null)
         {
-            return formatter.Format(ErrorResponse.NotFound($"Node with ID '{id}' was not found in the graph."));
+            return resultBuilder.BuildError(ErrorResponse.NotFound($"Node with ID '{id}' was not found in the graph."));
         }
 
-        return formatter.Format(result);
+        return resultBuilder.Build(result);
     }
 
     /// <summary>
     /// Gets the ancestor chain (containment hierarchy) of a node.
     /// </summary>
     [McpServerTool, Description("Get the containment hierarchy path from root to a node.")]
-    public static async Task<string> GetAncestors(
+    public static async Task<CallToolResult> GetAncestors(
         IGraphNavigationService navigationService,
-        IOutputFormatterFactory formatterFactory,
-        [Description("Node ID")] string id,
-        [Description("Output format: json or text. Defaults to json.")]
-        string? format = null)
+        ToolResultBuilder resultBuilder,
+        [Description("Node ID")] string id)
     {
-        var formatter = formatterFactory.GetFormatter(format);
-
         var result = await navigationService.GetAncestorsAsync(id);
         if (result == null)
         {
-            return formatter.Format(ErrorResponse.NotFound($"Node with ID '{id}' was not found in the graph."));
+            return resultBuilder.BuildError(ErrorResponse.NotFound($"Node with ID '{id}' was not found in the graph."));
         }
 
-        return formatter.Format(result);
+        return resultBuilder.Build(result);
     }
 
     /// <summary>
     /// Gets relationships for a node.
     /// </summary>
     [McpServerTool, Description("Get relationships for a node (what it calls, what calls it, inheritance, etc.).")]
-    public static async Task<string> GetRelationships(
+    public static async Task<CallToolResult> GetRelationships(
         IGraphNavigationService navigationService,
-        IOutputFormatterFactory formatterFactory,
+        ToolResultBuilder resultBuilder,
         [Description("Node ID")] string id,
         [Description("Direction: outgoing, incoming, or both. Defaults to both.")]
         string? direction = null,
         [Description("Filter by relationship kind: calls, inherits, implements, references, uses")]
         string? relationshipKind = null,
         [Description("Maximum results per direction. Defaults to 50.")]
-        int limit = 50,
-        [Description("Output format: json or text. Defaults to json.")]
-        string? format = null)
+        int limit = 50)
     {
-        var formatter = formatterFactory.GetFormatter(format);
         var directionEnum = ParseRelationshipDirection(direction);
         var kindFilter = relationshipKind != null ? ParseRelationshipKind(relationshipKind) : null;
 
         var result = await navigationService.GetRelationshipsAsync(id, directionEnum, kindFilter, limit);
         if (result == null)
         {
-            return formatter.Format(ErrorResponse.NotFound($"Node with ID '{id}' was not found in the graph."));
+            return resultBuilder.BuildError(ErrorResponse.NotFound($"Node with ID '{id}' was not found in the graph."));
         }
 
-        return formatter.Format(result);
+        return resultBuilder.Build(result);
     }
 
     /// <summary>
     /// Gets all methods/properties that call a specific method or property.
     /// </summary>
     [McpServerTool, Description("Get all methods/properties that call a specific method or property.")]
-    public static async Task<string> GetCallers(
+    public static async Task<CallToolResult> GetCallers(
         IGraphNavigationService navigationService,
-        IOutputFormatterFactory formatterFactory,
+        ToolResultBuilder resultBuilder,
         [Description("Method or property ID")] string id,
         [Description("Traversal depth. Defaults to 1, max 5.")]
         int depth = 1,
         [Description("Maximum results. Defaults to 50.")]
-        int limit = 50,
-        [Description("Output format: json or text. Defaults to json.")]
-        string? format = null)
+        int limit = 50)
     {
-        var formatter = formatterFactory.GetFormatter(format);
-
         var result = await navigationService.GetCallersAsync(id, depth, limit);
         if (result == null)
         {
-            return formatter.Format(ErrorResponse.NotFound($"Node with ID '{id}' was not found in the graph."));
+            return resultBuilder.BuildError(ErrorResponse.NotFound($"Node with ID '{id}' was not found in the graph."));
         }
 
-        return formatter.Format(result);
+        return resultBuilder.Build(result);
     }
 
     /// <summary>
     /// Gets all methods/properties called by a specific method or property.
     /// </summary>
     [McpServerTool, Description("Get all methods/properties called by a specific method or property.")]
-    public static async Task<string> GetCallees(
+    public static async Task<CallToolResult> GetCallees(
         IGraphNavigationService navigationService,
-        IOutputFormatterFactory formatterFactory,
+        ToolResultBuilder resultBuilder,
         [Description("Method or property ID")] string id,
         [Description("Traversal depth. Defaults to 1, max 5.")]
         int depth = 1,
         [Description("Maximum results. Defaults to 50.")]
-        int limit = 50,
-        [Description("Output format: json or text. Defaults to json.")]
-        string? format = null)
+        int limit = 50)
     {
-        var formatter = formatterFactory.GetFormatter(format);
-
         var result = await navigationService.GetCalleesAsync(id, depth, limit);
         if (result == null)
         {
-            return formatter.Format(ErrorResponse.NotFound($"Node with ID '{id}' was not found in the graph."));
+            return resultBuilder.BuildError(ErrorResponse.NotFound($"Node with ID '{id}' was not found in the graph."));
         }
 
-        return formatter.Format(result);
+        return resultBuilder.Build(result);
     }
 
     /// <summary>
     /// Gets the inheritance hierarchy for a class or interface.
     /// </summary>
     [McpServerTool, Description("Get the inheritance hierarchy for a class or interface.")]
-    public static async Task<string> GetInheritance(
+    public static async Task<CallToolResult> GetInheritance(
         IGraphNavigationService navigationService,
-        IOutputFormatterFactory formatterFactory,
+        ToolResultBuilder resultBuilder,
         [Description("Class or interface ID")] string id,
         [Description("Direction: ancestors (base types), descendants (derived types), or both. Defaults to both.")]
         string? direction = null,
         [Description("Traversal depth. Defaults to 10.")]
-        int depth = 10,
-        [Description("Output format: json or text. Defaults to json.")]
-        string? format = null)
+        int depth = 10)
     {
-        var formatter = formatterFactory.GetFormatter(format);
         var directionEnum = ParseInheritanceDirection(direction);
 
         var result = await navigationService.GetInheritanceAsync(id, directionEnum, depth);
         if (result == null)
         {
-            return formatter.Format(ErrorResponse.NotFound($"Node with ID '{id}' was not found in the graph."));
+            return resultBuilder.BuildError(ErrorResponse.NotFound($"Node with ID '{id}' was not found in the graph."));
         }
 
-        return formatter.Format(result);
+        return resultBuilder.Build(result);
     }
 
     /// <summary>
     /// Lists all declarations of a specific kind within a scope.
     /// </summary>
     [McpServerTool, Description("List all declarations of a specific kind within a scope.")]
-    public static async Task<string> ListByKind(
+    public static async Task<CallToolResult> ListByKind(
         IGraphNavigationService navigationService,
-        IOutputFormatterFactory formatterFactory,
+        ToolResultBuilder resultBuilder,
         [Description("Declaration kind: class, interface, enum, struct, method, property, namespace, project")]
         string kind,
         [Description("Limit to scope (project or namespace ID). If omitted, searches entire solution.")]
         string? scope = null,
         [Description("Maximum results. Defaults to 100.")]
-        int limit = 100,
-        [Description("Output format: json or text. Defaults to json.")]
-        string? format = null)
+        int limit = 100)
     {
-        var formatter = formatterFactory.GetFormatter(format);
         var kindEnum = ParseDeclarationKind(kind);
 
         if (kindEnum == null)
         {
-            return formatter.Format(ErrorResponse.InvalidParameter($"Invalid kind: '{kind}'"));
+            return resultBuilder.BuildError(ErrorResponse.InvalidParameter($"Invalid kind: '{kind}'"));
         }
 
         var result = await navigationService.ListByKindAsync(kindEnum.Value, scope, limit);
-        return formatter.Format(result);
+        return resultBuilder.Build(result);
     }
 
     /// <summary>
     /// Gets project-level dependencies.
     /// </summary>
     [McpServerTool, Description("Get project-level dependencies (what a project references).")]
-    public static async Task<string> GetDependencies(
+    public static async Task<CallToolResult> GetDependencies(
         IGraphNavigationService navigationService,
-        IOutputFormatterFactory formatterFactory,
+        ToolResultBuilder resultBuilder,
         [Description("Project ID")] string id,
         [Description("Include transitive dependencies. Defaults to false.")]
-        bool includeTransitive = false,
-        [Description("Output format: json or text. Defaults to json.")]
-        string? format = null)
+        bool includeTransitive = false)
     {
-        var formatter = formatterFactory.GetFormatter(format);
-
         var result = await navigationService.GetDependenciesAsync(id, includeTransitive);
         if (result == null)
         {
-            return formatter.Format(ErrorResponse.NotFound($"Project with ID '{id}' was not found in the graph."));
+            return resultBuilder.BuildError(ErrorResponse.NotFound($"Project with ID '{id}' was not found in the graph."));
         }
 
-        return formatter.Format(result);
+        return resultBuilder.Build(result);
     }
 
     /// <summary>
     /// Gets projects that depend on a given project.
     /// </summary>
     [McpServerTool, Description("Get projects that depend on a given project.")]
-    public static async Task<string> GetDependents(
+    public static async Task<CallToolResult> GetDependents(
         IGraphNavigationService navigationService,
-        IOutputFormatterFactory formatterFactory,
+        ToolResultBuilder resultBuilder,
         [Description("Project ID")] string id,
         [Description("Include transitive dependents. Defaults to false.")]
-        bool includeTransitive = false,
-        [Description("Output format: json or text. Defaults to json.")]
-        string? format = null)
+        bool includeTransitive = false)
     {
-        var formatter = formatterFactory.GetFormatter(format);
-
         var result = await navigationService.GetDependentsAsync(id, includeTransitive);
         if (result == null)
         {
-            return formatter.Format(ErrorResponse.NotFound($"Project with ID '{id}' was not found in the graph."));
+            return resultBuilder.BuildError(ErrorResponse.NotFound($"Project with ID '{id}' was not found in the graph."));
         }
 
-        return formatter.Format(result);
+        return resultBuilder.Build(result);
     }
 
     /// <summary>
     /// Gets all declarations in a specific source file.
     /// </summary>
     [McpServerTool, Description("Get all declarations defined in a specific source file.")]
-    public static async Task<string> GetFileDeclarations(
+    public static async Task<CallToolResult> GetFileDeclarations(
         IGraphNavigationService navigationService,
-        IOutputFormatterFactory formatterFactory,
+        ToolResultBuilder resultBuilder,
         [Description("Source file path (relative or absolute)")]
-        string filePath,
-        [Description("Output format: json or text. Defaults to json.")]
-        string? format = null)
+        string filePath)
     {
-        var formatter = formatterFactory.GetFormatter(format);
-
         var result = await navigationService.GetFileDeclarationsAsync(filePath);
         if (result == null)
         {
-            return formatter.Format(ErrorResponse.NotFound($"No declarations found in file '{filePath}'."));
+            return resultBuilder.BuildError(ErrorResponse.NotFound($"No declarations found in file '{filePath}'."));
         }
 
-        return formatter.Format(result);
+        return resultBuilder.Build(result);
     }
 
     /// <summary>
     /// Finds all usages of a type, method, or property across the codebase.
     /// </summary>
     [McpServerTool, Description("Find all usages of a type, method, or property across the codebase.")]
-    public static async Task<string> GetUsages(
+    public static async Task<CallToolResult> GetUsages(
         IGraphNavigationService navigationService,
-        IOutputFormatterFactory formatterFactory,
+        ToolResultBuilder resultBuilder,
         [Description("Declaration ID")] string id,
         [Description("Filter by usage kind: all, call, type_reference, inheritance, instantiation. Defaults to all.")]
         string? usageKind = null,
         [Description("Maximum results. Defaults to 100.")]
-        int limit = 100,
-        [Description("Output format: json or text. Defaults to json.")]
-        string? format = null)
+        int limit = 100)
     {
-        var formatter = formatterFactory.GetFormatter(format);
         var usageKindFilter = ParseUsageKind(usageKind);
 
         var result = await navigationService.GetUsagesAsync(id, usageKindFilter, limit);
         if (result == null)
         {
-            return formatter.Format(ErrorResponse.NotFound($"Node with ID '{id}' was not found in the graph."));
+            return resultBuilder.BuildError(ErrorResponse.NotFound($"Node with ID '{id}' was not found in the graph."));
         }
 
-        return formatter.Format(result);
+        return resultBuilder.Build(result);
     }
 
     /// <summary>
     /// Gets the full signature and type information for a method, property, or type.
     /// </summary>
     [McpServerTool, Description("Get the full signature and type information for a method, property, or type.")]
-    public static async Task<string> GetSignature(
+    public static async Task<CallToolResult> GetSignature(
         IGraphNavigationService navigationService,
-        IOutputFormatterFactory formatterFactory,
-        [Description("Declaration ID")] string id,
-        [Description("Output format: json or text. Defaults to json.")]
-        string? format = null)
+        ToolResultBuilder resultBuilder,
+        [Description("Declaration ID")] string id)
     {
-        var formatter = formatterFactory.GetFormatter(format);
-
         var result = await navigationService.GetSignatureAsync(id);
         if (result == null)
         {
-            return formatter.Format(ErrorResponse.NotFound($"Node with ID '{id}' was not found in the graph."));
+            return resultBuilder.BuildError(ErrorResponse.NotFound($"Node with ID '{id}' was not found in the graph."));
         }
 
-        return formatter.Format(result);
+        return resultBuilder.Build(result);
     }
 
     /// <summary>
     /// Gets the source code for a declaration.
     /// </summary>
     [McpServerTool, Description("Get the source code for a declaration by reading from the source file.")]
-    public static async Task<string> GetCode(
+    public static async Task<CallToolResult> GetCode(
         IGraphNavigationService navigationService,
-        IOutputFormatterFactory formatterFactory,
-        [Description("Declaration ID")] string id,
-        [Description("Output format: json or text. Defaults to json.")]
-        string? format = null)
+        ToolResultBuilder resultBuilder,
+        [Description("Declaration ID")] string id)
     {
-        var formatter = formatterFactory.GetFormatter(format);
-
         var result = await navigationService.GetCodeAsync(id);
         if (result == null)
         {
-            return formatter.Format(ErrorResponse.NotFound($"Node with ID '{id}' was not found in the graph."));
+            return resultBuilder.BuildError(ErrorResponse.NotFound($"Node with ID '{id}' was not found in the graph."));
         }
 
-        return formatter.Format(result);
+        return resultBuilder.Build(result);
     }
 
     /// <summary>
@@ -410,40 +356,37 @@ public static class GraphNavigationTools
     [McpServerTool,
      Description(
          "Get the containment tree showing nested structure. If no root ID provided, shows from solution level.")]
-    public static async Task<string> GetTree(
+    public static async Task<CallToolResult> GetTree(
         IGraphNavigationService navigationService,
-        IOutputFormatterFactory formatterFactory,
+        ToolResultBuilder resultBuilder,
         [Description("Root node ID to start from. If omitted, starts from solution roots.")]
         string? rootId = null,
         [Description(
             "Filter to only show nodes of this kind: class, interface, method, property, namespace, project, etc.")]
         string? kind = null,
         [Description("Maximum depth levels to display. Defaults to 2.")]
-        int maxDepth = 2,
-        [Description("Output format: json or text. Defaults to json.")]
-        string? format = null)
+        int maxDepth = 2)
     {
-        var formatter = formatterFactory.GetFormatter(format);
         var kindFilter = kind != null ? ParseDeclarationKind(kind) : null;
 
         var result = await navigationService.GetTreeAsync(rootId, kindFilter, maxDepth);
 
         if (result.Roots.Count == 0 && rootId != null)
         {
-            return formatter.Format(ErrorResponse.NotFound($"Node with ID '{rootId}' was not found in the graph."));
+            return resultBuilder.BuildError(ErrorResponse.NotFound($"Node with ID '{rootId}' was not found in the graph."));
         }
 
-        return formatter.Format(result);
+        return resultBuilder.Build(result);
     }
 
     #region Resolution Helpers
 
     /// <summary>
-    /// Formats a not-found error with similar node suggestions.
+    /// Builds a not-found error CallToolResult with similar node suggestions.
     /// </summary>
-    private static async Task<string> FormatNotFoundWithSuggestionsAsync(
+    private static async Task<CallToolResult> BuildNotFoundWithSuggestionsAsync(
         IGraphNavigationService navigationService,
-        IOutputFormatter formatter,
+        ToolResultBuilder resultBuilder,
         string identifier,
         string entityDescription,
         int suggestionLimit = 5)
@@ -452,13 +395,13 @@ public static class GraphNavigationTools
 
         if (resolution is NodeResolutionResult.NotResolved notResolved && notResolved.SimilarNodes.Count > 0)
         {
-            return formatter.Format(new NodeNotFoundResponse(
+            return resultBuilder.BuildError(new NodeNotFoundResponse(
                 $"{entityDescription} '{identifier}' was not found. Did you mean one of these?",
                 notResolved.SimilarNodes));
         }
 
         // No suggestions found, use simple error message
-        return formatter.Format(ErrorResponse.NotFound(
+        return resultBuilder.BuildError(ErrorResponse.NotFound(
             $"{entityDescription} '{identifier}' was not found in the graph."));
     }
 
