@@ -9,6 +9,7 @@ public sealed class DebouncedFileChangeWatcher : IFileChangeWatcher
 {
     private readonly TimeSpan _debounceInterval;
     private readonly ConcurrentDictionary<string, FileChange> _pendingChanges = new();
+    private readonly GraphUpdateLogger? _logger;
     private FileSystemWatcher? _watcher;
     private Timer? _debounceTimer;
     private bool _isWatching;
@@ -17,9 +18,11 @@ public sealed class DebouncedFileChangeWatcher : IFileChangeWatcher
     /// Creates a new debounced file change watcher.
     /// </summary>
     /// <param name="debounceInterval">Interval to wait before firing events. Default is 300ms.</param>
-    public DebouncedFileChangeWatcher(TimeSpan? debounceInterval = null)
+    /// <param name="logger">Optional logger for file change events.</param>
+    public DebouncedFileChangeWatcher(TimeSpan? debounceInterval = null, GraphUpdateLogger? logger = null)
     {
         _debounceInterval = debounceInterval ?? TimeSpan.FromMilliseconds(300);
+        _logger = logger;
     }
 
     /// <inheritdoc />
@@ -125,6 +128,8 @@ public sealed class DebouncedFileChangeWatcher : IFileChangeWatcher
 
     private void QueueChange(FileChange change)
     {
+        _logger?.LogFileChangeDetected(change);
+
         // Use the file path as key, overwrite any pending change for this file
         // Priority: Delete > Rename > Create > Modified
         _pendingChanges.AddOrUpdate(
@@ -135,6 +140,8 @@ public sealed class DebouncedFileChangeWatcher : IFileChangeWatcher
         // Reset the debounce timer
         _debounceTimer?.Dispose();
         _debounceTimer = new Timer(OnDebounceElapsed, null, _debounceInterval, Timeout.InfiniteTimeSpan);
+
+        _logger?.LogDebounceStarted(change.FilePath, _debounceInterval);
     }
 
     private static FileChange MergeChanges(FileChange existing, FileChange incoming)
@@ -175,6 +182,7 @@ public sealed class DebouncedFileChangeWatcher : IFileChangeWatcher
 
         if (changes.Count > 0)
         {
+            _logger?.LogDebounceElapsed(changes.Count);
             ChangesDetected?.Invoke(this, changes);
         }
     }

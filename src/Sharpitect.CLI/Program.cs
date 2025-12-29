@@ -6,6 +6,7 @@ var rootCommand = new RootCommand("Sharpitect - Analyze .NET codebases and build
     // Analysis commands
     AnalysisCommands.CreateAnalyzeCommand(),
     AnalysisCommands.CreateInitCommand(),
+    AnalysisCommands.CreateWatchCommand(),
 
     // MCP server command
     ServerCommands.CreateServeCommand(),

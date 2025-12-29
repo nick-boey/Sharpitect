@@ -1,5 +1,6 @@
 using System.CommandLine;
 using Sharpitect.Analysis.Analyzers;
+using Sharpitect.Analysis.Incremental;
 using Sharpitect.Analysis.Persistence;
 
 namespace Sharpitect.CLI.Commands;
@@ -25,6 +26,17 @@ public static class AnalysisCommands
         "Deletes the graph database and rebuilds. Defaults to false.",
         getDefaultValue: () => false);
 
+    private static readonly Option<string?> LogFileOption = new(
+        name: "--log-file",
+        description:
+        "Path to log file for graph update events. If not specified, logs only to console.");
+
+    private static readonly Option<bool> NoConsoleLogOption = new(
+        name: "--no-console-log",
+        description:
+        "Disable console logging (only log to file if --log-file is specified).",
+        getDefaultValue: () => false);
+
     public static Command CreateAnalyzeCommand()
     {
         var command = new Command("analyze", "Analyze a .NET solution and build the declaration graph.")
@@ -46,6 +58,20 @@ public static class AnalysisCommands
         };
 
         command.SetHandler(HandleInitCommand, PathArgument);
+        return command;
+    }
+
+    public static Command CreateWatchCommand()
+    {
+        var command = new Command("watch", "Analyze a .NET solution and watch for file changes, logging all graph updates.")
+        {
+            PathArgument,
+            OutputOption,
+            LogFileOption,
+            NoConsoleLogOption
+        };
+
+        command.SetHandler(HandleWatchCommand, PathArgument, OutputOption, LogFileOption, NoConsoleLogOption);
         return command;
     }
 
@@ -238,5 +264,96 @@ public static class AnalysisCommands
 
         File.WriteAllText(configFilePath, yamlContent);
         Console.WriteLine($"Created: {configFileName}");
+    }
+
+    private static async Task HandleWatchCommand(string? path, string? outputPath, string? logFilePath, bool noConsoleLog)
+    {
+        var solutionPath = ResolveSolutionPath(path);
+        if (solutionPath == null)
+        {
+            Environment.ExitCode = 1;
+            return;
+        }
+
+        // Determine database path
+        var dbPath = outputPath;
+        if (string.IsNullOrEmpty(dbPath))
+        {
+            var solutionDir = Path.GetDirectoryName(solutionPath)!;
+            var sharpitectDir = Path.Combine(solutionDir, ".sharpitect");
+            Directory.CreateDirectory(sharpitectDir);
+            dbPath = Path.Combine(sharpitectDir, "graph.db");
+        }
+
+        // Determine log file path - default to .sharpitect/graph-updates.log if not specified
+        if (string.IsNullOrEmpty(logFilePath))
+        {
+            var solutionDir = Path.GetDirectoryName(solutionPath)!;
+            var sharpitectDir = Path.Combine(solutionDir, ".sharpitect");
+            Directory.CreateDirectory(sharpitectDir);
+            logFilePath = Path.Combine(sharpitectDir, "graph-updates.log");
+        }
+
+        Console.WriteLine($"Analyzing solution: {solutionPath}");
+        Console.WriteLine($"Output database: {dbPath}");
+        Console.WriteLine($"Log file: {logFilePath}");
+        Console.WriteLine();
+
+        try
+        {
+            // Always clean for watch mode to ensure fresh start
+            if (File.Exists(dbPath))
+            {
+                File.Delete(dbPath);
+                Console.WriteLine("Deleted existing database for fresh analysis");
+            }
+
+            await using var repository = new SqliteGraphRepository(dbPath);
+            var analyzer = new GraphSolutionAnalyzer(repository);
+
+            // Create the logger
+            using var logger = new GraphUpdateLogger(logFilePath, enableConsole: !noConsoleLog);
+
+            Console.WriteLine("Performing initial analysis...");
+            var updateService = await analyzer.WatchAsync(solutionPath, logger: logger);
+
+            Console.WriteLine();
+            Console.WriteLine($"Initial analysis complete. Graph has {updateService.Graph.NodeCount} nodes and {updateService.Graph.EdgeCount} edges.");
+            Console.WriteLine();
+            Console.WriteLine("Watching for file changes. Press Ctrl+C to stop.");
+            Console.WriteLine("-----------------------------------------------------------");
+
+            // Wait for cancellation
+            var cts = new CancellationTokenSource();
+            Console.CancelKeyPress += (_, e) =>
+            {
+                e.Cancel = true;
+                cts.Cancel();
+            };
+
+            try
+            {
+                await Task.Delay(Timeout.Infinite, cts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                // Expected when user presses Ctrl+C
+            }
+
+            Console.WriteLine();
+            Console.WriteLine("Stopping file watcher...");
+            await updateService.DisposeAsync();
+            Console.WriteLine("Stopped.");
+        }
+        catch (Exception ex)
+        {
+            await Console.Error.WriteLineAsync($"Error: {ex.Message}");
+            if (ex.InnerException != null)
+            {
+                await Console.Error.WriteLineAsync($"  Inner: {ex.InnerException.Message}");
+            }
+
+            Environment.ExitCode = 1;
+        }
     }
 }

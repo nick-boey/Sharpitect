@@ -169,11 +169,13 @@ public sealed class GraphSolutionAnalyzer
     /// </summary>
     /// <param name="solutionPath">Path to the .sln file.</param>
     /// <param name="visitLocals">True to include local variables and parameters.</param>
+    /// <param name="logger">Optional logger for graph update events.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The incremental update service that manages the graph.</returns>
     public async Task<IIncrementalGraphUpdateService> WatchAsync(
         string solutionPath,
         bool visitLocals = false,
+        GraphUpdateLogger? logger = null,
         CancellationToken cancellationToken = default)
     {
         EnsureMSBuildRegistered();
@@ -305,7 +307,7 @@ public sealed class GraphSolutionAnalyzer
 
         // Create and start the incremental update service
         var solutionDirectory = Path.GetDirectoryName(solutionPath)!;
-        var fileWatcher = new DebouncedFileChangeWatcher();
+        var fileWatcher = new DebouncedFileChangeWatcher(logger: logger);
         var fileAnalyzer = new IncrementalFileAnalyzer();
 
         var updateService = new IncrementalGraphUpdateService(
@@ -315,7 +317,8 @@ public sealed class GraphSolutionAnalyzer
             dependencyTracker,
             fileAnalyzer,
             fileWatcher,
-            visitLocals);
+            visitLocals,
+            logger: logger);
 
         await updateService.StartAsync(cancellationToken);
 
