@@ -179,9 +179,10 @@ public sealed class DeclarationGraph
     /// Removes all edges that reference a node (both incoming and outgoing).
     /// </summary>
     /// <param name="nodeId">The node ID.</param>
-    public void RemoveEdgesByNodeId(string nodeId)
+    /// <returns>The number of edges removed.</returns>
+    public int RemoveEdgesByNodeId(string nodeId)
     {
-        _edges.RemoveAll(e => e.SourceId == nodeId || e.TargetId == nodeId);
+        return _edges.RemoveAll(e => e.SourceId == nodeId || e.TargetId == nodeId);
     }
 
     /// <summary>

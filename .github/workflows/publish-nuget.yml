@@ -4,11 +4,6 @@ on:
   release:
     types: [published]
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version to publish (leave empty to use version from csproj)'
-        required: false
-        type: string
 
 jobs:
   publish:
@@ -17,6 +12,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history needed for MinVer to calculate version from tags
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -33,12 +30,7 @@ jobs:
         run: dotnet test Sharpitect.sln --configuration Release --no-build --verbosity normal
 
       - name: Pack
-        run: |
-          if [ -n "${{ inputs.version }}" ]; then
-            dotnet pack src/Sharpitect.CLI/Sharpitect.CLI.csproj --configuration Release --no-build -p:Version=${{ inputs.version }} --output ./nupkg
-          else
-            dotnet pack src/Sharpitect.CLI/Sharpitect.CLI.csproj --configuration Release --no-build --output ./nupkg
-          fi
+        run: dotnet pack src/Sharpitect.CLI/Sharpitect.CLI.csproj --configuration Release --no-build --output ./nupkg
 
       - name: Push to NuGet
         run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate

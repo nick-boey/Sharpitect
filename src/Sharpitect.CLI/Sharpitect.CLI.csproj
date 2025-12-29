@@ -10,7 +10,9 @@
         <PackAsTool>true</PackAsTool>
         <ToolCommandName>sharpitect</ToolCommandName>
         <PackageId>Sharpitect</PackageId>
-        <Version>0.1.0</Version>
+        <!-- Version is derived from Git tags via MinVer (e.g., tag v0.2.0 -> version 0.2.0) -->
+        <MinVerMinimumMajorMinor>0.2</MinVerMinimumMajorMinor>
+        <MinVerTagPrefix>v</MinVerTagPrefix>
         <Authors>Nick Boey, Sharpitect Contributors</Authors>
         <Description>
             Analyze .NET codebases and generate C4 architecture diagrams.
@@ -24,17 +26,21 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <None Include="..\..\README.md" Pack="true" PackagePath="\"/>
+        <None Include="..\..\README.md" Pack="true" PackagePath="\" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Sharpitect.Analysis\Sharpitect.Analysis.csproj"/>
-        <ProjectReference Include="..\Sharpitect.Attributes\Sharpitect.Attributes.csproj"/>
-        <ProjectReference Include="..\Sharpitect.MCP\Sharpitect.MCP.csproj"/>
+        <ProjectReference Include="..\Sharpitect.Analysis\Sharpitect.Analysis.csproj" />
+        <ProjectReference Include="..\Sharpitect.Attributes\Sharpitect.Attributes.csproj" />
+        <ProjectReference Include="..\Sharpitect.MCP\Sharpitect.MCP.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1"/>
+        <PackageReference Include="MinVer" Version="6.1.0">
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+          <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
     </ItemGroup>
 
 </Project>

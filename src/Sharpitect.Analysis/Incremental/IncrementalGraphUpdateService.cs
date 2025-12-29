@@ -16,6 +16,7 @@ public sealed class IncrementalGraphUpdateService : IIncrementalGraphUpdateServi
     private readonly IDependencyTracker _dependencyTracker;
     private readonly IIncrementalFileAnalyzer _fileAnalyzer;
     private readonly IFileChangeWatcher? _fileWatcher;
+    private readonly GraphUpdateLogger? _logger;
     private readonly SemaphoreSlim _updateLock = new(1, 1);
     private readonly Dictionary<string, string> _symbolMappings = new();
     private readonly string _solutionRootDirectory;
@@ -34,6 +35,7 @@ public sealed class IncrementalGraphUpdateService : IIncrementalGraphUpdateServi
     /// <param name="fileWatcher">Optional file watcher for monitoring changes.</param>
     /// <param name="visitLocals">Whether to include local variables.</param>
     /// <param name="solutionRootDirectory">Optional solution root directory. If not provided, will be inferred from the workspace's solution path.</param>
+    /// <param name="logger">Optional logger for graph update events.</param>
     public IncrementalGraphUpdateService(
         Workspace workspace,
         IGraphRepository repository,
@@ -42,7 +44,8 @@ public sealed class IncrementalGraphUpdateService : IIncrementalGraphUpdateServi
         IIncrementalFileAnalyzer fileAnalyzer,
         IFileChangeWatcher? fileWatcher = null,
         bool visitLocals = false,
-        string? solutionRootDirectory = null)
+        string? solutionRootDirectory = null,
+        GraphUpdateLogger? logger = null)
     {
         _workspace = workspace;
         _repository = repository;
@@ -50,6 +53,7 @@ public sealed class IncrementalGraphUpdateService : IIncrementalGraphUpdateServi
         _dependencyTracker = dependencyTracker;
         _fileAnalyzer = fileAnalyzer;
         _fileWatcher = fileWatcher;
+        _logger = logger;
         _visitLocals = visitLocals;
         _solutionRootDirectory = solutionRootDirectory
             ?? PathHelper.GetSolutionRootDirectory(
@@ -139,6 +143,8 @@ public sealed class IncrementalGraphUpdateService : IIncrementalGraphUpdateServi
             _state = IncrementalUpdateState.Updating;
             var stopwatch = Stopwatch.StartNew();
 
+            _logger?.LogBatchProcessingStarted(changes);
+
             var processedFiles = new HashSet<string>();
             var totalNodesAdded = 0;
             var totalNodesRemoved = 0;
@@ -162,10 +168,15 @@ public sealed class IncrementalGraphUpdateService : IIncrementalGraphUpdateServi
                     continue;
                 }
 
+                _logger?.LogFileProcessingStarted(change.FilePath, change.Kind);
+
                 try
                 {
-                    var (nodesRemoved, edgesRemoved, affectedNodeIds) = await RemoveFileDataAsync(
+                    var (nodesRemoved, edgesRemoved, affectedNodeIds, removedNodes, removedEdges) = await RemoveFileDataAsync(
                         change.FilePath, cancellationToken);
+
+                    _logger?.LogNodesRemoved(change.FilePath, removedNodes);
+                    _logger?.LogEdgesRemoved(change.FilePath, removedEdges);
 
                     totalNodesRemoved += nodesRemoved;
                     totalEdgesRemoved += edgesRemoved;
@@ -179,12 +190,11 @@ public sealed class IncrementalGraphUpdateService : IIncrementalGraphUpdateServi
                         if (enableCascade)
                         {
                             var dependentFiles = _dependencyTracker.GetDependentFilesForNodes(affectedNodeIds);
-                            foreach (var depFile in dependentFiles)
+                            var dependentFilesList = dependentFiles.Where(f => !filesProcessedThisRound.Contains(f)).ToList();
+                            _logger?.LogCascadeTriggered(change.FilePath, affectedNodeIds, dependentFilesList);
+                            foreach (var depFile in dependentFilesList)
                             {
-                                if (!filesProcessedThisRound.Contains(depFile))
-                                {
-                                    filesToProcess.Enqueue(new FileChange(depFile, FileChangeKind.Modified));
-                                }
+                                filesToProcess.Enqueue(new FileChange(depFile, FileChangeKind.Modified));
                             }
                         }
 
@@ -192,8 +202,11 @@ public sealed class IncrementalGraphUpdateService : IIncrementalGraphUpdateServi
                     }
 
                     // Re-analyze the file
-                    var (nodesAdded, edgesAdded) = await AnalyzeFileAsync(
+                    var (nodesAdded, edgesAdded, addedNodes, addedEdges) = await AnalyzeFileAsync(
                         change.FilePath, cancellationToken);
+
+                    _logger?.LogNodesAdded(change.FilePath, addedNodes);
+                    _logger?.LogEdgesAdded(change.FilePath, addedEdges);
 
                     totalNodesAdded += nodesAdded;
                     totalEdgesAdded += edgesAdded;
@@ -203,17 +216,17 @@ public sealed class IncrementalGraphUpdateService : IIncrementalGraphUpdateServi
                     if (enableCascade && affectedNodeIds.Count > 0)
                     {
                         var dependentFiles = _dependencyTracker.GetDependentFilesForNodes(affectedNodeIds);
-                        foreach (var depFile in dependentFiles)
+                        var dependentFilesList = dependentFiles.Where(f => !filesProcessedThisRound.Contains(f)).ToList();
+                        _logger?.LogCascadeTriggered(change.FilePath, affectedNodeIds, dependentFilesList);
+                        foreach (var depFile in dependentFilesList)
                         {
-                            if (!filesProcessedThisRound.Contains(depFile))
-                            {
-                                filesToProcess.Enqueue(new FileChange(depFile, FileChangeKind.Modified));
-                            }
+                            filesToProcess.Enqueue(new FileChange(depFile, FileChangeKind.Modified));
                         }
                     }
                 }
                 catch (Exception ex)
                 {
+                    _logger?.LogError(change.FilePath, ex);
                     UpdateError?.Invoke(this, new GraphUpdateErrorEventArgs
                     {
                         FilePath = change.FilePath,
@@ -226,7 +239,7 @@ public sealed class IncrementalGraphUpdateService : IIncrementalGraphUpdateServi
 
             if (processedFiles.Count > 0)
             {
-                UpdateCompleted?.Invoke(this, new GraphUpdateEventArgs
+                var eventArgs = new GraphUpdateEventArgs
                 {
                     UpdatedFiles = processedFiles.ToList(),
                     NodesAdded = totalNodesAdded,
@@ -234,7 +247,9 @@ public sealed class IncrementalGraphUpdateService : IIncrementalGraphUpdateServi
                     EdgesAdded = totalEdgesAdded,
                     EdgesRemoved = totalEdgesRemoved,
                     Duration = stopwatch.Elapsed
-                });
+                };
+                _logger?.LogBatchCompleted(eventArgs);
+                UpdateCompleted?.Invoke(this, eventArgs);
             }
         }
         finally
@@ -264,7 +279,7 @@ public sealed class IncrementalGraphUpdateService : IIncrementalGraphUpdateServi
         _ = ProcessFileChangesAsync(changes, enableCascade: true);
     }
 
-    private async Task<(int nodesRemoved, int edgesRemoved, List<string> affectedNodeIds)> RemoveFileDataAsync(
+    private async Task<(int nodesRemoved, int edgesRemoved, List<string> affectedNodeIds, List<Graph.DeclarationNode> removedNodes, List<Graph.RelationshipEdge> removedEdges)> RemoveFileDataAsync(
         string filePath, CancellationToken cancellationToken)
     {
         // Get nodes in this file
@@ -282,9 +297,15 @@ public sealed class IncrementalGraphUpdateService : IIncrementalGraphUpdateServi
         _graph.RemoveEdgesBySourceFile(filePath);
 
         // Remove dangling edges that pointed to removed nodes
+        var danglingEdgesRemoved = 0;
         foreach (var nodeId in nodeIds)
         {
-            _graph.RemoveEdgesByNodeId(nodeId);
+            var danglingCount = _graph.RemoveEdgesByNodeId(nodeId);
+            if (danglingCount > 0)
+            {
+                _logger?.LogDanglingEdgesRemoved(nodeId, danglingCount);
+            }
+            danglingEdgesRemoved += danglingCount;
         }
 
         // Remove from repository
@@ -297,10 +318,10 @@ public sealed class IncrementalGraphUpdateService : IIncrementalGraphUpdateServi
             _symbolMappings.Remove(node.Id);
         }
 
-        return (nodesInFile.Count, edgesFromFile.Count, nodeIds);
+        return (nodesInFile.Count, edgesFromFile.Count + danglingEdgesRemoved, nodeIds, nodesInFile, edgesFromFile);
     }
 
-    private async Task<(int nodesAdded, int edgesAdded)> AnalyzeFileAsync(
+    private async Task<(int nodesAdded, int edgesAdded, IReadOnlyList<Graph.DeclarationNode> addedNodes, IReadOnlyList<Graph.RelationshipEdge> addedEdges)> AnalyzeFileAsync(
         string relativePath, CancellationToken cancellationToken)
     {
         // Find the document in the workspace by comparing relative paths
@@ -311,13 +332,13 @@ public sealed class IncrementalGraphUpdateService : IIncrementalGraphUpdateServi
 
         if (document == null)
         {
-            return (0, 0);
+            return (0, 0, Array.Empty<Graph.DeclarationNode>(), Array.Empty<Graph.RelationshipEdge>());
         }
 
         var compilation = await document.Project.GetCompilationAsync(cancellationToken);
         if (compilation == null)
         {
-            return (0, 0);
+            return (0, 0, Array.Empty<Graph.DeclarationNode>(), Array.Empty<Graph.RelationshipEdge>());
         }
 
         // Get existing node IDs for reference resolution
@@ -356,6 +377,6 @@ public sealed class IncrementalGraphUpdateService : IIncrementalGraphUpdateServi
         await _repository.SaveNodesAsync(result.Nodes, cancellationToken);
         await _repository.SaveEdgesAsync(result.Edges, cancellationToken);
 
-        return (result.Nodes.Count, result.Edges.Count);
+        return (result.Nodes.Count, result.Edges.Count, result.Nodes, result.Edges);
     }
 }
