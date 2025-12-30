@@ -2,10 +2,12 @@
   "mcpServers": {
     "Sharpitect": {
       "type": "stdio",
-      "command": "sharpitect",
+      "command": "dnx",
       "args": [
-        "serve",
-        ".sharpitect/graph.db"
+        "sharpitect",
+        "--yes",
+        "--",
+        "serve"
       ],
       "env": {}
     }
