@@ -19,4 +19,10 @@ public sealed record ErrorResponse(
 
     public static ErrorResponse AnalysisError(string message) =>
         new(true, "ANALYSIS_ERROR", message);
+
+    public static ErrorResponse GraphBuilding(string? status = null) =>
+        new(true, "GRAPH_BUILDING", status ?? "Graph is being built. Please wait and try again.");
+
+    public static ErrorResponse BuildFailed(string message) =>
+        new(true, "BUILD_FAILED", message);
 }
