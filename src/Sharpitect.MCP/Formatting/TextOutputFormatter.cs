@@ -1,5 +1,6 @@
 using System.Text;
 using Sharpitect.MCP.Models;
+using Sharpitect.MCP.Tools;
 
 namespace Sharpitect.MCP.Formatting;
 
@@ -33,6 +34,11 @@ public sealed class TextOutputFormatter : IOutputFormatter
             CodeResult code => FormatCodeResult(code),
             TreeResult tree => FormatTree(tree),
             NodeNotFoundResponse notFound => FormatNodeNotFound(notFound),
+            // Document search results
+            DocumentSearchResults docSearch => FormatDocumentSearchResults(docSearch),
+            MarkdownDocumentList docList => FormatMarkdownDocumentList(docList),
+            MarkdownDocumentDetail docDetail => FormatMarkdownDocumentDetail(docDetail),
+            SectionContentResult sectionContent => FormatSectionContent(sectionContent),
             _ => result.ToString() ?? string.Empty
         };
     }
@@ -575,5 +581,130 @@ public sealed class TextOutputFormatter : IOutputFormatter
         {
             FormatTreeNode(sb, child, depth + 1);
         }
+    }
+
+    private static string FormatDocumentSearchResults(DocumentSearchResults results)
+    {
+        var sb = new StringBuilder();
+        var matchWord = results.TotalCount == 1 ? "match" : "matches";
+        sb.AppendLine($"Document search results ({results.TotalCount} {matchWord}):");
+        sb.AppendLine($"Query: \"{results.Query}\"");
+        sb.AppendLine();
+
+        if (results.Results.Count == 0)
+        {
+            sb.AppendLine("No matching documents found.");
+            return sb.ToString().TrimEnd();
+        }
+
+        foreach (var match in results.Results)
+        {
+            var title = match.DocumentTitle ?? match.DocumentId;
+            sb.AppendLine($"[{match.SimilarityScore:P0}] {title}");
+
+            if (match.HeadingPath != null)
+            {
+                sb.AppendLine($"  Section: {match.HeadingPath}");
+            }
+
+            sb.AppendLine($"  Location: {match.DocumentId}:{match.StartLine}-{match.EndLine}");
+
+            // Show a preview of the content (first 150 chars)
+            var preview = match.Content.Length > 150
+                ? match.Content[..150].Replace("\n", " ").Trim() + "..."
+                : match.Content.Replace("\n", " ").Trim();
+            sb.AppendLine($"  Preview: {preview}");
+            sb.AppendLine();
+        }
+
+        return sb.ToString().TrimEnd();
+    }
+
+    private static string FormatMarkdownDocumentList(MarkdownDocumentList results)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine($"Markdown documents ({results.TotalCount} total):");
+
+        if (results.Truncated)
+        {
+            sb.AppendLine($"  (showing {results.Documents.Count}, truncated)");
+        }
+
+        sb.AppendLine();
+
+        foreach (var doc in results.Documents)
+        {
+            var title = doc.Title != null ? $" - {doc.Title}" : "";
+            sb.AppendLine($"  {doc.Name}{title}");
+            sb.AppendLine($"    ID: {doc.Id}");
+            sb.AppendLine($"    Headings: {doc.HeadingCount}, Sections: {doc.SectionCount}");
+            sb.AppendLine();
+        }
+
+        return sb.ToString().TrimEnd();
+    }
+
+    private static string FormatMarkdownDocumentDetail(MarkdownDocumentDetail doc)
+    {
+        var sb = new StringBuilder();
+        var title = doc.Title ?? doc.Name;
+        sb.AppendLine($"Document: {title}");
+        sb.AppendLine($"  Path: {doc.Id}");
+
+        if (doc.ContentHash != null)
+        {
+            sb.AppendLine($"  Hash: {doc.ContentHash[..8]}...");
+        }
+
+        sb.AppendLine($"  Sections: {doc.SectionCount}");
+        sb.AppendLine();
+
+        if (doc.Headings.Count > 0)
+        {
+            sb.AppendLine("HEADINGS:");
+            foreach (var heading in doc.Headings)
+            {
+                var indent = new string(' ', (heading.Level - 1) * 2);
+                sb.AppendLine($"  {indent}{new string('#', heading.Level)} {heading.Text} (line {heading.LineNumber})");
+            }
+            sb.AppendLine();
+        }
+
+        if (doc.OutgoingLinks.Count > 0)
+        {
+            sb.AppendLine("OUTGOING LINKS:");
+            foreach (var link in doc.OutgoingLinks)
+            {
+                var linkType = link.IsWikilink ? "wikilink" : "link";
+                var text = link.LinkText != null ? $"\"{link.LinkText}\"" : "";
+                sb.AppendLine($"  -> {link.TargetId} ({linkType}) {text}");
+            }
+            sb.AppendLine();
+        }
+
+        if (doc.IncomingLinks.Count > 0)
+        {
+            sb.AppendLine("INCOMING LINKS:");
+            foreach (var link in doc.IncomingLinks)
+            {
+                var linkType = link.IsWikilink ? "wikilink" : "link";
+                sb.AppendLine($"  <- {link.TargetId} ({linkType})");
+            }
+        }
+
+        return sb.ToString().TrimEnd();
+    }
+
+    private static string FormatSectionContent(SectionContentResult result)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine($"Section: {result.SectionId}");
+        sb.AppendLine();
+        sb.AppendLine("Content:");
+        sb.AppendLine("```");
+        sb.AppendLine(result.Content);
+        sb.AppendLine("```");
+
+        return sb.ToString().TrimEnd();
     }
 }

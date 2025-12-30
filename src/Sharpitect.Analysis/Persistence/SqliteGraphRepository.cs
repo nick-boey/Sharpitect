@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.Data.Sqlite;
 using Sharpitect.Analysis.Graph;
 
@@ -387,6 +388,175 @@ public sealed class SqliteGraphRepository : IGraphRepository
         return Convert.ToInt32(result);
     }
 
+    // Embedding methods
+
+    /// <inheritdoc />
+    public async Task SaveEmbeddingAsync(string nodeId, float[] embedding, CancellationToken cancellationToken = default)
+    {
+        EnsureInitialized();
+
+        const string sql = """
+                           INSERT OR REPLACE INTO markdown_embeddings
+                           (node_id, embedding)
+                           VALUES ($node_id, $embedding)
+                           """;
+
+        await using var command = _connection!.CreateCommand();
+        command.CommandText = sql;
+        command.Parameters.AddWithValue("$node_id", nodeId);
+        command.Parameters.AddWithValue("$embedding", JsonSerializer.Serialize(embedding));
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task SaveEmbeddingsAsync(IEnumerable<(string NodeId, float[] Embedding)> embeddings, CancellationToken cancellationToken = default)
+    {
+        EnsureInitialized();
+
+        var embeddingsList = embeddings.ToList();
+        if (embeddingsList.Count == 0)
+        {
+            return;
+        }
+
+        await using var transaction = await _connection!.BeginTransactionAsync(cancellationToken);
+
+        const string sql = """
+                           INSERT OR REPLACE INTO markdown_embeddings
+                           (node_id, embedding)
+                           VALUES ($node_id, $embedding)
+                           """;
+
+        await using var command = _connection.CreateCommand();
+        command.CommandText = sql;
+        command.Transaction = (SqliteTransaction)transaction;
+
+        foreach (var (nodeId, embedding) in embeddingsList)
+        {
+            command.Parameters.Clear();
+            command.Parameters.AddWithValue("$node_id", nodeId);
+            command.Parameters.AddWithValue("$embedding", JsonSerializer.Serialize(embedding));
+            await command.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        await transaction.CommitAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<float[]?> GetEmbeddingAsync(string nodeId, CancellationToken cancellationToken = default)
+    {
+        EnsureInitialized();
+
+        const string sql = "SELECT embedding FROM markdown_embeddings WHERE node_id = $node_id";
+
+        await using var command = _connection!.CreateCommand();
+        command.CommandText = sql;
+        command.Parameters.AddWithValue("$node_id", nodeId);
+
+        var result = await command.ExecuteScalarAsync(cancellationToken);
+        if (result == null || result == DBNull.Value)
+        {
+            return null;
+        }
+
+        return JsonSerializer.Deserialize<float[]>((string)result);
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<(string NodeId, double Similarity)>> SearchSimilarEmbeddingsAsync(
+        float[] queryEmbedding,
+        int limit = 10,
+        double minSimilarity = 0.0,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureInitialized();
+
+        const string sql = "SELECT node_id, embedding FROM markdown_embeddings";
+
+        await using var command = _connection!.CreateCommand();
+        command.CommandText = sql;
+
+        var results = new List<(string NodeId, double Similarity)>();
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            var nodeId = reader.GetString(0);
+            var embeddingJson = reader.GetString(1);
+            var embedding = JsonSerializer.Deserialize<float[]>(embeddingJson);
+
+            if (embedding == null)
+            {
+                continue;
+            }
+
+            var similarity = CosineSimilarity(queryEmbedding, embedding);
+
+            if (similarity >= minSimilarity)
+            {
+                results.Add((nodeId, similarity));
+            }
+        }
+
+        return results
+            .OrderByDescending(r => r.Similarity)
+            .Take(limit)
+            .ToList();
+    }
+
+    /// <inheritdoc />
+    public async Task DeleteEmbeddingAsync(string nodeId, CancellationToken cancellationToken = default)
+    {
+        EnsureInitialized();
+
+        const string sql = "DELETE FROM markdown_embeddings WHERE node_id = $node_id";
+
+        await using var command = _connection!.CreateCommand();
+        command.CommandText = sql;
+        command.Parameters.AddWithValue("$node_id", nodeId);
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<int> GetEmbeddingCountAsync(CancellationToken cancellationToken = default)
+    {
+        EnsureInitialized();
+
+        await using var command = _connection!.CreateCommand();
+        command.CommandText = "SELECT COUNT(*) FROM markdown_embeddings";
+        var result = await command.ExecuteScalarAsync(cancellationToken);
+        return Convert.ToInt32(result);
+    }
+
+    private static double CosineSimilarity(float[] a, float[] b)
+    {
+        if (a.Length != b.Length)
+        {
+            throw new ArgumentException("Vectors must have the same length");
+        }
+
+        double dotProduct = 0;
+        double magnitudeA = 0;
+        double magnitudeB = 0;
+
+        for (int i = 0; i < a.Length; i++)
+        {
+            dotProduct += a[i] * b[i];
+            magnitudeA += a[i] * a[i];
+            magnitudeB += b[i] * b[i];
+        }
+
+        magnitudeA = Math.Sqrt(magnitudeA);
+        magnitudeB = Math.Sqrt(magnitudeB);
+
+        if (magnitudeA == 0 || magnitudeB == 0)
+        {
+            return 0;
+        }
+
+        return dotProduct / (magnitudeA * magnitudeB);
+    }
+
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
@@ -542,5 +712,13 @@ public sealed class SqliteGraphRepository : IGraphRepository
                                               CREATE INDEX IF NOT EXISTS idx_edges_kind ON edges(kind);
                                               CREATE INDEX IF NOT EXISTS idx_edges_source_kind ON edges(source_id, kind);
                                               CREATE INDEX IF NOT EXISTS idx_edges_target_kind ON edges(target_id, kind);
+
+                                              CREATE TABLE IF NOT EXISTS markdown_embeddings (
+                                                  node_id TEXT PRIMARY KEY,
+                                                  embedding TEXT NOT NULL,
+                                                  FOREIGN KEY (node_id) REFERENCES nodes(id) ON DELETE CASCADE
+                                              );
+
+                                              CREATE INDEX IF NOT EXISTS idx_markdown_embeddings_node ON markdown_embeddings(node_id);
                                               """;
 }

@@ -172,4 +172,57 @@ public interface IGraphRepository : IAsyncDisposable
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The number of edges.</returns>
     Task<int> GetEdgeCountAsync(CancellationToken cancellationToken = default);
+
+    // Embedding methods for vector search
+
+    /// <summary>
+    /// Saves an embedding for a node (typically a MarkdownSection node).
+    /// </summary>
+    /// <param name="nodeId">The node ID to associate the embedding with.</param>
+    /// <param name="embedding">The embedding vector.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task SaveEmbeddingAsync(string nodeId, float[] embedding, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Saves multiple embeddings in a batch.
+    /// </summary>
+    /// <param name="embeddings">The node ID to embedding vector mappings.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task SaveEmbeddingsAsync(IEnumerable<(string NodeId, float[] Embedding)> embeddings, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the embedding for a node.
+    /// </summary>
+    /// <param name="nodeId">The node ID.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The embedding vector if found, otherwise null.</returns>
+    Task<float[]?> GetEmbeddingAsync(string nodeId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Searches for nodes with similar embeddings using cosine similarity.
+    /// </summary>
+    /// <param name="queryEmbedding">The query embedding vector.</param>
+    /// <param name="limit">Maximum number of results.</param>
+    /// <param name="minSimilarity">Minimum similarity score (0.0 to 1.0).</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Node IDs with their similarity scores, ordered by similarity descending.</returns>
+    Task<IReadOnlyList<(string NodeId, double Similarity)>> SearchSimilarEmbeddingsAsync(
+        float[] queryEmbedding,
+        int limit = 10,
+        double minSimilarity = 0.0,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Deletes the embedding for a node.
+    /// </summary>
+    /// <param name="nodeId">The node ID.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task DeleteEmbeddingAsync(string nodeId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the count of stored embeddings.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The number of embeddings.</returns>
+    Task<int> GetEmbeddingCountAsync(CancellationToken cancellationToken = default);
 }

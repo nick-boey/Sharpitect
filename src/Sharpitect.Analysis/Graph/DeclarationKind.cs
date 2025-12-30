@@ -34,5 +34,21 @@ public enum DeclarationKind
     LocalFunction,
 
     // Comment markers
-    TodoComment
+    TodoComment,
+
+    // Markdown declarations
+    /// <summary>
+    /// A markdown document (.md file).
+    /// </summary>
+    MarkdownDocument,
+
+    /// <summary>
+    /// A heading in a markdown document (H1-H6).
+    /// </summary>
+    MarkdownHeading,
+
+    /// <summary>
+    /// A content section under a heading (used for chunking/embedding).
+    /// </summary>
+    MarkdownSection
 }

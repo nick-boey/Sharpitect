@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ModelContextProtocol.Server;
 using Sharpitect.Analysis.Persistence;
+using Sharpitect.Analysis.Search;
 using Sharpitect.MCP.Formatting;
 using Sharpitect.MCP.Services;
 
@@ -38,6 +39,13 @@ public static class McpServerHost
 
                 // Register the navigation service
                 services.AddSingleton<IGraphNavigationService, GraphNavigationService>();
+
+                // Register the document search service (without embedding service for now)
+                // Semantic search will be unavailable until embedding service is configured
+                services.AddSingleton<IDocumentSearchService>(sp =>
+                    new DocumentSearchService(
+                        sp.GetRequiredService<IGraphRepository>(),
+                        sp.GetService<IVectorSearchService>()));
 
                 // Register the output formatter factory
                 services.AddSingleton<IOutputFormatterFactory, OutputFormatterFactory>();

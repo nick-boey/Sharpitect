@@ -53,5 +53,10 @@ public enum RelationshipKind
     /// <summary>
     /// Using directive imports a namespace.
     /// </summary>
-    Imports
+    Imports,
+
+    /// <summary>
+    /// Markdown link to another document (standard link or Obsidian-style wikilink).
+    /// </summary>
+    LinksTo
 }
