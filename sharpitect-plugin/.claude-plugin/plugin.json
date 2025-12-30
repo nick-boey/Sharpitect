@@ -1,7 +1,7 @@
 {
   "name": "sharpitect",
   "description": "Sharpitect MCP server with skills for intelligent C# codebase navigation. Automatically prefers semantic analysis over text-based searching.",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "author": {
     "name": "Nick Boey"
   },
@@ -9,6 +9,5 @@
   "keywords": ["csharp", "dotnet", "architecture", "navigation", "code-analysis"],
   "license": "MIT",
   "skills": "./skills/",
-  "mcpServers": "./.mcp.json",
-  "install": "dotnet tool install -g sharpitect"
+  "mcpServers": "./.mcp.json"
 }
