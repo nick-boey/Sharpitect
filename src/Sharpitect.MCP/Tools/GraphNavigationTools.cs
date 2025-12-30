@@ -16,12 +16,32 @@ namespace Sharpitect.MCP.Tools;
 public static class GraphNavigationTools
 {
     /// <summary>
+    /// Checks if the graph is still being built and returns an error response if so.
+    /// </summary>
+    private static CallToolResult? CheckBuildingState(IGraphBuildingService buildingService, ToolResultBuilder resultBuilder)
+    {
+        if (buildingService.IsBuilding)
+        {
+            return resultBuilder.BuildError(ErrorResponse.GraphBuilding(buildingService.BuildStatus));
+        }
+
+        if (buildingService.HasFailed)
+        {
+            return resultBuilder.BuildError(ErrorResponse.BuildFailed(
+                buildingService.ErrorMessage ?? "Graph build failed with an unknown error."));
+        }
+
+        return null;
+    }
+
+    /// <summary>
     /// Searches for declarations by name with optional filters.
     /// </summary>
     [McpServerTool,
      Description("Search for declarations (classes, methods, properties) by name with optional filters.")]
     public static async Task<CallToolResult> SearchDeclarations(
         IGraphNavigationService navigationService,
+        IGraphBuildingService buildingService,
         ToolResultBuilder resultBuilder,
         [Description("Search text to match against declaration names")]
         string query,
@@ -34,6 +54,9 @@ public static class GraphNavigationTools
         [Description("Maximum number of results. Defaults to 50.")]
         int limit = 50)
     {
+        var buildError = CheckBuildingState(buildingService, resultBuilder);
+        if (buildError != null) return buildError;
+
         var matchModeEnum = ParseMatchMode(matchMode);
         var kindFilter = ParseKindFilter(kind);
 
@@ -53,12 +76,16 @@ public static class GraphNavigationTools
     [McpServerTool, Description("Get detailed information about a specific declaration node by name.")]
     public static async Task<CallToolResult> GetNode(
         IGraphNavigationService navigationService,
+        IGraphBuildingService buildingService,
         ToolResultBuilder resultBuilder,
         [Description("Fully qualified node name (e.g., Namespace.ClassName.MethodName)")]
         string name,
         [Description("Maximum number of similar nodes to suggest if not found. Defaults to 5.")]
         int suggestionLimit = 5)
     {
+        var buildError = CheckBuildingState(buildingService, resultBuilder);
+        if (buildError != null) return buildError;
+
         var result = await navigationService.GetNodeAsync(name);
         if (result == null)
         {
@@ -75,6 +102,7 @@ public static class GraphNavigationTools
     [McpServerTool, Description("Get the immediate children (contents) of a declaration.")]
     public static async Task<CallToolResult> GetChildren(
         IGraphNavigationService navigationService,
+        IGraphBuildingService buildingService,
         ToolResultBuilder resultBuilder,
         [Description("Parent node ID")] string id,
         [Description("Filter children by kind")]
@@ -82,6 +110,9 @@ public static class GraphNavigationTools
         [Description("Maximum number of results. Defaults to 100.")]
         int limit = 100)
     {
+        var buildError = CheckBuildingState(buildingService, resultBuilder);
+        if (buildError != null) return buildError;
+
         var kindFilter = kind != null ? ParseDeclarationKind(kind) : null;
 
         var result = await navigationService.GetChildrenAsync(id, kindFilter, limit);
@@ -99,9 +130,13 @@ public static class GraphNavigationTools
     [McpServerTool, Description("Get the containment hierarchy path from root to a node.")]
     public static async Task<CallToolResult> GetAncestors(
         IGraphNavigationService navigationService,
+        IGraphBuildingService buildingService,
         ToolResultBuilder resultBuilder,
         [Description("Node ID")] string id)
     {
+        var buildError = CheckBuildingState(buildingService, resultBuilder);
+        if (buildError != null) return buildError;
+
         var result = await navigationService.GetAncestorsAsync(id);
         if (result == null)
         {
@@ -117,6 +152,7 @@ public static class GraphNavigationTools
     [McpServerTool, Description("Get relationships for a node (what it calls, what calls it, inheritance, etc.).")]
     public static async Task<CallToolResult> GetRelationships(
         IGraphNavigationService navigationService,
+        IGraphBuildingService buildingService,
         ToolResultBuilder resultBuilder,
         [Description("Node ID")] string id,
         [Description("Direction: outgoing, incoming, or both. Defaults to both.")]
@@ -126,6 +162,9 @@ public static class GraphNavigationTools
         [Description("Maximum results per direction. Defaults to 50.")]
         int limit = 50)
     {
+        var buildError = CheckBuildingState(buildingService, resultBuilder);
+        if (buildError != null) return buildError;
+
         var directionEnum = ParseRelationshipDirection(direction);
         var kindFilter = relationshipKind != null ? ParseRelationshipKind(relationshipKind) : null;
 
@@ -144,6 +183,7 @@ public static class GraphNavigationTools
     [McpServerTool, Description("Get all methods/properties that call a specific method or property.")]
     public static async Task<CallToolResult> GetCallers(
         IGraphNavigationService navigationService,
+        IGraphBuildingService buildingService,
         ToolResultBuilder resultBuilder,
         [Description("Method or property ID")] string id,
         [Description("Traversal depth. Defaults to 1, max 5.")]
@@ -151,6 +191,9 @@ public static class GraphNavigationTools
         [Description("Maximum results. Defaults to 50.")]
         int limit = 50)
     {
+        var buildError = CheckBuildingState(buildingService, resultBuilder);
+        if (buildError != null) return buildError;
+
         var result = await navigationService.GetCallersAsync(id, depth, limit);
         if (result == null)
         {
@@ -166,6 +209,7 @@ public static class GraphNavigationTools
     [McpServerTool, Description("Get all methods/properties called by a specific method or property.")]
     public static async Task<CallToolResult> GetCallees(
         IGraphNavigationService navigationService,
+        IGraphBuildingService buildingService,
         ToolResultBuilder resultBuilder,
         [Description("Method or property ID")] string id,
         [Description("Traversal depth. Defaults to 1, max 5.")]
@@ -173,6 +217,9 @@ public static class GraphNavigationTools
         [Description("Maximum results. Defaults to 50.")]
         int limit = 50)
     {
+        var buildError = CheckBuildingState(buildingService, resultBuilder);
+        if (buildError != null) return buildError;
+
         var result = await navigationService.GetCalleesAsync(id, depth, limit);
         if (result == null)
         {
@@ -188,6 +235,7 @@ public static class GraphNavigationTools
     [McpServerTool, Description("Get the inheritance hierarchy for a class or interface.")]
     public static async Task<CallToolResult> GetInheritance(
         IGraphNavigationService navigationService,
+        IGraphBuildingService buildingService,
         ToolResultBuilder resultBuilder,
         [Description("Class or interface ID")] string id,
         [Description("Direction: ancestors (base types), descendants (derived types), or both. Defaults to both.")]
@@ -195,6 +243,9 @@ public static class GraphNavigationTools
         [Description("Traversal depth. Defaults to 10.")]
         int depth = 10)
     {
+        var buildError = CheckBuildingState(buildingService, resultBuilder);
+        if (buildError != null) return buildError;
+
         var directionEnum = ParseInheritanceDirection(direction);
 
         var result = await navigationService.GetInheritanceAsync(id, directionEnum, depth);
@@ -212,6 +263,7 @@ public static class GraphNavigationTools
     [McpServerTool, Description("List all declarations of a specific kind within a scope.")]
     public static async Task<CallToolResult> ListByKind(
         IGraphNavigationService navigationService,
+        IGraphBuildingService buildingService,
         ToolResultBuilder resultBuilder,
         [Description("Declaration kind: class, interface, enum, struct, method, property, namespace, project")]
         string kind,
@@ -220,6 +272,9 @@ public static class GraphNavigationTools
         [Description("Maximum results. Defaults to 100.")]
         int limit = 100)
     {
+        var buildError = CheckBuildingState(buildingService, resultBuilder);
+        if (buildError != null) return buildError;
+
         var kindEnum = ParseDeclarationKind(kind);
 
         if (kindEnum == null)
@@ -237,11 +292,15 @@ public static class GraphNavigationTools
     [McpServerTool, Description("Get project-level dependencies (what a project references).")]
     public static async Task<CallToolResult> GetDependencies(
         IGraphNavigationService navigationService,
+        IGraphBuildingService buildingService,
         ToolResultBuilder resultBuilder,
         [Description("Project ID")] string id,
         [Description("Include transitive dependencies. Defaults to false.")]
         bool includeTransitive = false)
     {
+        var buildError = CheckBuildingState(buildingService, resultBuilder);
+        if (buildError != null) return buildError;
+
         var result = await navigationService.GetDependenciesAsync(id, includeTransitive);
         if (result == null)
         {
@@ -257,11 +316,15 @@ public static class GraphNavigationTools
     [McpServerTool, Description("Get projects that depend on a given project.")]
     public static async Task<CallToolResult> GetDependents(
         IGraphNavigationService navigationService,
+        IGraphBuildingService buildingService,
         ToolResultBuilder resultBuilder,
         [Description("Project ID")] string id,
         [Description("Include transitive dependents. Defaults to false.")]
         bool includeTransitive = false)
     {
+        var buildError = CheckBuildingState(buildingService, resultBuilder);
+        if (buildError != null) return buildError;
+
         var result = await navigationService.GetDependentsAsync(id, includeTransitive);
         if (result == null)
         {
@@ -277,10 +340,14 @@ public static class GraphNavigationTools
     [McpServerTool, Description("Get all declarations defined in a specific source file.")]
     public static async Task<CallToolResult> GetFileDeclarations(
         IGraphNavigationService navigationService,
+        IGraphBuildingService buildingService,
         ToolResultBuilder resultBuilder,
         [Description("Source file path (relative or absolute)")]
         string filePath)
     {
+        var buildError = CheckBuildingState(buildingService, resultBuilder);
+        if (buildError != null) return buildError;
+
         var result = await navigationService.GetFileDeclarationsAsync(filePath);
         if (result == null)
         {
@@ -296,6 +363,7 @@ public static class GraphNavigationTools
     [McpServerTool, Description("Find all usages of a type, method, or property across the codebase.")]
     public static async Task<CallToolResult> GetUsages(
         IGraphNavigationService navigationService,
+        IGraphBuildingService buildingService,
         ToolResultBuilder resultBuilder,
         [Description("Declaration ID")] string id,
         [Description("Filter by usage kind: all, call, type_reference, inheritance, instantiation. Defaults to all.")]
@@ -303,6 +371,9 @@ public static class GraphNavigationTools
         [Description("Maximum results. Defaults to 100.")]
         int limit = 100)
     {
+        var buildError = CheckBuildingState(buildingService, resultBuilder);
+        if (buildError != null) return buildError;
+
         var usageKindFilter = ParseUsageKind(usageKind);
 
         var result = await navigationService.GetUsagesAsync(id, usageKindFilter, limit);
@@ -320,9 +391,13 @@ public static class GraphNavigationTools
     [McpServerTool, Description("Get the full signature and type information for a method, property, or type.")]
     public static async Task<CallToolResult> GetSignature(
         IGraphNavigationService navigationService,
+        IGraphBuildingService buildingService,
         ToolResultBuilder resultBuilder,
         [Description("Declaration ID")] string id)
     {
+        var buildError = CheckBuildingState(buildingService, resultBuilder);
+        if (buildError != null) return buildError;
+
         var result = await navigationService.GetSignatureAsync(id);
         if (result == null)
         {
@@ -338,9 +413,13 @@ public static class GraphNavigationTools
     [McpServerTool, Description("Get the source code for a declaration by reading from the source file.")]
     public static async Task<CallToolResult> GetCode(
         IGraphNavigationService navigationService,
+        IGraphBuildingService buildingService,
         ToolResultBuilder resultBuilder,
         [Description("Declaration ID")] string id)
     {
+        var buildError = CheckBuildingState(buildingService, resultBuilder);
+        if (buildError != null) return buildError;
+
         var result = await navigationService.GetCodeAsync(id);
         if (result == null)
         {
@@ -358,6 +437,7 @@ public static class GraphNavigationTools
          "Get the containment tree showing nested structure. If no root ID provided, shows from solution level.")]
     public static async Task<CallToolResult> GetTree(
         IGraphNavigationService navigationService,
+        IGraphBuildingService buildingService,
         ToolResultBuilder resultBuilder,
         [Description("Root node ID to start from. If omitted, starts from solution roots.")]
         string? rootId = null,
@@ -367,6 +447,9 @@ public static class GraphNavigationTools
         [Description("Maximum depth levels to display. Defaults to 2.")]
         int maxDepth = 2)
     {
+        var buildError = CheckBuildingState(buildingService, resultBuilder);
+        if (buildError != null) return buildError;
+
         var kindFilter = kind != null ? ParseDeclarationKind(kind) : null;
 
         var result = await navigationService.GetTreeAsync(rootId, kindFilter, maxDepth);

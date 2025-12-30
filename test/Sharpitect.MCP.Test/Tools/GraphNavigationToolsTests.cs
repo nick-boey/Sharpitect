@@ -13,12 +13,17 @@ namespace Sharpitect.MCP.Test.Tools;
 public class GraphNavigationToolsTests
 {
     private IGraphNavigationService _navigationService = null!;
+    private IGraphBuildingService _buildingService = null!;
     private ToolResultBuilder _resultBuilder = null!;
 
     [SetUp]
     public void SetUp()
     {
         _navigationService = Substitute.For<IGraphNavigationService>();
+        _buildingService = Substitute.For<IGraphBuildingService>();
+        _buildingService.IsBuilding.Returns(false);
+        _buildingService.IsComplete.Returns(true);
+        _buildingService.HasFailed.Returns(false);
         _resultBuilder = new ToolResultBuilder(new TextOutputFormatter());
     }
 
@@ -52,6 +57,7 @@ public class GraphNavigationToolsTests
 
         var result = await GraphNavigationTools.SearchDeclarations(
             _navigationService,
+            _buildingService,
             _resultBuilder,
             "Test");
 
@@ -79,6 +85,7 @@ public class GraphNavigationToolsTests
 
         await GraphNavigationTools.SearchDeclarations(
             _navigationService,
+            _buildingService,
             _resultBuilder,
             "Test",
             matchMode: "starts_with");
@@ -107,6 +114,7 @@ public class GraphNavigationToolsTests
 
         await GraphNavigationTools.SearchDeclarations(
             _navigationService,
+            _buildingService,
             _resultBuilder,
             "Test",
             kind: "class");
@@ -118,6 +126,23 @@ public class GraphNavigationToolsTests
             false,
             50,
             Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task SearchDeclarations_ReturnsError_WhenGraphIsBuilding()
+    {
+        _buildingService.IsBuilding.Returns(true);
+        _buildingService.BuildStatus.Returns("Analyzing solution...");
+
+        var result = await GraphNavigationTools.SearchDeclarations(
+            _navigationService,
+            _buildingService,
+            _resultBuilder,
+            "Test");
+
+        var textContent = GetTextContent(result);
+        Assert.That(textContent, Does.Contain("GRAPH_BUILDING"));
+        Assert.That(result.IsError, Is.True);
     }
 
     #endregion
@@ -134,6 +159,7 @@ public class GraphNavigationToolsTests
 
         var result = await GraphNavigationTools.GetNode(
             _navigationService,
+            _buildingService,
             _resultBuilder,
             "Namespace.TestClass");
 
@@ -151,6 +177,7 @@ public class GraphNavigationToolsTests
 
         var result = await GraphNavigationTools.GetNode(
             _navigationService,
+            _buildingService,
             _resultBuilder,
             "missing");
 
@@ -178,6 +205,7 @@ public class GraphNavigationToolsTests
 
         var result = await GraphNavigationTools.GetChildren(
             _navigationService,
+            _buildingService,
             _resultBuilder,
             "parent-id");
 
@@ -208,6 +236,7 @@ public class GraphNavigationToolsTests
 
         var result = await GraphNavigationTools.GetRelationships(
             _navigationService,
+            _buildingService,
             _resultBuilder,
             "class-id");
 
@@ -235,6 +264,7 @@ public class GraphNavigationToolsTests
 
         await GraphNavigationTools.GetRelationships(
             _navigationService,
+            _buildingService,
             _resultBuilder,
             "class-id",
             direction: "outgoing");
@@ -270,6 +300,7 @@ public class GraphNavigationToolsTests
 
         var result = await GraphNavigationTools.ListByKind(
             _navigationService,
+            _buildingService,
             _resultBuilder,
             "class");
 
@@ -283,6 +314,7 @@ public class GraphNavigationToolsTests
     {
         var result = await GraphNavigationTools.ListByKind(
             _navigationService,
+            _buildingService,
             _resultBuilder,
             "invalid_kind");
 
@@ -310,6 +342,7 @@ public class GraphNavigationToolsTests
 
         var result = await GraphNavigationTools.GetAncestors(
             _navigationService,
+            _buildingService,
             _resultBuilder,
             "method-id");
 
