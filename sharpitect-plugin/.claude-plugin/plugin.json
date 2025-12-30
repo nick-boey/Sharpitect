@@ -1,7 +1,7 @@
 {
   "name": "sharpitect",
   "description": "Sharpitect MCP server with skills for intelligent C# codebase navigation. Automatically prefers semantic analysis over text-based searching.",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "author": {
     "name": "Nick Boey"
   },
