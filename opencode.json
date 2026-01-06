@@ -1,0 +1,16 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "anthropic/claude-sonnet-4-5",
+  "permission": {
+    "edit": "allow",
+    "bash": "allow",
+    "write": "allow",
+    "read": "allow",
+    "webfetch": "allow"
+  },
+  "autoupdate": false,
+  "compaction": {
+    "auto": true,
+    "prune": true
+  }
+}
