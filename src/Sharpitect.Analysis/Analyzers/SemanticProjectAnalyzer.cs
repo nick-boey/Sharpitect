@@ -126,6 +126,22 @@ public sealed class SemanticProjectAnalyzer
             allEdges.AddRange(todoVisitor.ContainmentEdges);
         }
 
+        // Fourth pass: calculate code metrics
+        foreach (var document in project.Documents)
+        {
+            if (document.FilePath == null) continue;
+
+            var relativePath = PathHelper.ToRelativePath(document.FilePath, solutionRootDirectory);
+            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken);
+            var semanticModel = compilation.GetSemanticModel(syntaxTree!);
+
+            var metricsVisitor = new CodeMetricsVisitor(semanticModel, relativePath, symbolToNodeId);
+            metricsVisitor.Visit(await syntaxTree!.GetRootAsync(cancellationToken));
+
+            allNodes.AddRange(metricsVisitor.MetricsNodes);
+            allEdges.AddRange(metricsVisitor.ContainmentEdges);
+        }
+
         return new ProjectAnalysisResult
         {
             Nodes = allNodes,

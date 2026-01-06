@@ -34,5 +34,8 @@ public enum DeclarationKind
     LocalFunction,
 
     // Comment markers
-    TodoComment
+    TodoComment,
+
+    // Code analysis
+    CodeMetrics
 }
