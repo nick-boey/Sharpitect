@@ -1,6 +1,7 @@
 using System.CommandLine;
 using Sharpitect.Analysis.Analyzers;
 using Sharpitect.Analysis.Incremental;
+using Sharpitect.Analysis.Markdown;
 using Sharpitect.Analysis.Persistence;
 
 namespace Sharpitect.CLI.Commands;
@@ -37,16 +38,30 @@ public static class AnalysisCommands
         "Disable console logging (only log to file if --log-file is specified).",
         getDefaultValue: () => false);
 
+    private static readonly Option<bool> IndexMarkdownOption = new(
+        name: "--index-markdown",
+        description:
+        "Index markdown files for documentation graph and semantic search. Defaults to true.",
+        getDefaultValue: () => true);
+
+    private static readonly Option<bool> NoMarkdownOption = new(
+        name: "--no-markdown",
+        description:
+        "Disable markdown indexing.",
+        getDefaultValue: () => false);
+
     public static Command CreateAnalyzeCommand()
     {
         var command = new Command("analyze", "Analyze a .NET solution and build the declaration graph.")
         {
             PathArgument,
             OutputOption,
-            CleanOption
+            CleanOption,
+            IndexMarkdownOption,
+            NoMarkdownOption
         };
 
-        command.SetHandler(HandleAnalyzeCommand, PathArgument, OutputOption, CleanOption);
+        command.SetHandler(HandleAnalyzeCommand, PathArgument, OutputOption, CleanOption, IndexMarkdownOption, NoMarkdownOption);
         return command;
     }
 
@@ -75,7 +90,7 @@ public static class AnalysisCommands
         return command;
     }
 
-    private static async Task HandleAnalyzeCommand(string? path, string? outputPath, bool cleanOption)
+    private static async Task HandleAnalyzeCommand(string? path, string? outputPath, bool cleanOption, bool indexMarkdown, bool noMarkdown)
     {
         var solutionPath = ResolveSolutionPath(path);
         if (solutionPath == null)
@@ -94,8 +109,12 @@ public static class AnalysisCommands
             dbPath = Path.Combine(sharpitectDir, "graph.db");
         }
 
+        // Determine if markdown indexing is enabled (--no-markdown takes precedence)
+        var shouldIndexMarkdown = indexMarkdown && !noMarkdown;
+
         Console.WriteLine($"Analyzing solution: {solutionPath}");
         Console.WriteLine($"Output database: {dbPath}");
+        Console.WriteLine($"Index markdown: {shouldIndexMarkdown}");
 
         try
         {
@@ -111,9 +130,38 @@ public static class AnalysisCommands
             var graph = await analyzer.AnalyzeAsync(solutionPath);
 
             Console.WriteLine();
-            Console.WriteLine("Analysis complete:");
+            Console.WriteLine("C# Analysis complete:");
             Console.WriteLine($"  Nodes: {graph.NodeCount}");
             Console.WriteLine($"  Edges: {graph.EdgeCount}");
+
+            // Index markdown files if enabled
+            if (shouldIndexMarkdown)
+            {
+                Console.WriteLine();
+                Console.WriteLine("Indexing markdown files...");
+
+                var solutionDir = Path.GetDirectoryName(solutionPath)!;
+                var markdownAnalyzer = new MarkdownAnalyzer();
+                var markdownIndexer = new MarkdownIndexingService(repository, markdownAnalyzer);
+
+                var progress = new Progress<MarkdownIndexingProgress>(p =>
+                {
+                    if (!string.IsNullOrEmpty(p.CurrentFile))
+                    {
+                        Console.Write($"\r  Processing: {p.CurrentFile.PadRight(60)[..60]}");
+                    }
+                });
+
+                var markdownResult = await markdownIndexer.IndexAllAsync(solutionDir, progress);
+
+                Console.WriteLine();
+                Console.WriteLine("Markdown indexing complete:");
+                Console.WriteLine($"  Documents indexed: {markdownResult.DocumentsIndexed}");
+                Console.WriteLine($"  Documents skipped: {markdownResult.DocumentsSkipped}");
+                Console.WriteLine($"  Chunks created: {markdownResult.ChunksCreated}");
+                Console.WriteLine($"  Duration: {markdownResult.Duration.TotalSeconds:F2}s");
+            }
+
             Console.WriteLine();
             Console.WriteLine($"Graph saved to: {dbPath}");
         }

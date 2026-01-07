@@ -25,4 +25,8 @@ public sealed record ErrorResponse(
 
     public static ErrorResponse BuildFailed(string message) =>
         new(true, "BUILD_FAILED", message);
+
+    public static ErrorResponse SemanticSearchUnavailable() =>
+        new(true, "SEMANTIC_SEARCH_UNAVAILABLE",
+            "Semantic search is not available. The embedding service is not configured or embeddings have not been generated.");
 }
