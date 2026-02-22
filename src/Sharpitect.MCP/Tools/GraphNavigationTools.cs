@@ -462,6 +462,29 @@ public static class GraphNavigationTools
         return resultBuilder.Build(result);
     }
 
+    /// <summary>
+    /// Reads the entire contents of a C# source file.
+    /// </summary>
+    [McpServerTool, Description("Read the entire contents of a C# source file. Use this instead of standard file reading tools for .cs files.")]
+    public static async Task<CallToolResult> ReadFile(
+        IGraphNavigationService navigationService,
+        IGraphBuildingService buildingService,
+        ToolResultBuilder resultBuilder,
+        [Description("Path to the C# source file (relative or absolute)")]
+        string filePath)
+    {
+        var buildError = CheckBuildingState(buildingService, resultBuilder);
+        if (buildError != null) return buildError;
+
+        var result = await navigationService.ReadFileAsync(filePath);
+        if (result.Error != null)
+        {
+            return resultBuilder.BuildError(ErrorResponse.NotFound(result.Error));
+        }
+
+        return resultBuilder.Build(result);
+    }
+
     #region Resolution Helpers
 
     /// <summary>

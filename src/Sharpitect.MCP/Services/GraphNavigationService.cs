@@ -1045,4 +1045,52 @@ public sealed class GraphNavigationService(IGraphRepository repository) : IGraph
 
         return (null, 0);
     }
+
+    public Task<FileContentResult> ReadFileAsync(string filePath, CancellationToken cancellationToken = default)
+    {
+        // Resolve relative paths to absolute
+        var resolvedPath = Path.IsPathRooted(filePath)
+            ? filePath
+            : Path.GetFullPath(filePath);
+
+        // Check if file exists
+        if (!File.Exists(resolvedPath))
+        {
+            return Task.FromResult(new FileContentResult(
+                filePath,
+                null,
+                $"File not found: {resolvedPath}",
+                null));
+        }
+
+        // Validate that it's a C# file
+        if (!resolvedPath.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
+        {
+            return Task.FromResult(new FileContentResult(
+                filePath,
+                null,
+                "Only C# (.cs) files can be read with this tool.",
+                null));
+        }
+
+        try
+        {
+            var content = File.ReadAllText(resolvedPath);
+            var lineCount = content.Split('\n').Length;
+
+            return Task.FromResult(new FileContentResult(
+                resolvedPath,
+                content,
+                null,
+                lineCount));
+        }
+        catch (Exception ex)
+        {
+            return Task.FromResult(new FileContentResult(
+                filePath,
+                null,
+                $"Error reading file: {ex.Message}",
+                null));
+        }
+    }
 }

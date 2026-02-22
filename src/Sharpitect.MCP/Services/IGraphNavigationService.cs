@@ -152,6 +152,11 @@ public interface IGraphNavigationService
         DeclarationKind? kindFilter = null,
         int maxDepth = 2,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Reads the entire contents of a C# source file.
+    /// </summary>
+    Task<FileContentResult> ReadFileAsync(string filePath, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
