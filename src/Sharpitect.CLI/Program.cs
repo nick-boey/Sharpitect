@@ -14,6 +14,7 @@ var rootCommand = new RootCommand("Sharpitect - Analyze .NET codebases and build
     // Setup commands
     SetupCommands.CreateInstallCommand(),
     SetupCommands.CreateUninstallCommand(),
+    SetupCommands.CreatePrimeCommand(),
 
     // Navigation commands
     NavigationCommands.CreateSearchCommand(),
